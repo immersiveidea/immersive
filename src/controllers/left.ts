@@ -2,7 +2,6 @@ import {Quaternion, Vector3, WebXRInputSource} from "@babylonjs/core";
 import {Base} from "./base";
 
 export class Left extends Base {
-    private y90 = Quaternion.RotationAxis(Vector3.Right(), 1.5708);
     private x90 = Quaternion.RotationAxis(Vector3.Up(), 1.5708);
 
     constructor(controller:

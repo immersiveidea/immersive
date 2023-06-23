@@ -1,4 +1,4 @@
-import {Observable, PhysicsBody, Scene, Vector3, WebXRCamera, WebXRInputSource} from "@babylonjs/core";
+import {PhysicsBody, Vector3, WebXRCamera, WebXRInputSource} from "@babylonjs/core";
 
 export class Base {
     protected controller: WebXRInputSource;
@@ -19,5 +19,4 @@ export class Base {
     setStickVector(vector: Vector3) {
         this.stickVector = vector;
     }
-
 }
