@@ -1,9 +1,11 @@
 import { defineConfig } from "vite";
 import { pluginAPI } from "vite-plugin-api";
 
+
+
 export default defineConfig({
     server: {
-      port: 3000
+      port: 3001
     },
     plugins: [
         pluginAPI({

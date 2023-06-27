@@ -1,8 +1,10 @@
 import {Base} from "./base";
-import {Vector3, WebXRInputSource} from "@babylonjs/core";
+import {Mesh, Vector3, WebXRInputSource} from "@babylonjs/core";
+import {Bmenu} from "../menus/bmenu";
 
 export class Right extends Base {
-    private bmenu: any;
+    private bmenu: Bmenu;
+    private addMesh: Mesh;
     constructor(controller:
                     WebXRInputSource) {
         super(controller);
@@ -11,10 +13,11 @@ export class Right extends Base {
             if (init.components['b-button']) {
                 init.components['b-button'].onButtonStateChangedObservable.add((value)=>{
                    if (value.pressed) {
-
+                        this.bmenu.toggle();
                    }
                 });
             }
+
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
                     .onAxisValueChangedObservable.add((value) => {
@@ -38,7 +41,7 @@ export class Right extends Base {
 
         });
     }
-    public setBMenu(menu: any) {
+    public setBMenu(menu: Bmenu) {
         this.bmenu = menu;
     }
 
