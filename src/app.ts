@@ -3,17 +3,16 @@ import "@babylonjs/inspector";
 import {Auth0Client, createAuth0Client} from '@auth0/auth0-spa-js';
 
 import {
-    ActionManager, Angle,
-    ArcRotateCamera, Color3, CubeTexture,
+    ArcRotateCamera,
     Engine,
     HavokPlugin,
-    HemisphericLight, InterpolateValueAction,
-    Mesh,
-    MeshBuilder, PBRMetallicRoughnessMaterial,
-    PhotoDome,
+    HemisphericLight,
+    MeshBuilder,
+    PBRMetallicRoughnessMaterial,
     PhysicsAggregate,
-    PhysicsShapeType, Plane, Quaternion,
-    Scene, StandardMaterial, Texture,
+    PhysicsShapeType,
+    Scene,
+    Texture,
     Vector3,
     WebXRDefaultExperience
 } from "@babylonjs/core";
@@ -23,20 +22,18 @@ import {Left} from "./controllers/left";
 import {Bmenu} from "./menus/bmenu";
 import HavokPhysics from "@babylonjs/havok";
 import {Rigplatform} from "./controllers/rigplatform";
-import {ObjectEditor} from "./menus/objectEditor";
-import {RingCamera} from "./server/ring/ringCamera";
-import {AdvancedDynamicTexture, Image} from "@babylonjs/gui";
 import {Cameras} from "./integration/ring/cameras";
-import {Gmap} from "./util/gmap";
 import {Mapt} from "./util/mapt";
-
 
 
 class App {
     //preTasks = [havokModule];
     private auth0: Auth0Client;
-    constructor(auth0: Auth0Client) {
+    private token: string;
+
+    constructor(auth0: Auth0Client, token: string) {
         this.auth0 = auth0;
+        this.token = token;
 
 
         const canvas = document.createElement("canvas");
@@ -53,7 +50,7 @@ class App {
         const scene = new Scene(engine);
         const havokInstance = await HavokPhysics();
         const havokPlugin = new HavokPlugin(true, havokInstance);
-        scene.enablePhysics(new Vector3(0 , -9.8, 0), havokPlugin);
+        scene.enablePhysics(new Vector3(0, -9.8, 0), havokPlugin);
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2,
             new Vector3(0, 1.6, 0), scene);
         camera.attachControl(canvas, true);
@@ -67,8 +64,10 @@ class App {
             './outdoor_field.jpeg', {},
             scene);
 */
-        const xr = await WebXRDefaultExperience.CreateAsync(scene, {floorMeshes: [this.createGround(scene)],
-            optionalFeatures: true});
+        const xr = await WebXRDefaultExperience.CreateAsync(scene, {
+            floorMeshes: [this.createGround(scene)],
+            optionalFeatures: true
+        });
         xr.baseExperience.camera.parent = rig.rigMesh;
         const b = new Bmenu(scene, rig, xr.baseExperience);
         //const box = MeshBuilder.CreateBox("box", {size: 1}, scene);
@@ -88,8 +87,8 @@ class App {
 
         //const edit = new ObjectEditor(scene, box);
         //const edit = new ObjectEditor(scene, box);
-        const ring = new Cameras(scene);
-        ring.getCameras().then(()=> ring.createCameras());
+        const ring = new Cameras(scene, this.token);
+        ring.getCameras().then(() => ring.createCameras());
 
         const stickVector = Vector3.Zero();
         xr.input.onControllerAddedObservable.add((source, state) => {
@@ -139,14 +138,15 @@ class App {
             scene.render();
         });
     }
+
     createGround(scene) {
         const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", scene);
         const gText = new Texture("./grass1.jpeg", scene);
-        gText.uScale =40;
-        gText.vScale=40;
+        gText.uScale = 40;
+        gText.vScale = 40;
         groundMaterial.baseTexture = gText;
-        groundMaterial.metallic =0;
-        groundMaterial.roughness=1;
+        groundMaterial.metallic = 0;
+        groundMaterial.roughness = 1;
         const ground = MeshBuilder.CreateGround("ground", {width: 100, height: 100, subdivisions: 1}, scene);
 
         ground.material = groundMaterial;
@@ -157,17 +157,21 @@ class App {
 }
 
 createAuth0Client({
-           domain: import.meta.env.VITE_AUTH0_DOMAIN,
-           clientId: import.meta.env.VITE_AUTH0_CLIENTID,
-           authorizationParams: {
-               redirect_uri: 'https://cameras.immersiveidea.com/'
-           }
-       }).then(async (auth0)=> {
+    domain: import.meta.env.VITE_AUTH0_DOMAIN,
+    clientId: import.meta.env.VITE_AUTH0_CLIENTID,
+    authorizationParams: {
+        redirect_uri: 'https://cameras.immersiveidea.com/'
+    }
+}).then(async (auth0) => {
     try {
         const query = window.location.search;
         if (query.includes("code=") && query.includes("state=")) {
-            await auth0.handleRedirectCallback();
-            window.location.href = 'https://cameras.immersiveidea.com';
+            console.log(query);
+            const token = await auth0.handleRedirectCallback();
+
+
+            history.pushState({token: token}, "", "/");
+
         }
 
         const isAuthentic = await auth0.isAuthenticated();
@@ -175,7 +179,8 @@ createAuth0Client({
             await auth0.loginWithRedirect();
         } else {
             const token = await auth0.getTokenSilently();
-            new App(auth0);
+
+            new App(auth0, token);
         }
 
 

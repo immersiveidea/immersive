@@ -22,6 +22,7 @@ export class Right extends Base {
                 init.components['xr-standard-thumbstick']
                     .onAxisValueChangedObservable.add((value) => {
                     const ray = this.camera.getForwardRay();
+
                     if (Math.abs(value.x) > .1) {
                         this.body.setAngularVelocity(Vector3.Up().scale(value.x));
                     } else {

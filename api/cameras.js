@@ -1,6 +1,6 @@
 import {RingCamera} from "../server/ring/ringCamera";
 
-export const GET = async (req, res) => {
+async (req, res) => {
     const cams = new RingCamera();
     const list = await  cams.getCameras();
 
@@ -14,6 +14,4 @@ export const GET = async (req, res) => {
         res.contentType('application/json');
         res.send(data);
     }
-
-
 }

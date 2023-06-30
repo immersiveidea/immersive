@@ -3,13 +3,16 @@ import axios from "axios";
 
 export class Cameras {
     private scene: Scene;
+    private token: string;
     private cameras;
-    constructor(scene: Scene) {
+    constructor(scene: Scene, token: string) {
         this.scene = scene;
+        this.token = token;
     }
     public async getCameras() {
 
-        const cameras = await axios.get('/api/cameras',{});
+        const cameras = await axios.get('https://local.immersiveidea.com/api/cameras',
+            {headers: {'Authorization': 'Bearer ' + this.token}});
         this.cameras = cameras;
         console.log(cameras);
     }
@@ -25,7 +28,7 @@ export class Cameras {
 
             const plane = MeshBuilder.CreatePlane("plane", {width: 1.6, height:.9}, this.scene);
             const materialPlane = new StandardMaterial("texturePlane", this.scene);
-            materialPlane.diffuseTexture = new Texture("/api/cameras?id=" + id, this.scene);
+            materialPlane.diffuseTexture = new Texture("https://local.immersiveidea.com/api/cameras?id=" + id, this.scene);
             materialPlane.specularColor = new Color3(0, 0, 0);
             materialPlane.backFaceCulling = false;//Allways show the front and the back of an element
             plane.material = materialPlane;
