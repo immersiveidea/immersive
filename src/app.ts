@@ -1,6 +1,5 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import {Auth0Client, createAuth0Client} from '@auth0/auth0-spa-js';
 
 import {
     ArcRotateCamera,
@@ -28,14 +27,10 @@ import {Mapt} from "./util/mapt";
 
 class App {
     //preTasks = [havokModule];
-    private auth0: Auth0Client;
+
     private token: string;
 
-    constructor(auth0: Auth0Client, token: string) {
-        this.auth0 = auth0;
-        this.token = token;
-
-
+    constructor() {
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -45,7 +40,7 @@ class App {
     }
 
     async initialize(canvas) {
-        console.log(await this.auth0.getUser());
+
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
         const havokInstance = await HavokPhysics();
@@ -152,41 +147,7 @@ class App {
         ground.material = groundMaterial;
         const groundAggregate = new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, scene);
         return ground;
-
     }
 }
-
-createAuth0Client({
-    domain: import.meta.env.VITE_AUTH0_DOMAIN,
-    clientId: import.meta.env.VITE_AUTH0_CLIENTID,
-    authorizationParams: {
-        redirect_uri: 'https://cameras.immersiveidea.com/'
-    }
-}).then(async (auth0) => {
-    try {
-        const query = window.location.search;
-        if (query.includes("code=") && query.includes("state=")) {
-            console.log(query);
-            const token = await auth0.handleRedirectCallback();
-
-
-            history.pushState({token: token}, "", "/");
-
-        }
-
-        const isAuthentic = await auth0.isAuthenticated();
-        if (!isAuthentic) {
-            await auth0.loginWithRedirect();
-        } else {
-            const token = await auth0.getTokenSilently();
-
-            new App(auth0, token);
-        }
-
-
-    } catch (error) {
-        console.log(error);
-    }
-});
-
+const app = new App();
 

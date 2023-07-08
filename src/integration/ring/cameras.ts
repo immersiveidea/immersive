@@ -5,14 +5,14 @@ export class Cameras {
     private scene: Scene;
     private token: string;
     private cameras;
+    private cameratextures = new Array<Texture>();
     constructor(scene: Scene, token: string) {
         this.scene = scene;
         this.token = token;
     }
     public async getCameras() {
 
-        const cameras = await axios.get('https://local.immersiveidea.com/api/cameras',
-            {headers: {'Authorization': 'Bearer ' + this.token}});
+        const cameras = await axios.get('https://local.immersiveidea.com/api/cameras');
         this.cameras = cameras;
         console.log(cameras);
     }
@@ -25,17 +25,21 @@ export class Cameras {
         this.createCamera( 55870327, 5);
     }
     public createCamera(id, index) {
-
-            const plane = MeshBuilder.CreatePlane("plane", {width: 1.6, height:.9}, this.scene);
+            const width = 1.6;
+            const height = .9
+            const plane = MeshBuilder.CreatePlane("plane", {width: width, height: height}, this.scene);
             const materialPlane = new StandardMaterial("texturePlane", this.scene);
+            const imageText = new Texture("https://local.immersiveidea.com/api/cameras?id=" + id, this.scene);
+
             materialPlane.diffuseTexture = new Texture("https://local.immersiveidea.com/api/cameras?id=" + id, this.scene);
             materialPlane.specularColor = new Color3(0, 0, 0);
             materialPlane.backFaceCulling = false;//Allways show the front and the back of an element
             plane.material = materialPlane;
             plane.rotation.y = Angle.FromDegrees(180).radians();
-            plane.position.y = 1.5;
-            plane.position.z = -5;
-            plane.position.x = (1.6*3) - (index * 1.6);
+            plane.position.y = height/2 + .2;
+            plane.position.z = -3;
+            plane.position.x = (width*3) - (index * width);
+            this.cameratextures.push(imageText);
 
     }
 }

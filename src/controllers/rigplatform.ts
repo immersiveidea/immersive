@@ -2,7 +2,7 @@ import {
     Color3,
     Mesh,
     MeshBuilder,
-    PhysicsAggregate, PhysicsBody,
+    PhysicsAggregate, PhysicsBody, PhysicsMotionType,
     PhysicsShapeType, Quaternion,
     Scene,
     StandardMaterial,
@@ -31,7 +31,7 @@ export class Rigplatform {
                 PhysicsShapeType.CYLINDER,
                 { friction: 1, center: Vector3.Zero(), radius: .5, mass: .1, restitution: .1},
                 scene);
-
+        rigAggregate.body.setMotionType(PhysicsMotionType.ANIMATED);
         rigAggregate.body.setGravityFactor(0);
         this.#fixRotation();
         this.body = rigAggregate.body;
