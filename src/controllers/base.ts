@@ -1,10 +1,10 @@
 import {PhysicsBody, Vector3, WebXRCamera, WebXRInputSource} from "@babylonjs/core";
+import {Rigplatform} from "./rigplatform";
 
 export class Base {
+    static stickVector = Vector3.Zero();
     protected controller: WebXRInputSource;
-    protected stickVector: Vector3;
-    protected body: PhysicsBody;
-    protected camera: WebXRCamera;
+    protected rig: Rigplatform;
     protected speedFactor = 4;
 
     constructor(controller:
@@ -12,24 +12,17 @@ export class Base {
         this.controller = controller;
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-trigger']) {
-                init.components['xr-standard-trigger'].onButtonStateChangedObservable.add((value) => {
-                    if (value.value == 1) {
-                        console.log(value);
-                    }
+                init.components['xr-standard-trigger']
+                    .onButtonStateChangedObservable
+                    .add((value) => {
+                        if (value.value == 1) {
+                            console.log(value);
+                        }
                 });
             }
         });
     }
-
-    setRig(body: PhysicsBody) {
-        this.body = body;
-    }
-
-    setCamera(camera: WebXRCamera) {
-        this.camera = camera;
-    }
-
-    setStickVector(vector: Vector3) {
-        this.stickVector = vector;
+    setRig(rig: Rigplatform) {
+        this.rig = rig;
     }
 }

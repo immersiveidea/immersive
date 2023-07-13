@@ -1,15 +1,37 @@
 import {Base} from "./base";
-import {Mesh, Vector3, WebXRInputSource} from "@babylonjs/core";
-import {Bmenu} from "../menus/bmenu";
+import {Vector3, WebXRInputSource} from "@babylonjs/core";
+import {Bmenu, BmenuState} from "../menus/bmenu";
+import {DiagramEvent, DiagramEventType, DiagramManager} from "../diagram/diagramManager";
 
 export class Right extends Base {
     private bmenu: Bmenu;
-    private addMesh: Mesh;
+    private down: boolean = false;
+
     constructor(controller:
                     WebXRInputSource) {
         super(controller);
-
         this.controller.onMotionControllerInitObservable.add((init)=> {
+            const trigger = init.components['xr-standard-trigger'];
+            if (trigger) {
+                trigger
+                    .onButtonStateChangedObservable
+                    .add((value) => {
+                        if (value.value > .4 && !this.down) {
+                            this.down = true;
+                            if (this.bmenu.getState() == BmenuState.ADDING) {
+                                this.bmenu.setState(BmenuState.DROPPING);
+                                const event: DiagramEvent = {
+                                    type: DiagramEventType.DROP,
+                                    entity: null
+                                }
+                                DiagramManager.onDiagramEventObservable.notifyObservers(event);
+                            }
+                        }
+                        if (value.value < .05) {
+                            this.down = false;
+                        }
+                });
+            }
             if (init.components['b-button']) {
                 init.components['b-button'].onButtonStateChangedObservable.add((value)=>{
                    if (value.pressed) {
@@ -21,29 +43,29 @@ export class Right extends Base {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
                     .onAxisValueChangedObservable.add((value) => {
-                    const ray = this.camera.getForwardRay();
-
                     if (Math.abs(value.x) > .1) {
-                        this.body.setAngularVelocity(Vector3.Up().scale(value.x));
+                        this.rig.turn(value.x);
                     } else {
-                        this.body.setAngularVelocity(Vector3.Zero());
+                        this.rig.turn(0);
                     }
+
                     if (Math.abs(value.y) > .1) {
-                        this.body.setLinearVelocity(ray.direction.scale(value.y*-1*this.speedFactor));
-                        this.stickVector.z = 1;
+                        this.rig.forwardback(value.y*this.speedFactor);
+                        Base.stickVector.z = 1;
                     } else {
-                        this.stickVector.z = 0;
+                        Base.stickVector.z = 0;
                     }
-                    if (this.stickVector.equals(Vector3.Zero())) {
-                        this.body.setLinearVelocity(Vector3.Zero());
+                    if (Base.stickVector.equals(Vector3.Zero())) {
+                        this.rig.forwardback(0);
                     }
                 });
             }
-
         });
     }
+
     public setBMenu(menu: Bmenu) {
         this.bmenu = menu;
+        this.bmenu.setController(this.controller);
     }
 
 }

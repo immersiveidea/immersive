@@ -24,7 +24,8 @@
     "google-static-maps-tile": "1.0.0",
     "query-string": "^8.1.0",
     "vite-express": "^0.9.1",
-    "express-http-proxy": "^1.6.3"
+    "express-http-proxy": "^1.6.3",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "typescript": "^5.0.2",
