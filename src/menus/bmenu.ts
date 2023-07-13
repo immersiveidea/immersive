@@ -9,7 +9,7 @@ import {
     WebXRExperienceHelper,
     WebXRInputSource
 } from "@babylonjs/core";
-import {GUI3DManager, HolographicButton, PlanePanel} from "@babylonjs/gui";
+import {Button3D, GUI3DManager, HolographicButton, PlanePanel, TextBlock} from "@babylonjs/gui";
 import {DiagramEntity, DiagramEvent, DiagramEventType, DiagramManager} from "../diagram/diagramManager";
 
 export enum BmenuState {
@@ -31,6 +31,7 @@ export class Bmenu {
     constructor(scene: Scene, xr: WebXRExperienceHelper) {
         this.scene = scene;
         this.manager = new GUI3DManager(scene);
+
         this.xr = xr;
         DiagramManager.onDiagramEventObservable.add((event: DiagramEvent) => {
             if (event.type === DiagramEventType.DROPPED) {
@@ -67,22 +68,19 @@ export class Bmenu {
         } else {
             const anchor = new TransformNode("bMenuAnchor");
             anchor.rotation.y = Angle.FromDegrees(180).radians();
-            const cam = this.xr.camera.getFrontPosition(2);
+            const cam = this.xr.camera.getFrontPosition(1);
             anchor.position = cam;
             const panel = new PlanePanel();
-            panel.margin = .6;
-            //panel.scaling.y=.5;
-            //panel.orientation = Container3D.FACEFORWARDREVERSED_ORIENTATION;
-
-            panel.columns = 5;
+            panel.margin = .06;
             this.manager.addControl(panel);
             panel.linkToTransformNode(anchor);
-            //panel.position.z = 2;
-            //panel.position.y = 4;
-
             panel.addControl(this.makeButton("Add Box", "addBox"));
             panel.addControl(this.makeButton("Add Sphere", "addSphere"));
             panel.addControl(this.makeButton("Add Cylinder", "addCylinder"));
+            panel.addControl(this.makeButton("Done Adding", "doneAdding"));
+            for (const control of panel.children) {
+                control.scaling = new Vector3(.1, .1, .1);
+            }
             this.panel = panel;
         }
 
