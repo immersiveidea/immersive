@@ -10,7 +10,7 @@ export class Right extends Base {
     constructor(controller:
                     WebXRInputSource) {
         super(controller);
-        this.controller.onMotionControllerInitObservable.add((init)=> {
+        this.controller.onMotionControllerInitObservable.add((init) => {
             const trigger = init.components['xr-standard-trigger'];
             if (trigger) {
                 trigger
@@ -30,13 +30,13 @@ export class Right extends Base {
                         if (value.value < .05) {
                             this.down = false;
                         }
-                });
+                    });
             }
             if (init.components['b-button']) {
-                init.components['b-button'].onButtonStateChangedObservable.add((value)=>{
-                   if (value.pressed) {
+                init.components['b-button'].onButtonStateChangedObservable.add((value) => {
+                    if (value.pressed) {
                         this.bmenu.toggle();
-                   }
+                    }
                 });
             }
 
@@ -50,7 +50,7 @@ export class Right extends Base {
                     }
 
                     if (Math.abs(value.y) > .1) {
-                        this.rig.forwardback(value.y*this.speedFactor);
+                        this.rig.forwardback(value.y * this.speedFactor);
                         Base.stickVector.z = 1;
                     } else {
                         Base.stickVector.z = 0;

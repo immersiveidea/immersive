@@ -16,10 +16,7 @@ import {
     Vector3,
     WebXRDefaultExperience
 } from "@babylonjs/core";
-import {Right} from "./controllers/right";
-import {Left} from "./controllers/left";
 ///import {havokModule} from "./util/havok";
-import {Bmenu} from "./menus/bmenu";
 import HavokPhysics from "@babylonjs/havok";
 import {Rigplatform} from "./controllers/rigplatform";
 

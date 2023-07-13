@@ -1,22 +1,24 @@
 import {Angle, Color3, MeshBuilder, Scene, StandardMaterial, Texture} from "@babylonjs/core";
 import googleStaticMapsTile from "google-static-maps-tile";
+
 export class Gmap {
     private scene: Scene;
 
     constructor(scene: Scene) {
         this.scene = scene;
     }
+
     public async createMapTiles(lat, lon) {
         googleStaticMapsTile({
             areaSize: '2560x2560',
             center: '26.443397,-82.111512',
             zoom: 12,
             imagePerLoad: 50,
-            durationBetweenLoads: 60*1000+100,
+            durationBetweenLoads: 60 * 1000 + 100,
             key: 'AIzaSyD4jJCYcIvHDEiOkVxC2c4zNYRqZKYHMMk',
             maptype: 'satellite'
         })
-            .on('progress', function(info) {
+            .on('progress', function (info) {
                 console.log(info.count);
                 console.log(info.total);
                 const image = info.image;
@@ -27,11 +29,12 @@ export class Gmap {
                 document.body.appendChild(image);
             });
     }
+
     public createMap(lat, lon) {
         //const lat = 42.3369513;
         //const lon = -88.8707076;
 
-        const plane = MeshBuilder.CreatePlane("plane", {width: 1, height:1}, this.scene);
+        const plane = MeshBuilder.CreatePlane("plane", {width: 1, height: 1}, this.scene);
         const materialPlane = new StandardMaterial("texturePlane", this.scene);
         const zoom = 10;
 

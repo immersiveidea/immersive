@@ -20,15 +20,15 @@ import {Bmenu} from "../menus/bmenu";
 export class Rigplatform {
     static LINEAR_VELOCITY = 4;
     static ANGULAR_VELOCITY = 3;
-    public bMenu: Bmenu;
     static x90 = Quaternion.RotationAxis(Vector3.Up(), 1.5708);
-    private camera: Camera;
-    private scene: Scene;
-    private xr: WebXRDefaultExperience;
+    public bMenu: Bmenu;
     public right: Right;
     public left: Left;
     public body: PhysicsBody;
     public rigMesh: Mesh;
+    private camera: Camera;
+    private scene: Scene;
+    private xr: WebXRDefaultExperience;
     private turning: boolean = false;
 
     constructor(scene: Scene, xr: WebXRDefaultExperience) {
@@ -65,31 +65,6 @@ export class Rigplatform {
             this.camera = s.activeCamera;
             this.camera.parent = this.rigMesh;
             console.log('camera changed');
-        });
-    }
-
-    #initializeControllers() {
-        this.xr.input.onControllerAddedObservable.add((source, state) => {
-            let controller;
-            switch (source.inputSource.handedness) {
-                case "right":
-                    controller = new Right(source);
-                    this.right = controller;
-                    controller.setBMenu(this.bMenu);
-                    break;
-                case "left":
-                    controller = new Left(source);
-                    this.left = controller;
-                    break;
-
-            }
-            this.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
-            if (controller) {
-                controller.setRig(this);
-            }
-
-            console.log(source);
-            console.log(state);
         });
     }
 
@@ -141,6 +116,31 @@ export class Rigplatform {
             }
         }
 
+    }
+
+    #initializeControllers() {
+        this.xr.input.onControllerAddedObservable.add((source, state) => {
+            let controller;
+            switch (source.inputSource.handedness) {
+                case "right":
+                    controller = new Right(source);
+                    this.right = controller;
+                    controller.setBMenu(this.bMenu);
+                    break;
+                case "left":
+                    controller = new Left(source);
+                    this.left = controller;
+                    break;
+
+            }
+            this.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
+            if (controller) {
+                controller.setRig(this);
+            }
+
+            console.log(source);
+            console.log(state);
+        });
     }
 
     //create a method to set the camera to the rig

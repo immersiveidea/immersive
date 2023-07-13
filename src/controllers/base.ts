@@ -1,4 +1,4 @@
-import {PhysicsBody, Vector3, WebXRCamera, WebXRInputSource} from "@babylonjs/core";
+import {Vector3, WebXRInputSource} from "@babylonjs/core";
 import {Rigplatform} from "./rigplatform";
 
 export class Base {
@@ -18,10 +18,11 @@ export class Base {
                         if (value.value == 1) {
                             console.log(value);
                         }
-                });
+                    });
             }
         });
     }
+
     setRig(rig: Rigplatform) {
         this.rig = rig;
     }

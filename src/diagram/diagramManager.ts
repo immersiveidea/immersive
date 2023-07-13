@@ -12,6 +12,7 @@ export enum DiagramEventType {
 
 
 }
+
 export type DiagramEvent = {
     type: DiagramEventType;
     menustate?: BmenuState;
@@ -30,6 +31,7 @@ export type DiagramEntity = {
     scale?: Vector3;
     parent?: string;
 }
+
 export class DiagramManager {
     static onDiagramEventObservable = new Observable();
     static leftController: Mesh;
@@ -46,6 +48,7 @@ export class DiagramManager {
             DiagramManager.onDiagramEventObservable.add(this.#onDiagramEvent, -1, true, this);
         }
     }
+
     #onDiagramEvent(event: DiagramEvent) {
         console.log(event);
         const entity = event.entity;
@@ -55,10 +58,10 @@ export class DiagramManager {
         let material
         if (entity) {
             mesh = this.scene.getMeshByName(entity.id);
-            material = this.scene.getMaterialByName("material-"+entity.id);
-            if (!material){
-                material = new StandardMaterial("material-"+event.entity.id, this.scene);
-                material.ambientColor = Color3.FromHexString(event.entity.color.replace("#",""));
+            material = this.scene.getMaterialByName("material-" + entity.id);
+            if (!material) {
+                material = new StandardMaterial("material-" + event.entity.id, this.scene);
+                material.ambientColor = Color3.FromHexString(event.entity.color.replace("#", ""));
             }
         }
 
@@ -71,10 +74,17 @@ export class DiagramManager {
                     const newMesh = DiagramManager.currentMesh.clone(DiagramManager.currentMesh.name = "id" + uuidv4(), DiagramManager.currentMesh.parent);
                     DiagramManager.currentMesh.setParent(null);
                     DiagramManager.currentMesh = newMesh;
-                    DiagramManager.onDiagramEventObservable.notifyObservers({type: DiagramEventType.DROPPED, entity: entity});
+                    DiagramManager.onDiagramEventObservable.notifyObservers({
+                        type: DiagramEventType.DROPPED,
+                        entity: entity
+                    });
                 }
                 break;
             case DiagramEventType.ADD:
+                if (DiagramManager.currentMesh){
+                    DiagramManager.currentMesh.dispose();
+                }
+
                 if (mesh) {
                     return;
                 } else {
@@ -82,6 +92,7 @@ export class DiagramManager {
                     if (!mesh) {
                         return;
                     }
+
                 }
 
             case DiagramEventType.MODIFY:
@@ -109,6 +120,7 @@ export class DiagramManager {
         }
 
     }
+
     #createMesh(entity: DiagramEntity) {
         if (!entity.id) {
             entity.id = "id" + uuidv4();
@@ -116,21 +128,26 @@ export class DiagramManager {
         let mesh: Mesh;
         switch (entity.template) {
             case "#box-template":
-                mesh = MeshBuilder.CreateBox(   entity.id,
-                    {width: entity.scale.x,
+                mesh = MeshBuilder.CreateBox(entity.id,
+                    {
+                        width: entity.scale.x,
                         height: entity.scale.y,
-                        depth: entity.scale.z}, this.scene);
+                        depth: entity.scale.z
+                    }, this.scene);
                 break;
 
-                case "#sphere-template":
+            case "#sphere-template":
 
-                    mesh= MeshBuilder.CreateSphere(entity.id, {diameter: entity.scale.x}, this.scene);
-                    break
-                case "#cylinder-template":
-                    mesh= MeshBuilder.CreateCylinder(entity.id, {diameter: entity.scale.x, height: entity.scale.y}, this.scene);
-                    break;
-                default:
-                    mesh = null;
+                mesh = MeshBuilder.CreateSphere(entity.id, {diameter: entity.scale.x}, this.scene);
+                break
+            case "#cylinder-template":
+                mesh = MeshBuilder.CreateCylinder(entity.id, {
+                    diameter: entity.scale.x,
+                    height: entity.scale.y
+                }, this.scene);
+                break;
+            default:
+                mesh = null;
         }
         return mesh;
     }

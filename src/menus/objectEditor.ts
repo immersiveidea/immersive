@@ -5,11 +5,13 @@ export class ObjectEditor {
     private scene;
     private editor: Mesh;
     private mesh;
+
     constructor(scene, mesh) {
-        this.scene=scene;
+        this.scene = scene;
         this.mesh = mesh;
         this.edit();
     }
+
     public edit() {
         this.editor = Mesh.CreatePlane("editor", 2, this.scene);
         this.editor.position.z = -2;
@@ -20,8 +22,8 @@ export class ObjectEditor {
 
         panel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT;
         panel.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-        panel.width='100%';
-        panel.height='100%';
+        panel.width = '100%';
+        panel.height = '100%';
         texture.addControl(panel);
         const x = this.createControl();
 
@@ -29,14 +31,14 @@ export class ObjectEditor {
         const z = this.createControl()
         const myMesh = this.mesh;
         z.value = myMesh.scaling.z;
-        z.onValueChangedObservable.add((value)=> {
+        z.onValueChangedObservable.add((value) => {
             myMesh.scaling.z = value;
         });
-        y.onValueChangedObservable.add((value)=> {
+        y.onValueChangedObservable.add((value) => {
             myMesh.scaling.y = value;
         });
         y.value = myMesh.scaling.x;
-        x.onValueChangedObservable.add((value)=> {
+        x.onValueChangedObservable.add((value) => {
             myMesh.scaling.x = value;
         });
         x.value = myMesh.scaling.x;
@@ -47,22 +49,24 @@ export class ObjectEditor {
         button1.height = '20px';
         button1.background = "#FFF";
         panel.addControl(button1);
-        button1.onPointerClickObservable.add(()=> {
+        button1.onPointerClickObservable.add(() => {
             this.close();
         }, -1, false, this);
     }
+
     createControl(): Slider {
         const slider = new Slider();
         slider.minimum = .1
         slider.maximum = 10;
         slider.height = '40px';
-        slider.step =.1
+        slider.step = .1
         return slider;
     }
+
     close() {
         this.editor.dispose();
-        this.mesh=null;
-        this.scene=null;
+        this.mesh = null;
+        this.scene = null;
     }
 
 }

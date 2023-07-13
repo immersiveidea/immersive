@@ -1,10 +1,13 @@
 import * as maptilerClient from '@maptiler/client';
 import {Angle, Color3, MeshBuilder, Scene, StandardMaterial, Texture} from "@babylonjs/core";
+
 export class Mapt {
     private scene: Scene;
+
     constructor(scene: Scene) {
         this.scene = scene;
     }
+
     buildMapImage() {
         const apiKey = '073I3Pfe4lzoSf8tNriR';
         maptilerClient.config.apiKey = apiKey;
@@ -12,9 +15,9 @@ export class Mapt {
         const link = maptilerClient.staticMaps.centered(
             [-88.8711198, 42.3370588],
             14,
-            {width:2048, height:2048, style: 'streets-v2'}
+            {width: 2048, height: 2048, style: 'streets-v2'}
         );
-        const plane = MeshBuilder.CreatePlane("plane", {width: 10, height:10}, this.scene);
+        const plane = MeshBuilder.CreatePlane("plane", {width: 10, height: 10}, this.scene);
         const materialPlane = new StandardMaterial("texturePlane", this.scene);
         const zoom = 10;
         const sphere = MeshBuilder.CreateSphere("cams", {diameter: .1}, this.scene);

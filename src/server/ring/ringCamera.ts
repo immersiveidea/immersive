@@ -11,11 +11,12 @@ export class RingCamera {
         });
         this.ringApi = ringApi;
     }
+
     public async getCameras() {
         const cams = await this.ringApi.getCameras();
         console.log(cams[0]);
 
-        const camid = cams.map((value ) => value.id);
+        const camid = cams.map((value) => value.id);
         console.log(camid);
         return cams;
     }

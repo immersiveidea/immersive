@@ -13,13 +13,13 @@ export class Left extends Base {
                     .onAxisValueChangedObservable.add((value) => {
 
                     if (Math.abs(value.x) > .1) {
-                        this.rig.leftright(value.x*this.speedFactor);
+                        this.rig.leftright(value.x * this.speedFactor);
                         Base.stickVector.x = 1;
                     } else {
                         Base.stickVector.x = 0;
                     }
                     if (Math.abs(value.y) > .1) {
-                        this.rig.updown(value.y*this.speedFactor);
+                        this.rig.updown(value.y * this.speedFactor);
                         Base.stickVector.y = 1;
                     } else {
                         Base.stickVector.y = 0;
