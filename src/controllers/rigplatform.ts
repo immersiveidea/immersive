@@ -1,4 +1,5 @@
 import {
+    Angle,
     Camera,
     Color3,
     Mesh,
@@ -8,7 +9,7 @@ import {
     PhysicsMotionType,
     PhysicsShapeType,
     Quaternion,
-    Scene,
+    Scene, Space,
     StandardMaterial,
     Vector3,
     WebXRDefaultExperience
@@ -22,6 +23,7 @@ export class Rigplatform {
     static ANGULAR_VELOCITY = 3;
     static x90 = Quaternion.RotationAxis(Vector3.Up(), 1.5708);
     public bMenu: Bmenu;
+    private yRotation: number = 0;
     public right: Right;
     public left: Left;
     public body: PhysicsBody;
@@ -57,6 +59,7 @@ export class Rigplatform {
                 scene);
         rigAggregate.body.setMotionType(PhysicsMotionType.ANIMATED);
         rigAggregate.body.setGravityFactor(0);
+
         this.#fixRotation();
         this.body = rigAggregate.body;
         this.#setupKeyboard();
@@ -100,12 +103,15 @@ export class Rigplatform {
         const snap = true;
         if (snap) {
             if (!this.turning) {
-                this.turning = true;
-                const q = this.rigMesh.rotation.y += Math.abs(val) * 22.5;
+                if (Math.abs(val) > .1) {
+                    this.turning = true;
+                    this.yRotation += Angle.FromDegrees(Math.sign(val) * 22.5).radians();
+                }
 
             } else {
-                if (val < .1) {
+                if (Math.abs(val) < .1) {
                     this.turning = false;
+
                 }
             }
         } else {
@@ -192,6 +198,7 @@ export class Rigplatform {
         this.scene.registerBeforeRender(() => {
             const q = this.rigMesh.rotationQuaternion;
             const e = q.toEulerAngles();
+            e.y += this.yRotation;
             q.copyFrom(Quaternion.FromEulerAngles(0, e.y, 0));
         });
     }

@@ -9,7 +9,7 @@ import {
     WebXRExperienceHelper,
     WebXRInputSource
 } from "@babylonjs/core";
-import {Button3D, GUI3DManager, HolographicButton, PlanePanel, TextBlock} from "@babylonjs/gui";
+import {GUI3DManager, HolographicButton, PlanePanel} from "@babylonjs/gui";
 import {DiagramEntity, DiagramEvent, DiagramEventType, DiagramManager} from "../diagram/diagramManager";
 
 export enum BmenuState {
@@ -69,6 +69,7 @@ export class Bmenu {
             const anchor = new TransformNode("bMenuAnchor");
             anchor.rotation.y = Angle.FromDegrees(180).radians();
             const cam = this.xr.camera.getFrontPosition(1);
+            cam.y = cam.y - .5;
             anchor.position = cam;
             const panel = new PlanePanel();
             panel.margin = .06;
@@ -112,8 +113,7 @@ export class Bmenu {
                 entity.template = "#cylinder-template";
                 break;
             case "doneAdding":
-                this.state=BmenuState.NONE;
-
+                this.state = BmenuState.NONE;
                 break;
             default:
                 console.log("Unknown button");
@@ -128,7 +128,6 @@ export class Bmenu {
     }
 
     #createDefaultMaterial() {
-
         const myMaterial = new StandardMaterial("myMaterial", this.scene);
         myMaterial.diffuseColor = Color3.FromHexString("#CEE");
         return myMaterial;

@@ -60,12 +60,14 @@ class App {
 
         const xr = await WebXRDefaultExperience.CreateAsync(scene, {
             floorMeshes: [this.createGround(scene)],
+            disableTeleportation: true,
             optionalFeatures: true
+
         });
         const rig = new Rigplatform(scene, xr);
         //const ring = new Cameras(scene, this.token);
         //ring.getCameras().then(() => ring.createCameras());
-        xr.teleportation.detach();
+        //xr.teleportation.detach();
 
         // hide/show the Inspector
         window.addEventListener("keydown", (ev) => {
@@ -81,6 +83,7 @@ class App {
 
         engine.runRenderLoop(() => {
             scene.render();
+
         });
     }
 
@@ -102,4 +105,5 @@ class App {
 }
 
 const app = new App();
+
 
