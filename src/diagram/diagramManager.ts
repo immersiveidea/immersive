@@ -38,7 +38,7 @@ export class DiagramManager {
     static currentMesh: AbstractMesh;
     static rightController: Mesh;
     static state: BmenuState;
-    private scene: Scene;
+    private readonly scene: Scene;
 
     constructor(scene: Scene) {
         this.scene = scene;

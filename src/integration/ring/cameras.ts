@@ -2,7 +2,7 @@ import {Angle, Color3, MeshBuilder, Scene, StandardMaterial, Texture} from "@bab
 import axios from "axios";
 
 export class Cameras {
-    private scene: Scene;
+    private readonly scene: Scene;
     private token: string;
     private cameras;
     private cameratextures = new Array<Texture>();
@@ -37,7 +37,7 @@ export class Cameras {
 
         materialPlane.diffuseTexture = new Texture("https://local.immersiveidea.com/api/cameras?id=" + id, this.scene);
         materialPlane.specularColor = new Color3(0, 0, 0);
-        materialPlane.backFaceCulling = false;//Allways show the front and the back of an element
+        materialPlane.backFaceCulling = false;
         plane.material = materialPlane;
         plane.rotation.y = Angle.FromDegrees(180).radians();
         plane.position.y = height / 2 + .2;

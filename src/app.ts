@@ -34,7 +34,9 @@ class App {
         canvas.style.height = "100%";
         canvas.id = "gameCanvas";
         document.body.appendChild(canvas);
-        this.initialize(canvas);
+        this.initialize(canvas).then(()=>{
+            console.log('Scene Initialized');
+        });
     }
 
     async initialize(canvas) {

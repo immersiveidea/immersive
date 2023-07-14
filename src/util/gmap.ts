@@ -2,7 +2,7 @@ import {Angle, Color3, MeshBuilder, Scene, StandardMaterial, Texture} from "@bab
 import googleStaticMapsTile from "google-static-maps-tile";
 
 export class Gmap {
-    private scene: Scene;
+    private readonly scene: Scene;
 
     constructor(scene: Scene) {
         this.scene = scene;

@@ -9,7 +9,7 @@ import {
     PhysicsMotionType,
     PhysicsShapeType,
     Quaternion,
-    Scene, Space,
+    Scene,
     StandardMaterial,
     Vector3,
     WebXRDefaultExperience

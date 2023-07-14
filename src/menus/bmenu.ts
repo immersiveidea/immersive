@@ -20,7 +20,7 @@ export enum BmenuState {
 }
 
 export class Bmenu {
-    private scene;
+    private readonly scene;
     private state: BmenuState = BmenuState.NONE;
 
     private xr;

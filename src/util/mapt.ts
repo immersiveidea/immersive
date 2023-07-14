@@ -2,7 +2,7 @@ import * as maptilerClient from '@maptiler/client';
 import {Angle, Color3, MeshBuilder, Scene, StandardMaterial, Texture} from "@babylonjs/core";
 
 export class Mapt {
-    private scene: Scene;
+    private readonly scene: Scene;
 
     constructor(scene: Scene) {
         this.scene = scene;
