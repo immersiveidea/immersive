@@ -103,14 +103,14 @@ export class Right extends Base {
             Controllers.controllerObserver.notifyObservers({type: 'turn', value: 0});
         }
         if (Math.abs(value.y) > .1) {
-            Controllers.controllerObserver.notifyObservers({type: 'forwardback', value: value.y * this.speedFactor});
+            Controllers.controllerObserver.notifyObservers({type: 'updown', value: value.y * this.speedFactor});
             Base.stickVector.z = 1;
         } else {
-            Controllers.controllerObserver.notifyObservers({type: 'forwardback', value: 0});
+            Controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
             Base.stickVector.z = 0;
         }
         if (Base.stickVector.equals(Vector3.Zero())) {
-            Controllers.controllerObserver.notifyObservers({type: 'forwardback', value: 0});
+            Controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
         }
     }
 

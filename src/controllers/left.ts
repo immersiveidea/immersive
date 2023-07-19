@@ -50,7 +50,7 @@ export class Left extends Base {
             Base.stickVector.x = 0;
         }
         if (Math.abs(value.y) > .1) {
-            Controllers.controllerObserver.notifyObservers({type: 'updown', value: value.y * this.speedFactor});
+            Controllers.controllerObserver.notifyObservers({type: 'forwardback', value: value.y * this.speedFactor});
             Base.stickVector.y = 1;
         } else {
             Base.stickVector.y = 0;
@@ -58,7 +58,7 @@ export class Left extends Base {
 
         if (Base.stickVector.equals(Vector3.Zero())) {
             Controllers.controllerObserver.notifyObservers({type: 'leftright', value: 0});
-            Controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
+            Controllers.controllerObserver.notifyObservers({type: 'forwardback', value: 0});
         } else {
 
         }
