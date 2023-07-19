@@ -1,12 +1,12 @@
 import {
     AbstractMesh,
-    Angle,
-    Color3,
+    Color3, DynamicTexture,
     Mesh,
     MeshBuilder,
-    Observable, Scene,
+    Observable,
+    Scene,
     StandardMaterial,
-    Vector3, WebXRExperienceHelper
+    WebXRExperienceHelper
 } from "@babylonjs/core";
 import {v4 as uuidv4} from 'uuid';
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./diagramEntity";
@@ -15,7 +15,7 @@ import {PersistenceManager} from "./persistenceManager";
 export class DiagramManager {
     private persistenceManager: PersistenceManager = new PersistenceManager();
     static onDiagramEventObservable = new Observable();
-    private scene: Scene;
+    private readonly scene: Scene;
     private xr: WebXRExperienceHelper;
     static currentMesh: AbstractMesh;
 
@@ -33,11 +33,16 @@ export class DiagramManager {
             DiagramManager.onDiagramEventObservable.add(this.#onDiagramEvent, -1, true, this);
         }
     }
+
+
     #onRemoteEvent(event: DiagramEntity) {
         const mesh = this.#createMesh(event);
-        const material = new StandardMaterial("material-" + event.id, this.scene);
-        material.diffuseColor = Color3.FromHexString(event.color);
-        mesh.material = material;
+        if (!mesh.material) {
+            const material = new StandardMaterial("material-" + event.id, this.scene);
+            material.diffuseColor = Color3.FromHexString(event.color);
+            mesh.material = material;
+        }
+
     }
 
     #onDiagramEvent(event: DiagramEvent) {
@@ -53,8 +58,10 @@ export class DiagramManager {
 
         switch (event.type) {
             case DiagramEventType.CLEAR:
-                DiagramManager.currentMesh.dispose();
-                DiagramManager.currentMesh = null;
+                if (DiagramManager.currentMesh) {
+                    DiagramManager.currentMesh.dispose();
+                    DiagramManager.currentMesh = null;
+                }
                 break;
             case DiagramEventType.DROPPED:
                 break;
@@ -62,10 +69,11 @@ export class DiagramManager {
                 if (DiagramManager.currentMesh) {
                     this.persistenceManager.add(DiagramManager.currentMesh);
                     const newName = uuidv4();
-                    const newMesh = DiagramManager.currentMesh.clone("id"+newName, DiagramManager.currentMesh.parent);
-                    const newMaterial = DiagramManager.currentMesh.material.clone("material"+newName);
-                    newMesh.material=newMaterial;
+                    const newMesh = DiagramManager.currentMesh.clone("id" + newName, DiagramManager.currentMesh.parent);
+
+                    newMesh.material = DiagramManager.currentMesh.material.clone("material" + newName);
                     DiagramManager.currentMesh.setParent(null);
+                    //DiagramManager.currentMesh.billboardMode = Mesh.BILLBOARDMODE_Y;
                     DiagramManager.currentMesh = newMesh;
                     DiagramManager.onDiagramEventObservable.notifyObservers({
                         type: DiagramEventType.DROPPED,
@@ -82,9 +90,6 @@ export class DiagramManager {
                 } else {
                     mesh = this.#createMesh(entity);
                     if (!material) {
-                        material = new StandardMaterial("material-" + event.entity.id, this.scene);
-                        material.diffuseColor = Color3.FromHexString(event.entity.color);
-                        mesh.material = material;
 
                     }
                     if (!mesh) {
@@ -98,11 +103,6 @@ export class DiagramManager {
 
                 } else {
                     if (!material) {
-                        material = new StandardMaterial("material-" + event.entity.id, this.scene);
-                        material.diffuseColor = Color3.FromHexString(event.entity.color);
-                        if (mesh) {
-                            mesh.material = material;
-                        }
 
                     }
                     mesh.material = material;
@@ -127,6 +127,42 @@ export class DiagramManager {
         }
         let mesh: Mesh;
         switch (entity.template) {
+            case "#plane-template":
+
+            case "#text-template":
+
+                const material = new StandardMaterial("material-" + entity.id, this.scene);
+                material.backFaceCulling = false;
+                const font_size = 48;
+                const font = "bold 48px roboto";
+                const planeHeight=1;
+                const DTHeight = 1.5*font_size;
+                const ratio = planeHeight / DTHeight;
+                const text = 'This is some text to put on a plane';
+                const tempText = new DynamicTexture("dynamic texture", 64, this.scene);
+                const tempContext = tempText.getContext();
+                tempContext.font = font;
+                const DTWidth = tempContext.measureText(text).width;
+                const planeWidth = DTWidth * ratio;
+
+
+                const myDynamicTexture = new DynamicTexture("dynamic texture",
+                    {width: DTWidth, height: DTHeight},
+                    this.scene, false);
+                mesh= MeshBuilder.CreatePlane(entity.id, {
+                    width: planeWidth,
+                    height: planeHeight
+                }, this.scene);
+
+                myDynamicTexture.drawText('This is some short text',
+                    null, null,
+
+                    font, "#000000", "#FFFFFF",
+                    true, true);
+                material.diffuseTexture = myDynamicTexture;
+                mesh.material = material;
+
+                break;
             case "#box-template":
                 mesh = MeshBuilder.CreateBox(entity.id,
                     {
@@ -150,7 +186,9 @@ export class DiagramManager {
         }
         if (mesh) {
             mesh.metadata = {template: entity.template};
-
+            if (entity.text) {
+                mesh.metadata.text = entity.text;
+            }
             if (entity.position) {
                 mesh.position = entity.position;
             }
@@ -162,6 +200,11 @@ export class DiagramManager {
             }
             if (entity.scale) {
                 mesh.scaling = entity.scale;
+            }
+            if (!mesh.material) {
+                const material = new StandardMaterial("material-" + entity.id, this.scene);
+                material.diffuseColor = Color3.FromHexString(entity.color);
+                mesh.material = material;
             }
         }
 

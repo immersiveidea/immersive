@@ -43,7 +43,7 @@ export class Rigplatform {
         this.bMenu = new Bmenu(scene, xr.baseExperience);
         this.camera = scene.activeCamera;
         this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
-        const hud = new Hud(this.rigMesh, scene);
+        new Hud(this.rigMesh, scene);
         for (const cam of scene.cameras) {
             cam.parent = this.rigMesh;
             cam.position = new Vector3(0, 1.6, 0);
@@ -72,6 +72,7 @@ export class Rigplatform {
             this.camera = s.activeCamera;
             this.camera.parent = this.rigMesh;
         });
+
     }
 
     public forwardback(val: number) {
@@ -129,7 +130,7 @@ export class Rigplatform {
             let controller;
             switch (source.inputSource.handedness) {
                 case "right":
-                    Right.instance = new Right(source);
+                    Right.instance = new Right(source, this.scene);
                     Right.instance.setBMenu(this.bMenu);
                     Controllers.controllerObserver.add((event: { type: string, value: number }) => {
                         switch (event.type) {
@@ -154,7 +155,7 @@ export class Rigplatform {
                     });
                     break;
                 case "left":
-                    Left.instance = new Left(source);
+                    Left.instance = new Left(source, this.scene);
                     break;
 
             }
@@ -175,13 +176,13 @@ export class Rigplatform {
         window.addEventListener("keydown", (ev) => {
             switch (ev.key) {
                 case "w":
-                    this.forwardback(1 * Rigplatform.LINEAR_VELOCITY);
+                    this.forwardback(Rigplatform.LINEAR_VELOCITY);
                     break;
                 case "s":
                     this.forwardback(-1 * Rigplatform.LINEAR_VELOCITY);
                     break;
                 case "a":
-                    this.leftright(1 * Rigplatform.LINEAR_VELOCITY);
+                    this.leftright(Rigplatform.LINEAR_VELOCITY);
                     break;
                 case "d":
                     this.leftright(-1 * Rigplatform.LINEAR_VELOCITY);
@@ -190,13 +191,13 @@ export class Rigplatform {
                     this.turn(-1 * Rigplatform.ANGULAR_VELOCITY);
                     break;
                 case "e":
-                    this.turn(1 * Rigplatform.ANGULAR_VELOCITY);
+                    this.turn(Rigplatform.ANGULAR_VELOCITY);
                     break;
                 case "W":
                     this.updown(-1 * Rigplatform.LINEAR_VELOCITY);
                     break;
                 case "S":
-                    this.updown(1 * Rigplatform.LINEAR_VELOCITY);
+                    this.updown(Rigplatform.LINEAR_VELOCITY);
                     break;
                 case " ":
                     this.bMenu.toggle(this.rigMesh)

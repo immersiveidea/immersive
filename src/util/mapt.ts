@@ -9,8 +9,8 @@ export class Mapt {
     }
 
     buildMapImage() {
-        const apiKey = '073I3Pfe4lzoSf8tNriR';
-        maptilerClient.config.apiKey = apiKey;
+
+        maptilerClient.config.apiKey = '073I3Pfe4lzoSf8tNriR';
 
         const link = maptilerClient.staticMaps.centered(
             [-88.8711198, 42.3370588],
@@ -19,7 +19,6 @@ export class Mapt {
         );
         const plane = MeshBuilder.CreatePlane("plane", {width: 10, height: 10}, this.scene);
         const materialPlane = new StandardMaterial("texturePlane", this.scene);
-        const zoom = 10;
         const sphere = MeshBuilder.CreateSphere("cams", {diameter: .1}, this.scene);
         sphere.position.y = 0.2;
         sphere.position.z = -5;

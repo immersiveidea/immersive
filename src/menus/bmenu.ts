@@ -1,8 +1,6 @@
 import {
     AbstractMesh,
-    Color3,
     Scene,
-    StandardMaterial,
     Vector3,
     WebXRExperienceHelper,
     WebXRInputSource
@@ -16,7 +14,7 @@ import {DiagramEntity, DiagramEvent, DiagramEventType} from "../diagram/diagramE
 export class Bmenu {
     private state: BmenuState = BmenuState.NONE;
     private manager: GUI3DManager;
-    private scene: Scene;
+    private readonly scene: Scene;
 
     private rightController: AbstractMesh;
     private xr: WebXRExperienceHelper;
@@ -52,6 +50,7 @@ export class Bmenu {
     public setState(state: BmenuState) {
         this.state = state;
     }
+
     toggle(mesh: AbstractMesh) {
         console.log(mesh.name);
         if (this.manager) {
@@ -64,13 +63,13 @@ export class Bmenu {
             const follower = panel.defaultBehavior.followBehavior;
             follower.maxViewHorizontalDegrees = 45;
             follower.useFixedVerticalOffset = true;
-            follower.fixedVerticalOffset =  1;
+            follower.fixedVerticalOffset = 1;
             follower.defaultDistance = 2;
             follower.maximumDistance = 3;
             follower.minimumDistance = 1;
 
             panel.backPlateMargin = .01;
-            panel.scaling= new Vector3(.5, .5, .1);
+            panel.scaling = new Vector3(.5, .5, .1);
             panel.margin = .01;
             //panel.scaling.x = .5;
             //panel.scaling.y = .5;
@@ -79,6 +78,7 @@ export class Bmenu {
             panel.addButton(this.makeButton("Add Box", "addBox"));
             panel.addButton(this.makeButton("Add Sphere", "addSphere"));
             panel.addButton(this.makeButton("Add Cylinder", "addCylinder"));
+            panel.addButton(this.makeButton("Add Text", "addText"));
             panel.addButton(this.makeButton("Done Adding", "doneAdding"));
             this.manager.controlScaling = .5;
 
@@ -91,11 +91,11 @@ export class Bmenu {
         const id = this?.rightController?.id || null;
         let entity: DiagramEntity = {
             template: null,
-            position: new Vector3(-.01, -.1, .14),
+            position: new Vector3(-0.02, -.090, .13),
             rotation: new Vector3(76.04, 0, 0),
             scale: new Vector3(.1, .1, .1),
             color: "#CC0000",
-            text: "test",
+            text: "text",
             last_seen: new Date(),
             parent: id
         };
@@ -111,6 +111,10 @@ export class Bmenu {
                 break;
             case "addCylinder":
                 entity.template = "#cylinder-template";
+                this.state = BmenuState.ADDING;
+                break;
+            case "addText":
+                entity.template = "#text-template";
                 this.state = BmenuState.ADDING;
                 break;
             case "doneAdding":
@@ -133,14 +137,5 @@ export class Bmenu {
             }
             DiagramManager.onDiagramEventObservable.notifyObservers(event);
         }
-
-
-
-    }
-
-    #createDefaultMaterial() {
-        const myMaterial = new StandardMaterial("myMaterial",  this.scene);
-        myMaterial.diffuseColor = Color3.FromHexString("#CEE");
-        return myMaterial;
     }
 }

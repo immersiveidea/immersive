@@ -4,12 +4,12 @@ export class RingCamera {
     private ringApi: RingApi;
 
     constructor() {
-        const ringApi = new RingApi({
+        this.ringApi =  new RingApi({
             refreshToken: process.env.RING_TOKEN,
             cameraStatusPollingSeconds: 30,
             debug: true
         });
-        this.ringApi = ringApi;
+
     }
 
     public async getCameras() {

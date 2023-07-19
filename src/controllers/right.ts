@@ -1,12 +1,10 @@
 import {Base} from "./base";
-import {Angle, Observable,  Vector3, WebXRControllerComponent, WebXRInputSource} from "@babylonjs/core";
+import {Angle, Scene, Vector3, WebXRControllerComponent, WebXRInputSource} from "@babylonjs/core";
 import {Bmenu} from "../menus/bmenu";
 import {DiagramManager} from "../diagram/diagramManager";
 import {ControllerMovementMode, Controllers} from "./controllers";
 import {BmenuState} from "../menus/MenuState";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
-
-
 
 export class Right extends Base {
     private bmenu: Bmenu;
@@ -14,6 +12,19 @@ export class Right extends Base {
 
     private down: boolean = false;
 
+    constructor(controller:
+                    WebXRInputSource, scene: Scene) {
+        super(controller, scene);
+        Right.instance = this;
+        this.controller.onMotionControllerInitObservable.add((init) => {
+            this.initTrigger(init.components['xr-standard-trigger']);
+            this.initBButton(init.components['b-button']);
+            this.initAButton(init.components['a-button']);
+            this.initThumbstick(init.components['xr-standard-thumbstick']);
+            this.initGrip(init.components['xr-standard-squeeze']);
+
+        });
+    }
     private initBButton(bbutton: WebXRControllerComponent) {
         if (bbutton) {
             bbutton.onButtonStateChangedObservable.add((value) => {
@@ -103,23 +114,16 @@ export class Right extends Base {
         }
     }
 
-    constructor(controller:
-                    WebXRInputSource) {
-        super(controller);
-        Right.instance = this;
-        this.controller.onMotionControllerInitObservable.add((init) => {
-            this.initTrigger(init.components['xr-standard-trigger']);
-            this.initBButton(init.components['b-button']);
-            this.initAButton(init.components['a-button']);
-            this.initThumbstick(init.components['xr-standard-thumbstick']);
-            this.initGrip(init.components['xr-standard-squeeze']);
-        });
-    }
+
     private initGrip(grip: WebXRControllerComponent) {
         grip.onButtonStateChangedObservable.add((value) => {
             if (value.value > .5) {
-                if (this.controller.pointer.collider.collidedMesh) {
-                    console.log(this.controller.pointer.collider.collidedMesh.id);
+                if (this.currentMesh) {
+                    this.currentMesh.setParent(this.controller.pointer);
+                }
+            } else {
+                if (this.currentMesh) {
+                    this.currentMesh.setParent(null);
                 }
             }
 
@@ -133,12 +137,12 @@ export class Right extends Base {
     private rotateMovable(value: { x: number; y: number }) {
         if (Math.abs(value.y) > .1) {
             Controllers.movable.rotation.x +=
-                Angle.FromDegrees(Math.sign(value.y) * 1).radians();
+                Angle.FromDegrees(Math.sign(value.y)).radians();
             Controllers.movable.rotation.x = this.fixRadians(Controllers.movable.rotation.x);
         }
         if (Math.abs(value.x) > .1) {
             Controllers.movable.rotation.z +=
-                Angle.FromDegrees(Math.sign(value.x) * 1).radians();
+                Angle.FromDegrees(Math.sign(value.x)).radians();
             Controllers.movable.rotation.z = this.fixRadians(Controllers.movable.rotation.z);
         }
     }

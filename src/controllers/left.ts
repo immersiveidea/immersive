@@ -1,4 +1,4 @@
-import {Vector3, WebXRInputSource} from "@babylonjs/core";
+import {Scene, Vector3, WebXRInputSource} from "@babylonjs/core";
 import {Base} from "./base";
 import {Controllers} from "./controllers";
 
@@ -7,8 +7,9 @@ export class Left extends Base {
     public static instance: Left;
 
     constructor(controller:
-                    WebXRInputSource) {
-        super(controller);
+                    WebXRInputSource, scene: Scene) {
+
+        super(controller, scene);
 
         Left.instance = this;
         this.controller.onMotionControllerInitObservable.add((init) => {

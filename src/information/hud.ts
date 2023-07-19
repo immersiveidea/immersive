@@ -5,7 +5,7 @@ import {Controllers} from "../controllers/controllers";
 export class Hud {
     private scene: Scene;
     private parent: AbstractMesh;
-    private hudPlane: AbstractMesh;
+    private readonly hudPlane: AbstractMesh;
     constructor(parent: AbstractMesh, scene: Scene) {
         this.scene = scene;
         this.parent = parent;
