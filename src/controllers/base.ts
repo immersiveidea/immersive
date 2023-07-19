@@ -1,10 +1,8 @@
 import {Vector3, WebXRInputSource} from "@babylonjs/core";
-import {Rigplatform} from "./rigplatform";
 
 export class Base {
     static stickVector = Vector3.Zero();
     protected controller: WebXRInputSource;
-    protected rig: Rigplatform;
     protected speedFactor = 4;
 
     constructor(controller:
@@ -22,8 +20,7 @@ export class Base {
             }
         });
     }
-
-    setRig(rig: Rigplatform) {
-        this.rig = rig;
+    public mesh() {
+        return this.controller.grip;
     }
 }

@@ -17,33 +17,36 @@ import {
 import {Right} from "./right";
 import {Left} from "./left";
 import {Bmenu} from "../menus/bmenu";
+import {Hud} from "../information/hud";
+import {Controllers} from "./controllers";
+
 
 export class Rigplatform {
     static LINEAR_VELOCITY = 4;
     static ANGULAR_VELOCITY = 3;
     static x90 = Quaternion.RotationAxis(Vector3.Up(), 1.5708);
     public bMenu: Bmenu;
+    private scene: Scene;
+    public static instance: Rigplatform;
+    private static xr: WebXRDefaultExperience;
     private yRotation: number = 0;
-    public right: Right;
-    public left: Left;
     public body: PhysicsBody;
     public rigMesh: Mesh;
     private camera: Camera;
-    private scene: Scene;
-    private xr: WebXRDefaultExperience;
     private turning: boolean = false;
 
     constructor(scene: Scene, xr: WebXRDefaultExperience) {
-        this.xr = xr;
-        this.bMenu = new Bmenu(scene, this.xr.baseExperience);
-        this.camera = scene.activeCamera;
-
         this.scene = scene;
+        Rigplatform.xr = xr;
+        Rigplatform.instance = this;
 
-        this.rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: 1.5, height: .01}, scene);
-
-        for (const cam of this.scene.cameras) {
+        this.bMenu = new Bmenu(scene, xr.baseExperience);
+        this.camera = scene.activeCamera;
+        this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
+        const hud = new Hud(this.rigMesh, scene);
+        for (const cam of scene.cameras) {
             cam.parent = this.rigMesh;
+            cam.position = new Vector3(0, 1.6, 0);
         }
 
         const myMaterial = new StandardMaterial("myMaterial", scene);
@@ -55,31 +58,28 @@ export class Rigplatform {
             new PhysicsAggregate(
                 this.rigMesh,
                 PhysicsShapeType.CYLINDER,
-                {friction: 1, center: Vector3.Zero(), radius: .5, mass: .1, restitution: .1},
+                {friction: 1, center: Vector3.Zero(), radius: .5, mass: 10, restitution: .01},
                 scene);
-        rigAggregate.body.setMotionType(PhysicsMotionType.ANIMATED);
-        rigAggregate.body.setGravityFactor(0);
+        rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
+        rigAggregate.body.setGravityFactor(.001);
+
 
         this.#fixRotation();
         this.body = rigAggregate.body;
         this.#setupKeyboard();
         this.#initializeControllers();
-        this.scene.onActiveCameraChanged.add((s) => {
+        scene.onActiveCameraChanged.add((s) => {
             this.camera = s.activeCamera;
             this.camera.parent = this.rigMesh;
-            console.log('camera changed');
         });
     }
 
     public forwardback(val: number) {
         const ray = this.camera.getForwardRay();
-
         this.body.setLinearVelocity(ray.direction.scale(val * -1));
     }
 
     public leftright(val: number) {
-
-
         const ray = this.camera.getForwardRay();
         const direction = ray.direction.applyRotationQuaternion(Rigplatform.x90).scale(val);
         this.body.setLinearVelocity(direction);
@@ -125,28 +125,46 @@ export class Rigplatform {
     }
 
     #initializeControllers() {
-        this.xr.input.onControllerAddedObservable.add((source, state) => {
+        Rigplatform.xr.input.onControllerAddedObservable.add((source) => {
             let controller;
             switch (source.inputSource.handedness) {
                 case "right":
-                    controller = new Right(source);
-                    this.right = controller;
-                    controller.setBMenu(this.bMenu);
+                    Right.instance = new Right(source);
+                    Right.instance.setBMenu(this.bMenu);
+                    Controllers.controllerObserver.add((event: { type: string, value: number }) => {
+                        switch (event.type) {
+                            case "turn":
+                                this.turn(event.value);
+                                break;
+                            case "forwardback":
+                                this.forwardback(event.value);
+                                break;
+                            case "leftright":
+                                this.leftright(event.value);
+                                break;
+                            case "updown":
+                                this.updown(event.value);
+                                break;
+                            case "stop":
+                                this.stop();
+                                break;
+
+                        }
+
+                    });
                     break;
                 case "left":
-                    controller = new Left(source);
-                    this.left = controller;
+                    Left.instance = new Left(source);
                     break;
 
             }
-            this.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
+            Rigplatform.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
             if (controller) {
                 controller.setRig(this);
             }
-
-            console.log(source);
-            console.log(state);
         });
+
+
     }
 
     //create a method to set the camera to the rig
@@ -181,7 +199,7 @@ export class Rigplatform {
                     this.updown(1 * Rigplatform.LINEAR_VELOCITY);
                     break;
                 case " ":
-                    this.bMenu.toggle()
+                    this.bMenu.toggle(this.rigMesh)
             }
 
         });
@@ -197,6 +215,7 @@ export class Rigplatform {
     #fixRotation() {
         this.scene.registerBeforeRender(() => {
             const q = this.rigMesh.rotationQuaternion;
+            this.body.setAngularVelocity(Vector3.Zero());
             const e = q.toEulerAngles();
             e.y += this.yRotation;
             q.copyFrom(Quaternion.FromEulerAngles(0, e.y, 0));

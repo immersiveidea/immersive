@@ -1,71 +1,160 @@
 import {Base} from "./base";
-import {Vector3, WebXRInputSource} from "@babylonjs/core";
-import {Bmenu, BmenuState} from "../menus/bmenu";
-import {DiagramEvent, DiagramEventType, DiagramManager} from "../diagram/diagramManager";
+import {Angle, Observable,  Vector3, WebXRControllerComponent, WebXRInputSource} from "@babylonjs/core";
+import {Bmenu} from "../menus/bmenu";
+import {DiagramManager} from "../diagram/diagramManager";
+import {ControllerMovementMode, Controllers} from "./controllers";
+import {BmenuState} from "../menus/MenuState";
+import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
+
+
 
 export class Right extends Base {
     private bmenu: Bmenu;
+    public static instance: Right;
+
     private down: boolean = false;
+
+    private initBButton(bbutton: WebXRControllerComponent) {
+        if (bbutton) {
+            bbutton.onButtonStateChangedObservable.add((value) => {
+                if (value.pressed) {
+                    this.bmenu.toggle(this.controller.grip);
+                }
+            });
+        }
+    }
+
+    private initTrigger(trigger: WebXRControllerComponent) {
+        if (trigger) {
+            trigger
+                .onButtonStateChangedObservable
+                .add((value) => {
+                    if (value.value > .4 && !this.down) {
+                        this.down = true;
+                        if (this.bmenu.getState() == BmenuState.ADDING) {
+                            this.bmenu.setState(BmenuState.DROPPING);
+                            const event: DiagramEvent = {
+                                type: DiagramEventType.DROP,
+                                entity: null
+                            }
+                            DiagramManager.onDiagramEventObservable.notifyObservers(event);
+                        }
+                    }
+                    if (value.value < .05) {
+                        this.down = false;
+                    }
+                });
+        }
+    }
+
+    private initAButton(abutton: WebXRControllerComponent) {
+        if (abutton) {
+            abutton.onButtonStateChangedObservable.add((value) => {
+                if (value.pressed) {
+                    if (DiagramManager.currentMesh) {
+                        if (Controllers.movable) {
+                            Controllers.movable = null;
+                        } else {
+                            Controllers.movable = DiagramManager.currentMesh;
+                        }
+
+                    }
+                }
+            });
+        }
+    }
+
+    private initThumbstick(thumbstick: WebXRControllerComponent) {
+        if (thumbstick) {
+            thumbstick.onAxisValueChangedObservable.add((value) => {
+                if (!Controllers.movable) {
+                    this.moveRig(value);
+                } else {
+                    if (Controllers.movementMode == ControllerMovementMode.ROTATE) {
+                        this.rotateMovable(value);
+                    } else {
+                        this.moveMovable(value);
+                    }
+                }
+            });
+            thumbstick.onButtonStateChangedObservable.add((value) => {
+                if (value.pressed) {
+                    Controllers.toggleMovementMode();
+                }
+            });
+        }
+    }
+
+    private moveRig(value) {
+        if (Math.abs(value.x) > .1) {
+            Controllers.controllerObserver.notifyObservers({type: 'turn', value: value.x});
+        } else {
+            Controllers.controllerObserver.notifyObservers({type: 'turn', value: 0});
+        }
+        if (Math.abs(value.y) > .1) {
+            Controllers.controllerObserver.notifyObservers({type: 'forwardback', value: value.y * this.speedFactor});
+            Base.stickVector.z = 1;
+        } else {
+            Controllers.controllerObserver.notifyObservers({type: 'forwardback', value: 0});
+            Base.stickVector.z = 0;
+        }
+        if (Base.stickVector.equals(Vector3.Zero())) {
+            Controllers.controllerObserver.notifyObservers({type: 'forwardback', value: 0});
+        }
+    }
 
     constructor(controller:
                     WebXRInputSource) {
         super(controller);
+        Right.instance = this;
         this.controller.onMotionControllerInitObservable.add((init) => {
-            const trigger = init.components['xr-standard-trigger'];
-            if (trigger) {
-                trigger
-                    .onButtonStateChangedObservable
-                    .add((value) => {
-                        if (value.value > .4 && !this.down) {
-                            this.down = true;
-                            if (this.bmenu.getState() == BmenuState.ADDING) {
-                                this.bmenu.setState(BmenuState.DROPPING);
-                                const event: DiagramEvent = {
-                                    type: DiagramEventType.DROP,
-                                    entity: null
-                                }
-                                DiagramManager.onDiagramEventObservable.notifyObservers(event);
-                            }
-                        }
-                        if (value.value < .05) {
-                            this.down = false;
-                        }
-                    });
-            }
-            if (init.components['b-button']) {
-                init.components['b-button'].onButtonStateChangedObservable.add((value) => {
-                    if (value.pressed) {
-                        this.bmenu.toggle();
-                    }
-                });
-            }
-
-            if (init.components['xr-standard-thumbstick']) {
-                init.components['xr-standard-thumbstick']
-                    .onAxisValueChangedObservable.add((value) => {
-                    if (Math.abs(value.x) > .1) {
-                        this.rig.turn(value.x);
-                    } else {
-                        this.rig.turn(0);
-                    }
-
-                    if (Math.abs(value.y) > .1) {
-                        this.rig.forwardback(value.y * this.speedFactor);
-                        Base.stickVector.z = 1;
-                    } else {
-                        Base.stickVector.z = 0;
-                    }
-                    if (Base.stickVector.equals(Vector3.Zero())) {
-                        this.rig.forwardback(0);
-                    }
-                });
-            }
+            this.initTrigger(init.components['xr-standard-trigger']);
+            this.initBButton(init.components['b-button']);
+            this.initAButton(init.components['a-button']);
+            this.initThumbstick(init.components['xr-standard-thumbstick']);
+            this.initGrip(init.components['xr-standard-squeeze']);
         });
     }
+    private initGrip(grip: WebXRControllerComponent) {
+        grip.onButtonStateChangedObservable.add((value) => {
+            if (value.value > .5) {
+                if (this.controller.pointer.collider.collidedMesh) {
+                    console.log(this.controller.pointer.collider.collidedMesh.id);
+                }
+            }
 
+        });
+    }
     public setBMenu(menu: Bmenu) {
         this.bmenu = menu;
         this.bmenu.setController(this.controller);
     }
 
+    private rotateMovable(value: { x: number; y: number }) {
+        if (Math.abs(value.y) > .1) {
+            Controllers.movable.rotation.x +=
+                Angle.FromDegrees(Math.sign(value.y) * 1).radians();
+            Controllers.movable.rotation.x = this.fixRadians(Controllers.movable.rotation.x);
+        }
+        if (Math.abs(value.x) > .1) {
+            Controllers.movable.rotation.z +=
+                Angle.FromDegrees(Math.sign(value.x) * 1).radians();
+            Controllers.movable.rotation.z = this.fixRadians(Controllers.movable.rotation.z);
+        }
+    }
+    private fixRadians(value: number) {
+        if (value > 2 * Math.PI) {
+            return value - 2 * Math.PI;
+        } else {
+            return value;
+        }
+    }
+    private moveMovable(value: { x: number; y: number }) {
+        if (Math.abs(value.y) > .1) {
+            Controllers.movable.position.z += Math.sign(value.y) * -.005;
+        }
+        if (Math.abs(value.x) > .1) {
+            Controllers.movable.position.x += Math.sign(value.x) * .005;
+        }
+    }
 }

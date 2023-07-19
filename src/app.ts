@@ -19,15 +19,16 @@ import {
 ///import {havokModule} from "./util/havok";
 import HavokPhysics from "@babylonjs/havok";
 import {Rigplatform} from "./controllers/rigplatform";
-
 import {DiagramManager} from "./diagram/diagramManager";
 
 
-class App {
+export class App {
     //preTasks = [havokModule];
 
     private token: string;
-
+    public static scene: Scene;
+    public static xr: WebXRDefaultExperience;
+    public static rig: Rigplatform;
     constructor() {
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
@@ -40,38 +41,46 @@ class App {
     }
 
     async initialize(canvas) {
-
+        if (App.xr) {
+            App.xr.dispose();
+            App.xr=null;
+        }
+        if (App.scene) {
+            App.scene.dispose();
+            App.scene = null;
+        }
+        if (DiagramManager.onDiagramEventObservable) {
+            DiagramManager.onDiagramEventObservable.clear();
+            DiagramManager.onDiagramEventObservable = null;
+        }
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
-        const diagramManager = new DiagramManager(scene);
+
+        App.scene = scene;
+
+
+
         const havokInstance = await HavokPhysics();
+
         const havokPlugin = new HavokPlugin(true, havokInstance);
         scene.enablePhysics(new Vector3(0, -9.8, 0), havokPlugin);
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2,
             new Vector3(0, 1.6, 0), scene);
         camera.attachControl(canvas, true);
         new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
-
-
-        //const envTexture = new CubeTexture("/assets/textures/SpecularHDR.dds", scene);
-        //scene.createDefaultSkybox(envTexture, true, 1000);
-
         const photoDome = new PhotoDome('sky',
             './outdoor_field.jpeg', {},
             scene);
 
-        const xr = await WebXRDefaultExperience.CreateAsync(scene, {
-            floorMeshes: [this.createGround(scene)],
+        App.xr = await WebXRDefaultExperience.CreateAsync(scene, {
+            floorMeshes: [this.createGround()],
             disableTeleportation: true,
             optionalFeatures: true
 
         });
-        const rig = new Rigplatform(scene, xr);
-        //const ring = new Cameras(scene, this.token);
-        //ring.getCameras().then(() => ring.createCameras());
-        //xr.teleportation.detach();
+        const diagramManager = new DiagramManager(App.scene, App.xr.baseExperience);
+        App.rig = new Rigplatform(App.scene, App.xr);
 
-        // hide/show the Inspector
         window.addEventListener("keydown", (ev) => {
             // Shift+Ctrl+Alt+I
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
@@ -89,19 +98,19 @@ class App {
         });
     }
 
-    createGround(scene) {
-        const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", scene);
-        const gText = new Texture("./grass1.jpeg", scene);
+    createGround() {
+        const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", App.scene);
+        const gText = new Texture("./grass1.jpeg", App.scene);
         gText.uScale = 40;
         gText.vScale = 40;
         groundMaterial.baseTexture = gText;
         groundMaterial.metallic = 0;
         groundMaterial.roughness = 1;
 
-        const ground = MeshBuilder.CreateGround("ground", {width: 100, height: 100, subdivisions: 1}, scene);
+        const ground = MeshBuilder.CreateGround("ground", {width: 100, height: 100, subdivisions: 1}, App.scene);
 
         ground.material = groundMaterial;
-        const groundAggregate = new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, scene);
+        new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, App.scene);
         return ground;
     }
 }
