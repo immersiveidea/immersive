@@ -1,4 +1,4 @@
-import {AbstractMesh, Scene, Vector3, WebXRInputSource} from "@babylonjs/core";
+import {AbstractMesh, Scene, Vector3, WebXRControllerComponent, WebXRInputSource} from "@babylonjs/core";
 
 export class Base {
     static stickVector = Vector3.Zero();
@@ -23,9 +23,22 @@ export class Base {
                         }
                     });
             }
+            this.initGrip(init.components['xr-standard-squeeze']);
         });
     }
-    public mesh() {
-        return this.controller.grip;
+
+    private initGrip(grip: WebXRControllerComponent) {
+        grip.onButtonStateChangedObservable.add((value) => {
+            if (value.value > .5) {
+                if (this.currentMesh) {
+                    this.currentMesh.setParent(this.controller.pointer);
+                }
+            } else {
+                if (this.currentMesh) {
+                    this.currentMesh.setParent(null);
+                }
+            }
+
+        });
     }
 }

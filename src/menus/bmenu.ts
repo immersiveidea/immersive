@@ -1,10 +1,4 @@
-import {
-    AbstractMesh,
-    Scene,
-    Vector3,
-    WebXRExperienceHelper,
-    WebXRInputSource
-} from "@babylonjs/core";
+import {AbstractMesh, Scene, Vector3, WebXRExperienceHelper, WebXRInputSource} from "@babylonjs/core";
 import {GUI3DManager, NearMenu, TouchHolographicButton} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
 import {BmenuState} from "./MenuState";
@@ -79,6 +73,7 @@ export class Bmenu {
             panel.addButton(this.makeButton("Add Sphere", "addSphere"));
             panel.addButton(this.makeButton("Add Cylinder", "addCylinder"));
             panel.addButton(this.makeButton("Add Text", "addText"));
+            panel.addButton(this.makeButton("Remove", "remove"));
             panel.addButton(this.makeButton("Done Adding", "doneAdding"));
             this.manager.controlScaling = .5;
 
@@ -119,7 +114,9 @@ export class Bmenu {
                 break;
             case "doneAdding":
                 this.state = BmenuState.NONE;
-
+                break;
+            case "remove":
+                this.state = BmenuState.REMOVING;
                 break;
             default:
                 console.log("Unknown button");

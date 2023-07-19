@@ -21,7 +21,7 @@ export class Right extends Base {
             this.initBButton(init.components['b-button']);
             this.initAButton(init.components['a-button']);
             this.initThumbstick(init.components['xr-standard-thumbstick']);
-            this.initGrip(init.components['xr-standard-squeeze']);
+
 
         });
     }
@@ -115,20 +115,7 @@ export class Right extends Base {
     }
 
 
-    private initGrip(grip: WebXRControllerComponent) {
-        grip.onButtonStateChangedObservable.add((value) => {
-            if (value.value > .5) {
-                if (this.currentMesh) {
-                    this.currentMesh.setParent(this.controller.pointer);
-                }
-            } else {
-                if (this.currentMesh) {
-                    this.currentMesh.setParent(null);
-                }
-            }
 
-        });
-    }
     public setBMenu(menu: Bmenu) {
         this.bmenu = menu;
         this.bmenu.setController(this.controller);
