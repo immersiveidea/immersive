@@ -1,35 +1,35 @@
 import {Base} from "./base";
-import {Angle, Scene, Vector3, WebXRControllerComponent, WebXRInputSource} from "@babylonjs/core";
-import {Bmenu} from "../menus/bmenu";
-import {DiagramManager} from "../diagram/diagramManager";
+import {
+    Angle,
+    Scene,
+    Vector3,
+    WebXRControllerComponent,
+    WebXRDefaultExperience,
+    WebXRInputSource
+} from "@babylonjs/core";
 import {ControllerMovementMode, Controllers} from "./controllers";
-import {BmenuState} from "../menus/MenuState";
-import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 
 export class Right extends Base {
-    private bmenu: Bmenu;
     public static instance: Right;
 
-    private down: boolean = false;
-
     constructor(controller:
-                    WebXRInputSource, scene: Scene) {
-        super(controller, scene);
+                    WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience) {
+        super(controller, scene, xr);
         Right.instance = this;
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
             this.initBButton(init.components['b-button']);
             this.initAButton(init.components['a-button']);
             this.initThumbstick(init.components['xr-standard-thumbstick']);
-
-
         });
+
+
     }
     private initBButton(bbutton: WebXRControllerComponent) {
         if (bbutton) {
-            bbutton.onButtonStateChangedObservable.add((value) => {
-                if (value.pressed) {
-                    this.bmenu.toggle(this.controller.grip);
+            bbutton.onButtonStateChangedObservable.add((button) => {
+                if (button.pressed) {
+                    Controllers.controllerObserver.notifyObservers({type: 'b-button', value: button.value});
                 }
             });
         }
@@ -39,20 +39,9 @@ export class Right extends Base {
         if (trigger) {
             trigger
                 .onButtonStateChangedObservable
-                .add((value) => {
-                    if (value.value > .4 && !this.down) {
-                        this.down = true;
-                        if (this.bmenu.getState() == BmenuState.ADDING) {
-                            this.bmenu.setState(BmenuState.DROPPING);
-                            const event: DiagramEvent = {
-                                type: DiagramEventType.DROP,
-                                entity: null
-                            }
-                            DiagramManager.onDiagramEventObservable.notifyObservers(event);
-                        }
-                    }
-                    if (value.value < .05) {
-                        this.down = false;
+                .add((button) => {
+                    if (button.pressed) {
+                        Controllers.controllerObserver.notifyObservers({type: 'trigger', value: button.value});
                     }
                 });
         }
@@ -62,14 +51,7 @@ export class Right extends Base {
         if (abutton) {
             abutton.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
-                    if (DiagramManager.currentMesh) {
-                        if (Controllers.movable) {
-                            Controllers.movable = null;
-                        } else {
-                            Controllers.movable = DiagramManager.currentMesh;
-                        }
-
-                    }
+                    Controllers.controllerObserver.notifyObservers({type: 'menu'});
                 }
             });
         }
@@ -112,13 +94,6 @@ export class Right extends Base {
         if (Base.stickVector.equals(Vector3.Zero())) {
             Controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
         }
-    }
-
-
-
-    public setBMenu(menu: Bmenu) {
-        this.bmenu = menu;
-        this.bmenu.setController(this.controller);
     }
 
     private rotateMovable(value: { x: number; y: number }) {

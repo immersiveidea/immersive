@@ -14,10 +14,10 @@ export class RingCamera {
 
     public async getCameras() {
         const cams = await this.ringApi.getCameras();
-        console.log(cams[0]);
+        //console.log(cams[0]);
 
         const camid = cams.map((value) => value.id);
-        console.log(camid);
+        //console.log(camid);
         return cams;
     }
 }

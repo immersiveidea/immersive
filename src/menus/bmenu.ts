@@ -1,38 +1,62 @@
-import {AbstractMesh, Scene, Vector3, WebXRExperienceHelper, WebXRInputSource} from "@babylonjs/core";
-import {GUI3DManager, NearMenu, TouchHolographicButton} from "@babylonjs/gui";
+import {
+    GizmoManager,
+    PointerEventTypes,
+    Scene,
+    Vector3,
+    WebXRExperienceHelper
+} from "@babylonjs/core";
+import {Button3D, GUI3DManager, InputText, StackPanel3D, TextBlock} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
 import {BmenuState} from "./MenuState";
-import {DiagramEntity, DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
-
+import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
+import {MeshConverter} from "../diagram/meshConverter";
 
 export class Bmenu {
     private state: BmenuState = BmenuState.NONE;
     private manager: GUI3DManager;
     private readonly scene: Scene;
-
-    private rightController: AbstractMesh;
+    private gizmoManager: GizmoManager;
     private xr: WebXRExperienceHelper;
+    private textInput: any;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper) {
+        // this.textInput = document.createElement("input");
+        //this.textInput.type = "text";
+        // document.body.appendChild(this.textInput);
         this.scene = scene;
         this.xr = xr;
+        this.gizmoManager = new GizmoManager(scene);
 
-        DiagramManager.onDiagramEventObservable.add((event: DiagramEvent) => {
-            if (event.type === DiagramEventType.DROPPED) {
-                this.state = BmenuState.ADDING;
+        this.scene.onPointerObservable.add((pointerInfo) => {
+            switch (pointerInfo.type) {
+                case PointerEventTypes.POINTERPICK:
+                    if (pointerInfo.pickInfo?.pickedMesh?.metadata?.template &&
+                        pointerInfo.pickInfo?.pickedMesh?.parent?.parent?.id != "toolbox") {
+                        switch (this.state) {
+                            case BmenuState.REMOVING:
+                                console.log("removing " + pointerInfo.pickInfo.pickedMesh.id);
+                                const event: DiagramEvent = {
+                                    type: DiagramEventType.REMOVE,
+                                    entity:
+                                        MeshConverter.toDiagramEntity(pointerInfo.pickInfo.pickedMesh)
+                                }
+                                DiagramManager.onDiagramEventObservable.notifyObservers(event);
+                                break;
+                        }
+                        break;
+                    }
             }
         });
-
-    }
-
-    setController(controller: WebXRInputSource) {
-        this.rightController = controller.grip;
     }
 
     makeButton(name: string, id: string) {
-        const button = new TouchHolographicButton(name);
-        button.text = name;
+        const button = new Button3D(name);
+        button.scaling = new Vector3(.1, .1, .1);
         button.name = id;
+        const text = new TextBlock(name, name);
+        text.fontSize = "24px";
+        text.color = "white";
+        button.content = text;
         button.onPointerClickObservable.add(this.#clickhandler, -1, false, this);
         return button;
     }
@@ -45,75 +69,36 @@ export class Bmenu {
         this.state = state;
     }
 
-    toggle(mesh: AbstractMesh) {
-        console.log(mesh.name);
+    toggle() {
+        //console.log(mesh.name);
         if (this.manager) {
             this.manager.dispose();
             this.manager = null;
         } else {
             this.manager = new GUI3DManager(this.scene);
-            const panel = new NearMenu();
+            const panel = new StackPanel3D();
             this.manager.addControl(panel);
-            const follower = panel.defaultBehavior.followBehavior;
-            follower.maxViewHorizontalDegrees = 45;
-            follower.useFixedVerticalOffset = true;
-            follower.fixedVerticalOffset = 1;
-            follower.defaultDistance = 2;
-            follower.maximumDistance = 3;
-            follower.minimumDistance = 1;
-
-            panel.backPlateMargin = .01;
-            panel.scaling = new Vector3(.5, .5, .1);
-            panel.margin = .01;
-            //panel.scaling.x = .5;
-            //panel.scaling.y = .5;
-            //const camdir = panel.mesh.getDirection(this.xr.camera.globalPosition);
-            //panel.mesh.lookAt(this.xr.camera.globalPosition);
-            panel.addButton(this.makeButton("Add Box", "addBox"));
-            panel.addButton(this.makeButton("Add Sphere", "addSphere"));
-            panel.addButton(this.makeButton("Add Cylinder", "addCylinder"));
-            panel.addButton(this.makeButton("Add Text", "addText"));
-            panel.addButton(this.makeButton("Remove", "remove"));
-            panel.addButton(this.makeButton("Done Adding", "doneAdding"));
+            panel.addControl(this.makeButton("Modify", "modify"));
+            panel.addControl(this.makeButton("Remove", "remove"));
             this.manager.controlScaling = .5;
-
+            const offset = new Vector3(0, -.2, 3);
+            offset.applyRotationQuaternionInPlace(this.scene.activeCamera.absoluteRotation);
+            panel.node.position =
+                this.scene.activeCamera.globalPosition.add(offset);
+            panel.node.lookAt(this.scene.activeCamera.globalPosition);
+            panel.node.rotation.y = panel.node.rotation.y + Math.PI;
         }
     }
 
     #clickhandler(_info, state) {
-        console.log(state.currentTarget.name);
-
-        const id = this?.rightController?.id || null;
-        let entity: DiagramEntity = {
-            template: null,
-            position: new Vector3(-0.02, -.090, .13),
-            rotation: new Vector3(76.04, 0, 0),
-            scale: new Vector3(.1, .1, .1),
-            color: "#CC0000",
-            text: "text",
-            last_seen: new Date(),
-            parent: id
-        };
-
         switch (state.currentTarget.name) {
-            case "addBox":
-                entity.template = "#box-template";
-                this.state = BmenuState.ADDING;
-                break;
-            case "addSphere":
-                entity.template = "#sphere-template";
-                this.state = BmenuState.ADDING;
-                break;
-            case "addCylinder":
-                entity.template = "#cylinder-template";
-                this.state = BmenuState.ADDING;
-                break;
-            case "addText":
-                entity.template = "#text-template";
-                this.state = BmenuState.ADDING;
-                break;
-            case "doneAdding":
-                this.state = BmenuState.NONE;
+            case "modify":
+                this.state = BmenuState.MODIFYING;
+                this.gizmoManager.boundingBoxGizmoEnabled = true;
+                this.gizmoManager.gizmos.boundingBoxGizmo.scaleBoxSize = .01;
+                this.gizmoManager.gizmos.boundingBoxGizmo.rotationSphereSize = .01;
+                this.gizmoManager.gizmos.boundingBoxGizmo.scaleDragSpeed = 1;
+                this.gizmoManager.usePointerToAttachGizmos = false;
                 break;
             case "remove":
                 this.state = BmenuState.REMOVING;
@@ -122,17 +107,7 @@ export class Bmenu {
                 console.log("Unknown button");
                 return;
         }
-        if (this.state === BmenuState.ADDING) {
-            const event: DiagramEvent = {
-                type: DiagramEventType.ADD,
-                entity: entity
-            }
-            DiagramManager.onDiagramEventObservable.notifyObservers(event);
-        } else {
-            const event: DiagramEvent = {
-                type: DiagramEventType.CLEAR
-            }
-            DiagramManager.onDiagramEventObservable.notifyObservers(event);
-        }
+        this.manager.dispose();
+        this.manager = null;
     }
 }

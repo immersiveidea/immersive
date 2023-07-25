@@ -17,8 +17,8 @@ import {
 import {Right} from "./right";
 import {Left} from "./left";
 import {Bmenu} from "../menus/bmenu";
-import {Hud} from "../information/hud";
 import {Controllers} from "./controllers";
+import {BmenuState} from "../menus/MenuState";
 
 
 export class Rigplatform {
@@ -36,6 +36,7 @@ export class Rigplatform {
     private turning: boolean = false;
 
     constructor(scene: Scene, xr: WebXRDefaultExperience) {
+
         this.scene = scene;
         Rigplatform.xr = xr;
         Rigplatform.instance = this;
@@ -43,11 +44,14 @@ export class Rigplatform {
         this.bMenu = new Bmenu(scene, xr.baseExperience);
         this.camera = scene.activeCamera;
         this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
-        new Hud(this.rigMesh, scene);
+        //new Hud(this.rigMesh, scene);
+
         for (const cam of scene.cameras) {
             cam.parent = this.rigMesh;
-            cam.position = new Vector3(0, 1.6, 0);
+
+            //cam.position = new Vector3(0, 1.6, 0);
         }
+
 
         const myMaterial = new StandardMaterial("myMaterial", scene);
         myMaterial.diffuseColor = Color3.Blue();
@@ -84,7 +88,7 @@ export class Rigplatform {
         const ray = this.camera.getForwardRay();
         const direction = ray.direction.applyRotationQuaternion(Rigplatform.x90).scale(val);
         this.body.setLinearVelocity(direction);
-        console.log(val);
+        //console.log(val);
     }
 
     public stop() {
@@ -122,7 +126,6 @@ export class Rigplatform {
                 this.body.setAngularVelocity(Vector3.Zero());
             }
         }
-
     }
 
     #initializeControllers() {
@@ -130,8 +133,7 @@ export class Rigplatform {
             let controller;
             switch (source.inputSource.handedness) {
                 case "right":
-                    Right.instance = new Right(source, this.scene);
-                    Right.instance.setBMenu(this.bMenu);
+                    Right.instance = new Right(source, this.scene, Rigplatform.xr);
                     Controllers.controllerObserver.add((event: { type: string, value: number }) => {
                         switch (event.type) {
                             case "turn":
@@ -149,13 +151,14 @@ export class Rigplatform {
                             case "stop":
                                 this.stop();
                                 break;
-
+                            case "menu":
+                                this.bMenu.toggle();
+                                break;
                         }
-
                     });
                     break;
                 case "left":
-                    Left.instance = new Left(source, this.scene);
+                    Left.instance = new Left(source, this.scene, Rigplatform.xr);
                     break;
 
             }
@@ -174,41 +177,43 @@ export class Rigplatform {
         ///simplify this with a map
 
         window.addEventListener("keydown", (ev) => {
-            switch (ev.key) {
-                case "w":
-                    this.forwardback(Rigplatform.LINEAR_VELOCITY);
-                    break;
-                case "s":
-                    this.forwardback(-1 * Rigplatform.LINEAR_VELOCITY);
-                    break;
-                case "a":
-                    this.leftright(Rigplatform.LINEAR_VELOCITY);
-                    break;
-                case "d":
-                    this.leftright(-1 * Rigplatform.LINEAR_VELOCITY);
-                    break;
-                case "q":
-                    this.turn(-1 * Rigplatform.ANGULAR_VELOCITY);
-                    break;
-                case "e":
-                    this.turn(Rigplatform.ANGULAR_VELOCITY);
-                    break;
-                case "W":
-                    this.updown(-1 * Rigplatform.LINEAR_VELOCITY);
-                    break;
-                case "S":
-                    this.updown(Rigplatform.LINEAR_VELOCITY);
-                    break;
-                case " ":
-                    this.bMenu.toggle(this.rigMesh)
+            if (this.bMenu.getState() !== BmenuState.MODIFYING) {
+                switch (ev.key) {
+                    case "w":
+                        this.forwardback(-.1);
+                        break;
+                    case "s":
+                        this.forwardback(.1);
+                        break;
+                    case "a":
+                        this.leftright(-.2);
+                        break;
+                    case "d":
+                        this.leftright(.2);
+                        break;
+                    case "q":
+                        this.turn(-1);
+                        break;
+                    case "e":
+                        this.turn(1);
+                        break;
+                    case "W":
+                        this.updown(-.1);
+                        break;
+                    case "S":
+                        this.updown(.1);
+                        break;
+                    case " ":
+
+                }
             }
 
         });
         window.addEventListener("keyup", (ev) => {
             const keys = "wsadqeWS";
-
             if (keys.indexOf(ev.key) > -1) {
                 this.stop();
+                this.turn(0);
             }
         });
     }
@@ -217,9 +222,13 @@ export class Rigplatform {
         this.scene.registerBeforeRender(() => {
             const q = this.rigMesh.rotationQuaternion;
             this.body.setAngularVelocity(Vector3.Zero());
-            const e = q.toEulerAngles();
-            e.y += this.yRotation;
-            q.copyFrom(Quaternion.FromEulerAngles(0, e.y, 0));
+            if (q) {
+                const e = q.toEulerAngles();
+                e.y += this.yRotation;
+                q.copyFrom(Quaternion.FromEulerAngles(0, e.y, 0));
+            }
+
+
         });
     }
 }

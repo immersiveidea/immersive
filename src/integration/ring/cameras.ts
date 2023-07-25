@@ -16,7 +16,7 @@ export class Cameras {
 
         const cameras = await axios.get('https://local.immersiveidea.com/api/cameras');
         this.cameras = cameras;
-        console.log(cameras);
+        //console.log(cameras);
     }
 
     public createCameras() {

@@ -19,8 +19,8 @@ export class Gmap {
             maptype: 'satellite'
         })
             .on('progress', function (info) {
-                console.log(info.count);
-                console.log(info.total);
+                //console.log(info.count);
+                //console.log(info.total);
                 const image = info.image;
 
                 image.style.position = 'absolute';

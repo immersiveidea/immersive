@@ -1,16 +1,16 @@
 import {
     AbstractMesh,
-    Color3,
+    InputBlock, Material, NodeMaterial,
     Observable,
     Scene,
-    StandardMaterial,
     WebXRExperienceHelper
 } from "@babylonjs/core";
-import {v4 as uuidv4} from 'uuid';
+
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./diagramEntity";
 import {IPersistenceManager} from "./persistenceManager";
 import {IndexdbPersistenceManager} from "./indexdbPersistenceManager";
 import {MeshConverter} from "./meshConverter";
+
 
 export class DiagramManager {
     private persistenceManager: IPersistenceManager = new IndexdbPersistenceManager("diagram");
@@ -19,6 +19,7 @@ export class DiagramManager {
     private xr: WebXRExperienceHelper;
     static currentMesh: AbstractMesh;
 
+    private materialMap: Map<string, Material> = new Map<string, Material>();
     constructor(scene: Scene, xr: WebXRExperienceHelper) {
         this.scene = scene;
         this.xr = xr;
@@ -36,66 +37,41 @@ export class DiagramManager {
 
 
     #onRemoteEvent(event: DiagramEntity) {
-        const mesh = this.#createMesh(event);
-        if (!mesh.material) {
-            const material = new StandardMaterial("material-" + event.id, this.scene);
-            material.diffuseColor = Color3.FromHexString(event.color);
-            mesh.material = material;
+        //const mesh = Toolbox.instance.newMesh(ToolType[Object.entries(ToolType).find(e => e[1] == event.template)[0]], event.id);
+        const mesh = MeshConverter.fromDiagramEntity(event, this.scene);
+        if (event.parent) {
+            mesh.parent = this.scene.getMeshById(event.parent);
         }
+    }
+    private buildNodeMaterial() {
+        const nodeMaterial = new NodeMaterial("nodeMaterial", this.scene, { emitComments: true });
+        const positionInput = new InputBlock("position");
+        positionInput.setAsAttribute("position");
 
     }
-
     #onDiagramEvent(event: DiagramEvent) {
         const entity = event.entity;
         let mesh;
         if (entity) {
-            mesh = this.scene.getMeshByName(entity.id);
+            mesh = this.scene.getMeshById(entity.id);
         }
-
         switch (event.type) {
             case DiagramEventType.CLEAR:
-                if (DiagramManager.currentMesh) {
-                    DiagramManager.currentMesh.dispose();
-                    DiagramManager.currentMesh = null;
-                }
                 break;
             case DiagramEventType.DROPPED:
                 break;
             case DiagramEventType.DROP:
-                if (DiagramManager.currentMesh) {
-                    const newName = uuidv4();
-                    const newMesh = DiagramManager.currentMesh.clone("id" + newName, DiagramManager.currentMesh.parent);
-                    newMesh.id = "id" + newName;
-                    newMesh.material = DiagramManager.currentMesh.material.clone("material" + newName);
-                    DiagramManager.currentMesh.setParent(null);
-                    this.persistenceManager.add(DiagramManager.currentMesh);
-                    DiagramManager.onDiagramEventObservable.notifyObservers({
-                        type: DiagramEventType.DROPPED,
-                        entity: MeshConverter.toDiagramEntity(DiagramManager.currentMesh)
-                    });
-                    DiagramManager.currentMesh = newMesh;
-                }
+                this.persistenceManager.add(mesh);
                 break;
             case DiagramEventType.ADD:
-                if (DiagramManager.currentMesh) {
-                    DiagramManager.currentMesh.dispose();
-                }
-                if (mesh) {
-                    return;
-                } else {
-                    mesh = this.#createMesh(entity);
-                }
-                DiagramManager.currentMesh = mesh;
                 break;
             case DiagramEventType.MODIFY:
-                if (!mesh) {
-
-                } else {
-
-                }
-                DiagramManager.currentMesh = mesh;
                 break;
             case DiagramEventType.REMOVE:
+                if (mesh) {
+                    this.persistenceManager.remove(mesh);
+                    mesh.dispose();
+                }
                 break;
         }
     }

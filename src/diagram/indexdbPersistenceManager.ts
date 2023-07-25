@@ -12,6 +12,10 @@ export class IndexdbPersistenceManager implements  IPersistenceManager {
         this.db.version(1).stores({entities: "id,position,rotation,last_seen,template,text,scale,color"});
     }
     public  add(mesh: AbstractMesh) {
+        if (!mesh) {
+            console.log("Adding null mesh");
+            return;
+        }
         const entity = <any>MeshConverter.toDiagramEntity(mesh);
         entity.position = this.vectoxys(mesh.position);
         entity.rotation = this.vectoxys(mesh.rotation);
@@ -26,11 +30,15 @@ export class IndexdbPersistenceManager implements  IPersistenceManager {
         return new Vector3(xyz.x, xyz.y, xyz.z);
     }
 
-    public  remove() {
-
+    public  remove(mesh: AbstractMesh)  {
+        this.db["entities"].delete(mesh.id);
     }
-    public  modify() {
-
+    public  modify(mesh) {
+        const entity = <any>MeshConverter.toDiagramEntity(mesh);
+        entity.position = this.vectoxys(mesh.position);
+        entity.rotation = this.vectoxys(mesh.rotation);
+        entity.scale = this.vectoxys(mesh.scaling);
+        this.db["entities"].update(mesh.id, entity);
     }
     public initialize() {
         this.db['entities'].each((e) => {
