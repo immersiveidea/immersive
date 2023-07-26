@@ -83,12 +83,17 @@ export class Rigplatform {
         const ray = this.camera.getForwardRay();
         this.body.setLinearVelocity(ray.direction.scale(val * -1));
     }
-
+    public forwardbackleftright(x: number, y: number) {
+        const ray = this.camera.getForwardRay();
+        const direction = ray.direction.applyRotationQuaternion(Rigplatform.x90).scale(x);
+        direction.z = y;
+        this.body.setLinearVelocity(direction);
+    }
     public leftright(val: number) {
         const ray = this.camera.getForwardRay();
         const direction = ray.direction.applyRotationQuaternion(Rigplatform.x90).scale(val);
         this.body.setLinearVelocity(direction);
-        //console.log(val);
+
     }
 
     public stop() {

@@ -28,5 +28,4 @@ export class Controllers {
             this.movementMode = ControllerMovementMode.ROTATE;
         }
     }
-
 }

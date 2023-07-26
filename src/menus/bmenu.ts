@@ -1,11 +1,13 @@
+import {GizmoManager, MeshBuilder, PointerEventTypes, Scene, Vector3, WebXRExperienceHelper} from "@babylonjs/core";
 import {
-    GizmoManager,
-    PointerEventTypes,
-    Scene,
-    Vector3,
-    WebXRExperienceHelper
-} from "@babylonjs/core";
-import {Button3D, GUI3DManager, InputText, StackPanel3D, TextBlock} from "@babylonjs/gui";
+    AdvancedDynamicTexture,
+    Button3D,
+    ColorPicker,
+    GUI3DManager,
+    InputText,
+    StackPanel3D,
+    TextBlock
+} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
 import {BmenuState} from "./MenuState";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
@@ -26,6 +28,12 @@ export class Bmenu {
         this.scene = scene;
         this.xr = xr;
         this.gizmoManager = new GizmoManager(scene);
+        this.gizmoManager.boundingBoxGizmoEnabled = true;
+        this.gizmoManager.gizmos.boundingBoxGizmo.scaleBoxSize = .020;
+        this.gizmoManager.gizmos.boundingBoxGizmo.rotationSphereSize = .020;
+        this.gizmoManager.gizmos.boundingBoxGizmo.scaleDragSpeed = 2;
+        this.gizmoManager.clearGizmoOnEmptyPointerEvent = true;
+        this.gizmoManager.usePointerToAttachGizmos = false;
 
         this.scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
@@ -42,6 +50,37 @@ export class Bmenu {
                                 }
                                 DiagramManager.onDiagramEventObservable.notifyObservers(event);
                                 break;
+                            case BmenuState.MODIFYING:
+                                if (pointerInfo.pickInfo.pickedMesh.metadata?.template &&
+                                    pointerInfo.pickInfo.pickedMesh.parent?.parent?.id != "toolbox") {
+                                    if (this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh?.id == pointerInfo.pickInfo?.pickedMesh?.id) {
+                                        this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh = null;
+                                    } else {
+                                        this.gizmoManager.attachToMesh(pointerInfo.pickInfo.pickedMesh);
+                                    }
+
+                                }
+
+                                break;
+                            case BmenuState.LABELING:
+                                const mesh = pointerInfo.pickInfo.pickedMesh;
+                                console.log("labeling " + mesh.id);
+                                const myPlane = MeshBuilder.CreatePlane("myPlane", {width: .1, height: .1}, this.scene);
+                                myPlane.parent=mesh;
+                                myPlane.position= new Vector3(1,1,1);
+
+                                const advancedTexture2 = AdvancedDynamicTexture.CreateForMesh(myPlane, 1024, 1024);
+                                const inputText = new InputText("input");
+                                advancedTexture2.addControl(inputText);
+                                inputText.scaleY = 5;
+                                inputText.scaleX = 5;
+
+                                inputText.focus();
+                                inputText.onTextChangedObservable.add((text) => {
+                                    console.log(text);
+                                });
+                                break;
+
                         }
                         break;
                     }
@@ -80,6 +119,7 @@ export class Bmenu {
             this.manager.addControl(panel);
             panel.addControl(this.makeButton("Modify", "modify"));
             panel.addControl(this.makeButton("Remove", "remove"));
+            panel.addControl(this.makeButton("Add Label", "label"));
             this.manager.controlScaling = .5;
             const offset = new Vector3(0, -.2, 3);
             offset.applyRotationQuaternionInPlace(this.scene.activeCamera.absoluteRotation);
@@ -94,14 +134,12 @@ export class Bmenu {
         switch (state.currentTarget.name) {
             case "modify":
                 this.state = BmenuState.MODIFYING;
-                this.gizmoManager.boundingBoxGizmoEnabled = true;
-                this.gizmoManager.gizmos.boundingBoxGizmo.scaleBoxSize = .01;
-                this.gizmoManager.gizmos.boundingBoxGizmo.rotationSphereSize = .01;
-                this.gizmoManager.gizmos.boundingBoxGizmo.scaleDragSpeed = 1;
-                this.gizmoManager.usePointerToAttachGizmos = false;
                 break;
             case "remove":
                 this.state = BmenuState.REMOVING;
+                break;
+            case "label":
+                this.state = BmenuState.LABELING;
                 break;
             default:
                 console.log("Unknown button");
