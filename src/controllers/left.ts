@@ -22,6 +22,11 @@ export class Left extends Base {
                         this.moveMovable(value);
                     }
                 });
+                init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
+                    if (value.pressed) {
+                        Controllers.controllerObserver.notifyObservers({type: 'decreaseVelocity', value: value.value});
+                    }
+                });
             }
         });
 

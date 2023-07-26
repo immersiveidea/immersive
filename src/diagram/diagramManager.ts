@@ -14,7 +14,8 @@ import {MeshConverter} from "./meshConverter";
 
 export class DiagramManager {
     private persistenceManager: IPersistenceManager = new IndexdbPersistenceManager("diagram");
-    static onDiagramEventObservable = new Observable();
+    static onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
+
     private readonly scene: Scene;
     private xr: WebXRExperienceHelper;
     static currentMesh: AbstractMesh;
@@ -47,7 +48,6 @@ export class DiagramManager {
         const nodeMaterial = new NodeMaterial("nodeMaterial", this.scene, { emitComments: true });
         const positionInput = new InputBlock("position");
         positionInput.setAsAttribute("position");
-
     }
     #onDiagramEvent(event: DiagramEvent) {
         const entity = event.entity;
@@ -66,6 +66,7 @@ export class DiagramManager {
             case DiagramEventType.ADD:
                 break;
             case DiagramEventType.MODIFY:
+                this.persistenceManager.modify(mesh);
                 break;
             case DiagramEventType.REMOVE:
                 if (mesh) {
@@ -74,8 +75,5 @@ export class DiagramManager {
                 }
                 break;
         }
-    }
-    #createMesh(entity: DiagramEntity) {
-        return MeshConverter.fromDiagramEntity(entity, this.scene);
     }
 }

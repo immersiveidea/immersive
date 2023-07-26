@@ -10,7 +10,7 @@ import {
     PhysicsShapeType,
     Quaternion,
     Scene,
-    StandardMaterial,
+    StandardMaterial, TransformNode,
     Vector3,
     WebXRDefaultExperience
 } from "@babylonjs/core";
@@ -18,13 +18,11 @@ import {Right} from "./right";
 import {Left} from "./left";
 import {Bmenu} from "../menus/bmenu";
 import {Controllers} from "./controllers";
-import {BmenuState} from "../menus/MenuState";
 
 
 export class Rigplatform {
-    static LINEAR_VELOCITY = 4;
-    static ANGULAR_VELOCITY = 3;
-    static x90 = Quaternion.RotationAxis(Vector3.Up(), 1.5708);
+    private velocityIndex = 2;
+    private readonly velocityArray = [0.01, 0.1, 1, 2, 5];
     public bMenu: Bmenu;
     private scene: Scene;
     public static instance: Rigplatform;
@@ -34,6 +32,7 @@ export class Rigplatform {
     public rigMesh: Mesh;
     private camera: Camera;
     private turning: boolean = false;
+    private velocity: Vector3 = Vector3.Zero();
 
     constructor(scene: Scene, xr: WebXRDefaultExperience) {
 
@@ -41,11 +40,19 @@ export class Rigplatform {
         Rigplatform.xr = xr;
         Rigplatform.instance = this;
 
+
         this.bMenu = new Bmenu(scene, xr.baseExperience);
         this.camera = scene.activeCamera;
         this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
         //new Hud(this.rigMesh, scene);
+        const transform = new TransformNode("transform", scene);
+        transform.parent=this.rigMesh;
+        transform.position = new Vector3(0, 1.6, -5);
 
+        const pointer = MeshBuilder.CreateSphere("pointer", {diameter: .1}, scene);
+        pointer.parent = transform;
+
+        pointer.position = this.velocity;
         for (const cam of scene.cameras) {
             cam.parent = this.rigMesh;
 
@@ -80,33 +87,23 @@ export class Rigplatform {
     }
 
     public forwardback(val: number) {
-        const ray = this.camera.getForwardRay();
-        this.body.setLinearVelocity(ray.direction.scale(val * -1));
-    }
-    public forwardbackleftright(x: number, y: number) {
-        const ray = this.camera.getForwardRay();
-        const direction = ray.direction.applyRotationQuaternion(Rigplatform.x90).scale(x);
-        direction.z = y;
-        this.body.setLinearVelocity(direction);
+        this.velocity.z = (val * this.velocityArray[this.velocityIndex])*-1;
+        const vel = this.velocity.applyRotationQuaternion(this.camera.absoluteRotation);
+        this.body.setLinearVelocity(vel);
     }
     public leftright(val: number) {
-        const ray = this.camera.getForwardRay();
-        const direction = ray.direction.applyRotationQuaternion(Rigplatform.x90).scale(val);
-        this.body.setLinearVelocity(direction);
-
+        this.velocity.x = (val * this.velocityArray[this.velocityIndex]);
+        const vel = this.velocity.applyRotationQuaternion(this.camera.absoluteRotation);
+        this.body.setLinearVelocity(vel);
     }
 
     public stop() {
-        this.body.setLinearVelocity(Vector3.Zero());
-        this.body.setAngularVelocity(Vector3.Zero());
+
     }
-
     public updown(val: number) {
-        let direction = Vector3.Zero();
-        this.body.getLinearVelocityToRef(direction);
-        direction.y = (val * -1);
-        this.body.setLinearVelocity(direction);
-
+        this.velocity.y = (val * this.velocityArray[this.velocityIndex])*-1;
+        const vel = this.velocity.applyRotationQuaternion(this.camera.absoluteRotation);
+        this.body.setLinearVelocity(vel);
     }
 
     public turn(val: number) {
@@ -141,6 +138,20 @@ export class Rigplatform {
                     Right.instance = new Right(source, this.scene, Rigplatform.xr);
                     Controllers.controllerObserver.add((event: { type: string, value: number }) => {
                         switch (event.type) {
+                            case "increaseVelocity":
+                                if (this.velocityIndex < this.velocityArray.length -1) {
+                                    this.velocityIndex++;
+                                } else {
+                                    this.velocityIndex = 0;
+                                }
+                                break;
+                            case "decreaseVelocity":
+                                if (this.velocityIndex > 0) {
+                                    this.velocityIndex--;
+                                } else {
+                                    this.velocityIndex = this.velocityArray.length-1;
+                                }
+                                break;
                             case "turn":
                                 this.turn(event.value);
                                 break;

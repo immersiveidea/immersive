@@ -11,6 +11,7 @@ import {
 import {MeshConverter} from "../diagram/meshConverter";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
+import log from 'loglevel';
 
 export class Base {
     static stickVector = Vector3.Zero();

@@ -62,7 +62,17 @@ export class Bmenu {
                                     if (this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh?.id == pointerInfo.pickInfo?.pickedMesh?.id) {
                                         this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh = null;
                                     } else {
-                                        this.gizmoManager.attachToMesh(pointerInfo.pickInfo.pickedMesh);
+                                        const mesh = pointerInfo.pickInfo.pickedMesh;
+                                        this.gizmoManager.attachToMesh(mesh);
+
+                                        this.gizmoManager.gizmos.boundingBoxGizmo.onScaleBoxDragObservable.add(() => {
+                                            DiagramManager.onDiagramEventObservable.notifyObservers({
+                                                    type: DiagramEventType.MODIFY,
+                                                    entity: MeshConverter.toDiagramEntity(mesh),
+                                                }
+                                            )
+                                           console.log(mesh.scaling);
+                                        });
                                     }
 
                                 }
@@ -71,7 +81,7 @@ export class Bmenu {
                             case BmenuState.LABELING:
                                 const mesh = pointerInfo.pickInfo.pickedMesh;
                                 console.log("labeling " + mesh.id);
-                                const myPlane = MeshBuilder.CreatePlane("myPlane", {width: 1, height: .125}, this.scene);
+/*                                const myPlane = MeshBuilder.CreatePlane("myPlane", {width: 1, height: .125}, this.scene);
                                 //myPlane.parent=mesh;
                                 const pos = mesh.absolutePosition;
                                 pos.y += .2;
@@ -88,16 +98,14 @@ export class Bmenu {
                                 inputText.margin="0px";
                                 inputText.fontSize= "48px";
                                 advancedTexture2.addControl(inputText);
+
+ */
                                 const textInput = document.createElement("input");
                                 textInput.type = "text";
                                 document.body.appendChild(textInput);
-
                                 textInput.value = "";
-                                inputText.focus();
                                 textInput.focus();
-
                                 textInput.addEventListener('input', (event)=> {
-                                    inputText.text = textInput.value;
                                     console.log(event);
                                 });
                                 textInput.addEventListener('keydown', (event)=> {
@@ -105,10 +113,8 @@ export class Bmenu {
                                     if (event.key == "Enter") {
                                         textInput.blur();
                                         textInput.remove();
-                                        inputText.dispose();
                                     }
                                 });
-
                                 break;
 
                         }

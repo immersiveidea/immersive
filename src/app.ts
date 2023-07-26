@@ -132,54 +132,6 @@ export class App {
                 }
             });
 
-            const buttonMap = [
-                {buttonIndex: 3, objectName: "right-controller"},
-                {buttonIndex: 3, objectName: "right-Controller"},
-                {buttonIndex: 4, objectName: "right-Controller"},
-                {buttonIndex: 4, objectName: "right-Controller"},
-
-            ];
-
-            /*
-            gamepad.onButtonDownObservable.add((button, state) => {
-
-                console.log(buttonIndex);
-                console.log(buttonMap);
-
-                if (buttonIndex < 4) {
-                    window.dispatchEvent(new CustomEvent('pa-button-state-change', {
-                            detail: {
-                                objectName: buttonMap[buttonIndex].objectName,
-                                pressed: true,
-                                touched: false,
-                                buttonIndex: buttonMap[buttonIndex].buttonIndex,
-                                value: 1
-                            }
-                        }
-                    ));
-                }
-            });
-
-
-            gamepad.onButtonUpObservable.add((buttonIndex, state) => {
-                console.log(buttonIndex);
-                console.log(state);
-                if (buttonIndex < 4) {
-                    window.dispatchEvent( new CustomEvent('pa-button-state-change', {
-                            detail: {
-                                objectName: buttonMap[buttonIndex].objectName,
-                                pressed: false,
-                                touched: false,
-                                buttonIndex: buttonMap[buttonIndex].buttonIndex,
-                                value: 0
-                            }
-                        }
-                    ));
-                }
-            });
-
- */
-
             gamepad.onleftstickchanged((values) => {
                 window.dispatchEvent(
                     new CustomEvent('pa-analog-value-change', {

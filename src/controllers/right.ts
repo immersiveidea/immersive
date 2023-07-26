@@ -72,7 +72,7 @@ export class Right extends Base {
             });
             thumbstick.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
-                    Controllers.toggleMovementMode();
+                    Controllers.controllerObserver.notifyObservers({type: 'increaseVelocity', value: value.value});
                 }
             });
         }

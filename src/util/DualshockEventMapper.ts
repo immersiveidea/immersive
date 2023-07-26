@@ -68,7 +68,16 @@ export class DualshockEventMapper {
             case 15:
                 console.log('D-Pad Right');
                 break;
-
+            case 10:
+                console.log('L3');
+                buttonEvent.objectName = "left-controller";
+                buttonEvent.buttonIndex = 0;
+                break;
+            case 11:
+                console.log('R3');
+                buttonEvent.objectName = "right-controller";
+                buttonEvent.buttonIndex = 0;
+                break;
             default:
                 console.log(buttonid);
 

@@ -86,7 +86,9 @@ export class Toolbox {
     private calculatePosition(i: number) {
         return (i/this.gridsize)-.5-(1/this.gridsize/2);
     }
+    private static WIDGET_SIZE = .1;
     private buildColor(color: Color3) {
+
         const width = 1;
         const depth = .2;
         const material = new StandardMaterial("material-" + color.toHexString(), this.scene);
@@ -102,7 +104,10 @@ export class Toolbox {
                 newItem.position = new Vector3(this.calculatePosition(++i), .1, 0);
             }
         }
-        const myPlane = MeshBuilder.CreatePlane("myPlane", {width: .1, height: .1}, this.scene);
+        const myPlane = MeshBuilder
+            .CreatePlane("myPlane",
+                {width: Toolbox.WIDGET_SIZE,
+                    height: Toolbox.WIDGET_SIZE}, this.scene);
         myPlane.parent=mesh;
         myPlane.position= new Vector3(this.calculatePosition(++i), .1, 0);
 
@@ -117,6 +122,9 @@ export class Toolbox {
             material.name = "material-" + value.toHexString();
             mesh.id = "toolbox-color-" + value.toHexString();
             mesh.name = "toolbox-color-" + value.toHexString();
+            console.log(mesh.getChildren( (node) => {
+                return  (node?.parent?.id!="toolbox") &&
+                    (node?.parent?.parent?.id != "toolbox")}));
         });
 
         advancedTexture2.addControl(colorPicker);
@@ -164,7 +172,10 @@ export class Toolbox {
             if (tool === ToolType.PLANE) {
                 newItem.material.backFaceCulling = false;
             }
-            newItem.scaling = new Vector3(0.1, 0.1, 0.1);
+
+            newItem.scaling = new Vector3(Toolbox.WIDGET_SIZE,
+                Toolbox.WIDGET_SIZE,
+                Toolbox.WIDGET_SIZE);
             newItem.parent = parent;
             if (!newItem.material) {
                 newItem.material = parent.material;
