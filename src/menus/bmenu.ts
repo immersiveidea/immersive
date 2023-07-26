@@ -1,4 +1,12 @@
-import {GizmoManager, MeshBuilder, PointerEventTypes, Scene, Vector3, WebXRExperienceHelper} from "@babylonjs/core";
+import {
+    Angle,
+    GizmoManager,
+    MeshBuilder,
+    PointerEventTypes,
+    Scene,
+    Vector3,
+    WebXRExperienceHelper
+} from "@babylonjs/core";
 import {
     AdvancedDynamicTexture,
     Button3D,
@@ -22,9 +30,7 @@ export class Bmenu {
     private textInput: any;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper) {
-        // this.textInput = document.createElement("input");
-        //this.textInput.type = "text";
-        // document.body.appendChild(this.textInput);
+
         this.scene = scene;
         this.xr = xr;
         this.gizmoManager = new GizmoManager(scene);
@@ -65,20 +71,44 @@ export class Bmenu {
                             case BmenuState.LABELING:
                                 const mesh = pointerInfo.pickInfo.pickedMesh;
                                 console.log("labeling " + mesh.id);
-                                const myPlane = MeshBuilder.CreatePlane("myPlane", {width: .1, height: .1}, this.scene);
-                                myPlane.parent=mesh;
-                                myPlane.position= new Vector3(1,1,1);
-
-                                const advancedTexture2 = AdvancedDynamicTexture.CreateForMesh(myPlane, 1024, 1024);
+                                const myPlane = MeshBuilder.CreatePlane("myPlane", {width: 1, height: .125}, this.scene);
+                                //myPlane.parent=mesh;
+                                const pos = mesh.absolutePosition;
+                                pos.y += .2;
+                                myPlane.position= pos;
+                                myPlane.rotation.y = Angle.FromDegrees(180).radians();
+                                const advancedTexture2 = AdvancedDynamicTexture.CreateForMesh(myPlane, 1024, 128);
+                                myPlane.material.backFaceCulling = false;
                                 const inputText = new InputText("input");
+                                inputText.color= "white";
+                                inputText.background = "black";
+                                inputText.height= "128px";
+                                inputText.width= "1024px";
+                                inputText.maxWidth= "1024px";
+                                inputText.margin="0px";
+                                inputText.fontSize= "48px";
                                 advancedTexture2.addControl(inputText);
-                                inputText.scaleY = 5;
-                                inputText.scaleX = 5;
+                                const textInput = document.createElement("input");
+                                textInput.type = "text";
+                                document.body.appendChild(textInput);
 
+                                textInput.value = "";
                                 inputText.focus();
-                                inputText.onTextChangedObservable.add((text) => {
-                                    console.log(text);
+                                textInput.focus();
+
+                                textInput.addEventListener('input', (event)=> {
+                                    inputText.text = textInput.value;
+                                    console.log(event);
                                 });
+                                textInput.addEventListener('keydown', (event)=> {
+                                    console.log(event);
+                                    if (event.key == "Enter") {
+                                        textInput.blur();
+                                        textInput.remove();
+                                        inputText.dispose();
+                                    }
+                                });
+
                                 break;
 
                         }

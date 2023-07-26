@@ -181,46 +181,8 @@ export class Rigplatform {
     #setupKeyboard() {
         ///simplify this with a map
 
-        window.addEventListener("keydown", (ev) => {
-            if (this.bMenu.getState() !== BmenuState.MODIFYING) {
-                switch (ev.key) {
-                    case "w":
-                        this.forwardback(-.1);
-                        break;
-                    case "s":
-                        this.forwardback(.1);
-                        break;
-                    case "a":
-                        this.leftright(-.2);
-                        break;
-                    case "d":
-                        this.leftright(.2);
-                        break;
-                    case "q":
-                        this.turn(-1);
-                        break;
-                    case "e":
-                        this.turn(1);
-                        break;
-                    case "W":
-                        this.updown(-.1);
-                        break;
-                    case "S":
-                        this.updown(.1);
-                        break;
-                    case " ":
 
-                }
-            }
 
-        });
-        window.addEventListener("keyup", (ev) => {
-            const keys = "wsadqeWS";
-            if (keys.indexOf(ev.key) > -1) {
-                this.stop();
-                this.turn(0);
-            }
-        });
     }
 
     #fixRotation() {
