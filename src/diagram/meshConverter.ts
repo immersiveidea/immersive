@@ -1,5 +1,14 @@
 import {DiagramEntity} from "./diagramEntity";
-import {AbstractMesh, Color3, InstancedMesh, Mesh, Scene, StandardMaterial} from "@babylonjs/core";
+import {
+    AbstractMesh,
+    Color3,
+    DynamicTexture,
+    InstancedMesh,
+    Mesh,
+    MeshBuilder,
+    Scene,
+    StandardMaterial
+} from "@babylonjs/core";
 import {v4 as uuidv4} from 'uuid';
 import {Toolbox} from "../toolbox/toolbox";
 import log from "loglevel";
@@ -57,6 +66,7 @@ export class MeshConverter {
             mesh.metadata = {template: entity.template};
             if (entity.text) {
                 mesh.metadata.text = entity.text;
+                this.updateTextNode(mesh, entity.text);
             }
             if (entity.position) {
                 mesh.position = entity.position;
@@ -82,4 +92,50 @@ export class MeshConverter {
 
     }
 
+    public static updateTextNode(mesh: AbstractMesh, text: string) {
+        let textNode = (mesh.getChildren((node) => {
+            return node.name == 'text'
+        })[0] as Mesh);
+        if (textNode) {
+            textNode.dispose(false, true);
+        }
+
+        //Set font
+        const height = 0.125;
+        const font_size = 24;
+        const font = "bold " + font_size + "px Arial";
+        //Set height for dynamic texture
+        const DTHeight = 1.5 * font_size; //or set as wished
+        //Calc Ratio
+        const ratio = height / DTHeight;
+
+        //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
+        const temp = new DynamicTexture("DynamicTexture", 64, mesh.getScene());
+        const tmpctx = temp.getContext();
+        tmpctx.font = font;
+        const DTWidth = tmpctx.measureText(text).width + 8;
+
+        //Calculate width the plane has to be
+        const planeWidth = DTWidth * ratio;
+
+        //Create dynamic texture and write the text
+        const dynamicTexture = new DynamicTexture("DynamicTexture", {
+            width: DTWidth,
+            height: DTHeight
+        }, mesh.getScene(), false);
+        const mat = new StandardMaterial("mat", mesh.getScene());
+        mat.diffuseTexture = dynamicTexture;
+        dynamicTexture.drawText(text, null, null, font, "#000000", "#ffffff", true);
+
+        //Create plane and set dynamic texture as material
+        const plane = MeshBuilder.CreatePlane("text", {width: planeWidth, height: height}, mesh.getScene());
+        plane.material = mat;
+        plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+        //textNode = this.updateTextNode(mesh, entity.text);
+        plane.parent = mesh;
+        log.getLogger('bmenu').debug("max y", mesh.getBoundingInfo().boundingBox.maximum.y);
+        plane.position.y = .5+ (height / 2);
+
+        return plane;
+    }
 }

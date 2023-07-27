@@ -2,6 +2,7 @@ import {
     AbstractMesh,
     GizmoManager,
     PointerEventTypes,
+    PointerInfo,
     Scene,
     Vector3,
     WebXRExperienceHelper
@@ -40,107 +41,108 @@ export class Bmenu {
                 case PointerEventTypes.POINTERPICK:
                     if (pointerInfo.pickInfo?.pickedMesh?.metadata?.template &&
                         pointerInfo.pickInfo?.pickedMesh?.parent?.parent?.id != "toolbox") {
-                        if (this.textInput) {
-                            this.textInput.blur();
-                            this.textInput.remove();
-                            this.textInput = null;
-                        }
-                        if (this.textView) {
-                            this.textView.dispose().then(() => {
-                                log.getLogger("bmenu").debug("disposed");
-                            }).catch((e) => {
+                        this.cleanup()
+                            .then(() => {
+                                log.getLogger("bmenu").debug("cleaned up");
+                            })
+                            .catch((e) => {
                                 log.getLogger("bmenu").error(e);
                             });
-                            this.textView = null;
-                        }
-                        switch (this.state) {
+                        this.handleEventStateAction(pointerInfo).then(() => {
+                            log.getLogger("bmenu").debug("handled");
+                        }).catch((e) => {
+                            log.getLogger("bmenu").error(e);
+                        });
 
-                            case BmenuState.REMOVING:
-                                log.debug("removing " + pointerInfo.pickInfo.pickedMesh.id);
-                                const event: DiagramEvent = {
-                                    type: DiagramEventType.REMOVE,
-                                    entity:
-                                        MeshConverter.toDiagramEntity(pointerInfo.pickInfo.pickedMesh)
-                                }
-                                DiagramManager.onDiagramEventObservable.notifyObservers(event);
-                                break;
-                            case BmenuState.MODIFYING:
-                                if (pointerInfo.pickInfo.pickedMesh.metadata?.template &&
-                                    pointerInfo.pickInfo.pickedMesh.parent?.parent?.id != "toolbox") {
-                                    if (this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh?.id == pointerInfo.pickInfo?.pickedMesh?.id) {
-                                        this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh = null;
-                                    } else {
-                                        const mesh = pointerInfo.pickInfo.pickedMesh;
-                                        this.gizmoManager.attachToMesh(mesh);
-
-                                        this.gizmoManager.gizmos.boundingBoxGizmo.onScaleBoxDragObservable.add(() => {
-                                            DiagramManager.onDiagramEventObservable.notifyObservers({
-                                                    type: DiagramEventType.MODIFY,
-                                                    entity: MeshConverter.toDiagramEntity(mesh),
-                                                }
-                                            )
-                                           log.debug(mesh.scaling);
-                                        });
-                                    }
-
-                                }
-
-                                break;
-                            case BmenuState.LABELING:
-                                const mesh = pointerInfo.pickInfo.pickedMesh;
-                                log.debug("labeling " + mesh.id);
-
-
-                                const textInput = document.createElement("input");
-                                textInput.type = "text";
-                                document.body.appendChild(textInput);
-                                if (mesh?.metadata?.text) {
-                                    textInput.value = mesh.metadata.text;
-                                } else {
-                                    textInput.value = "";
-                                }
-                                textInput.focus();
-
-                                if (navigator.userAgent.indexOf('Macintosh') > -1) {
-                                    textInput.addEventListener('input', (event)=> {
-                                        log.debug(event);
-                                    });
-                                    const textView = new InputTextView(this.scene, this.xr, mesh)
-                                    textView.show(textInput.value);
-                                    textInput.addEventListener('keydown', (event)=> {
-                                        if (event.key == "Enter") {
-                                            this.persist(mesh, textInput.value);
-                                            textInput.blur();
-                                            textInput.remove();
-                                            this.textView.dispose();
-                                            this.textView = null;
-                                            this.textInput = null;
-                                        } else {
-                                            textView.updateText(textInput.value);
-                                        }
-                                    });
-                                    this.textView = textView;
-                                } else {
-                                    textInput.addEventListener('keydown', (event)=> {
-                                        log.debug(event);
-                                        if (event.key == "Enter") {
-                                            this.persist(mesh, textInput.value);
-                                            textInput.blur();
-                                            textInput.remove();
-                                            this.textInput = null;
-                                            this.textView = null;
-                                        }
-                                    });
-                                }
-                                this.textInput = textInput;
-
-                                break;
-
-                        }
                         break;
                     }
             }
         });
+    }
+
+    private async handleEventStateAction(pointerInfo: PointerInfo) {
+        switch (this.state) {
+            case BmenuState.REMOVING:
+                log.debug("removing " + pointerInfo.pickInfo.pickedMesh.id);
+                const event: DiagramEvent = {
+                    type: DiagramEventType.REMOVE,
+                    entity:
+                        MeshConverter.toDiagramEntity(pointerInfo.pickInfo.pickedMesh)
+                }
+                DiagramManager.onDiagramEventObservable.notifyObservers(event);
+                break;
+            case BmenuState.MODIFYING:
+                if (pointerInfo.pickInfo.pickedMesh.metadata?.template &&
+                    pointerInfo.pickInfo.pickedMesh.parent?.parent?.id != "toolbox") {
+                    if (this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh?.id == pointerInfo.pickInfo?.pickedMesh?.id) {
+                        this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh = null;
+                    } else {
+                        const mesh = pointerInfo.pickInfo.pickedMesh;
+                        this.gizmoManager.attachToMesh(mesh);
+
+                        this.gizmoManager.gizmos.boundingBoxGizmo.onScaleBoxDragObservable.add(() => {
+                            DiagramManager.onDiagramEventObservable.notifyObservers({
+                                    type: DiagramEventType.MODIFY,
+                                    entity: MeshConverter.toDiagramEntity(mesh),
+                                }
+                            )
+                            log.debug(mesh.scaling);
+                        });
+                    }
+                }
+                break;
+            case BmenuState.LABELING:
+                const mesh = pointerInfo.pickInfo.pickedMesh;
+                log.debug("labeling " + mesh.id);
+                const textInput = document.createElement("input");
+                textInput.type = "text";
+                document.body.appendChild(textInput);
+                if (mesh?.metadata?.text) {
+                    textInput.value = mesh.metadata.text;
+                } else {
+                    textInput.value = "";
+                }
+                textInput.focus();
+
+                if (navigator.userAgent.indexOf('Macintosh') > -1) {
+                    textInput.addEventListener('input', (event) => {
+                        log.debug(event);
+                    });
+                    const textView = new InputTextView(this.scene, this.xr, mesh)
+                    await textView.show(textInput.value);
+                    textInput.addEventListener('keydown', (event) => {
+                        if (event.key == "Enter") {
+                            log.getLogger('bmenu').debug("enter");
+                            MeshConverter.updateTextNode(mesh, textInput.value);
+                            this.persist(mesh, textInput.value);
+                            this.cleanup();
+                        } else {
+                            textView.updateText(textInput.value);
+                            MeshConverter.updateTextNode(mesh, textInput.value);
+                        }
+                    });
+                    this.textView = textView;
+                } else {
+                    textInput.addEventListener('blur', () => {
+                        log.getLogger('bmenu').debug("blur");
+                        MeshConverter.updateTextNode(mesh, textInput.value);
+                        this.persist(mesh, textInput.value);
+                        this.cleanup();
+                    });
+                }
+                this.textInput = textInput;
+                break;
+        }
+    }
+    private async cleanup() {
+        if (this.textInput) {
+            this.textInput.blur();
+            this.textInput.remove();
+        }
+        this.textInput = null;
+        this.textView && await this.textView.dispose();
+        this.textView = null;
+
     }
     private persist(mesh: AbstractMesh, text: string) {
         if (mesh.metadata) {
@@ -153,6 +155,7 @@ export class Bmenu {
             entity: MeshConverter.toDiagramEntity(mesh),
         });
     }
+
     makeButton(name: string, id: string) {
         const button = new Button3D(name);
         button.scaling = new Vector3(.1, .1, .1);

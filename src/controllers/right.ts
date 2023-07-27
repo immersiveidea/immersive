@@ -52,6 +52,7 @@ export class Right extends Base {
         if (abutton) {
             abutton.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
+                    log.getLogger("right").debug("a-button pressed");
                     Controllers.controllerObserver.notifyObservers({type: 'menu'});
                 }
             });
