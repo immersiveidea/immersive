@@ -24,6 +24,7 @@ export class Base {
     protected previousRotation: Vector3 = null;
     protected previousScaling: Vector3 = null;
     protected previousPosition: Vector3 = null;
+
     protected readonly xr: WebXRDefaultExperience;
 
     constructor(controller: WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience) {
@@ -42,18 +43,30 @@ export class Base {
             this.initGrip(init.components['xr-standard-squeeze']);
         });
     }
+
+    public disable() {
+        this.controller.motionController.rootMesh.setEnabled(false);
+        this.controller.pointer.setEnabled(false);
+    }
+
+    public enable() {
+        this.controller.motionController.rootMesh.setEnabled(true);
+        this.controller.pointer.setEnabled(true);
+    }
+
     private createCopy(mesh: AbstractMesh) {
         if (!mesh.isAnInstance) {
-            return  new InstancedMesh("new", (mesh as Mesh));
+            return new InstancedMesh("new", (mesh as Mesh));
         } else {
-            return  new InstancedMesh("new", (mesh as InstancedMesh).sourceMesh);
+            return new InstancedMesh("new", (mesh as InstancedMesh).sourceMesh);
         }
 
     }
+
     private initGrip(grip: WebXRControllerComponent) {
         grip.onButtonStateChangedObservable.add(() => {
             if (grip.changes.pressed) {
-                if (grip.pressed){
+                if (grip.pressed) {
                     let mesh = this.scene.meshUnderPointer;
                     if (this.xr.pointerSelection.getMeshUnderPointer) {
                         mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);

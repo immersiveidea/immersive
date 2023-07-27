@@ -14,8 +14,10 @@ import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import {MeshConverter} from "../diagram/meshConverter";
 import log from "loglevel";
 import {InputTextView} from "../information/inputTextView";
+import {Right} from "../controllers/right";
+import {Left} from "../controllers/left";
 
-export class Bmenu {
+export class EditMenu {
     private state: BmenuState = BmenuState.NONE;
     private manager: GUI3DManager;
     private readonly scene: Scene;
@@ -102,6 +104,10 @@ export class Bmenu {
                 } else {
                     textInput.value = "";
                 }
+                if (this.xr.sessionManager.inXRSession) {
+                    Right.instance.disable();
+                    Left.instance.disable();
+                }
                 textInput.focus();
 
                 if (navigator.userAgent.indexOf('Macintosh') > -1) {
@@ -128,6 +134,8 @@ export class Bmenu {
                         MeshConverter.updateTextNode(mesh, textInput.value);
                         this.persist(mesh, textInput.value);
                         this.cleanup();
+                        Right.instance.enable();
+                        Left.instance.enable();
                     });
                 }
                 this.textInput = textInput;

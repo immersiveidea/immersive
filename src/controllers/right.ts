@@ -1,11 +1,5 @@
 import {Base} from "./base";
-import {
-    Scene,
-    Vector3,
-    WebXRControllerComponent,
-    WebXRDefaultExperience,
-    WebXRInputSource
-} from "@babylonjs/core";
+import {Scene, Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {Controllers} from "./controllers";
 import log from "loglevel";
 
@@ -22,8 +16,6 @@ export class Right extends Base {
             this.initAButton(init.components['a-button']);
             this.initThumbstick(init.components['xr-standard-thumbstick']);
         });
-
-
     }
 
     private initBButton(bbutton: WebXRControllerComponent) {

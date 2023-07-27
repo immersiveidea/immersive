@@ -1,5 +1,6 @@
 import {DualShockButton} from "@babylonjs/core";
 import log from "loglevel";
+
 type ButtonEvent = {
     objectName?: string,
     pressed: boolean,
@@ -57,17 +58,18 @@ export class DualshockEventMapper {
                 log.debug('DualshockEventMapper','D-Pad Up');
                 break;
             case 13:
-                log.debug('DualshockEventMapper','D-Pad Down');
+                log.debug('DualshockEventMapper', 'D-Pad Down');
                 buttonEvent.objectName = "left-controller";
                 buttonEvent.buttonIndex = 3;
                 break;
             case 14:
-                log.debug('DualshockEventMapper','D-Pad Left');
+                log.debug('DualshockEventMapper', 'D-Pad Left');
+                log.debug('DualshockEventMapper', 'D-Pad Left');
                 buttonEvent.objectName = "left-controller";
                 buttonEvent.buttonIndex = 4;
                 break;
             case 15:
-                log.debug('DualshockEventMapper','D-Pad Right');
+                log.debug('DualshockEventMapper', 'D-Pad Right');
                 break;
             case 10:
                 log.debug('DualshockEventMapper','L3');

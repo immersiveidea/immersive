@@ -1,9 +1,13 @@
 import {
-    AbstractMesh, Angle,
-    Color3, InstancedMesh, Mesh,
+    AbstractMesh,
+    Angle,
+    Color3,
+    InstancedMesh,
+    Mesh,
     MeshBuilder,
     Scene,
-    StandardMaterial, TransformNode,
+    StandardMaterial,
+    TransformNode,
     Vector3,
     WebXRExperienceHelper
 } from "@babylonjs/core";
@@ -80,8 +84,6 @@ export class Toolbox {
         this.addPanel.position = new Vector3(0, 0, .5);
         addButton.onPointerClickObservable.add(() => {
            this.buildColor(Color3.Random());
-
-
         });
 
     }
@@ -106,14 +108,16 @@ export class Toolbox {
                 newItem.position = new Vector3(this.calculatePosition(++i), .1, 0);
             }
         }
-        const myPlane = MeshBuilder
+        const colorPickerPlane = MeshBuilder
             .CreatePlane("myPlane",
-                {width: Toolbox.WIDGET_SIZE,
-                    height: Toolbox.WIDGET_SIZE}, this.scene);
-        myPlane.parent=mesh;
-        myPlane.position= new Vector3(this.calculatePosition(++i), .1, 0);
+                {
+                    width: Toolbox.WIDGET_SIZE,
+                    height: Toolbox.WIDGET_SIZE
+                }, this.scene);
+        colorPickerPlane.parent = mesh;
+        colorPickerPlane.position = new Vector3(this.calculatePosition(++i), .1, 0);
 
-        const advancedTexture2 = AdvancedDynamicTexture.CreateForMesh(myPlane, 1024, 1024);
+        const colorPickerTexture = AdvancedDynamicTexture.CreateForMesh(colorPickerPlane, 1024, 1024);
         const colorPicker = new ColorPicker("color-picker");
         colorPicker.scaleY = 5;
         colorPicker.scaleX = 5;
@@ -134,7 +138,7 @@ export class Toolbox {
             );
         });
 
-        advancedTexture2.addControl(colorPicker);
+        colorPickerTexture.addControl(colorPicker);
         this.addPanel.position.z += .25;
         this.node.position.z -= .125;
     }

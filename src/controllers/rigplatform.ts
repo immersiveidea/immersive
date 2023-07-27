@@ -16,16 +16,15 @@ import {
 } from "@babylonjs/core";
 import {Right} from "./right";
 import {Left} from "./left";
-import {Bmenu} from "../menus/bmenu";
+import {EditMenu} from "../menus/editMenu";
 import {Controllers} from "./controllers";
 import log from "loglevel";
-
 
 
 export class Rigplatform {
     private velocityIndex = 2;
     private readonly velocityArray = [0.01, 0.1, 1, 2, 5];
-    public bMenu: Bmenu;
+    public bMenu: EditMenu;
     private readonly scene: Scene;
     public static instance: Rigplatform;
     private static xr: WebXRDefaultExperience;
@@ -41,8 +40,9 @@ export class Rigplatform {
         this.scene = scene;
         Rigplatform.xr = xr;
         Rigplatform.instance = this;
-        this.bMenu = new Bmenu(scene, xr.baseExperience);
+        this.bMenu = new EditMenu(scene, xr.baseExperience);
         this.camera = scene.activeCamera;
+
         this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
         for (const cam of scene.cameras) {
             cam.parent = this.rigMesh;

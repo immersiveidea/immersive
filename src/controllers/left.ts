@@ -1,17 +1,18 @@
-import {Scene, Vector3, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
+import {Scene, Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {Base} from "./base";
 import {Controllers} from "./controllers";
 import log from "loglevel";
+import {ConfigMenu} from "../menus/configMenu";
 
 
 export class Left extends Base {
     public static instance: Left;
-
+    public configMenu: ConfigMenu;
     constructor(controller:
                     WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience) {
 
         super(controller, scene, xr);
-
+        this.configMenu = new ConfigMenu(this.scene, xr.baseExperience);
         Left.instance = this;
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
@@ -24,6 +25,8 @@ export class Left extends Base {
                         this.moveMovable(value);
                     }
                 });
+                this.initXButton(init.components['x-button']);
+                this.initYButton(init.components['y-button']);
                 init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
                     if (value.pressed) {
                         log.trace('Left', 'thumbstick changed');
@@ -33,6 +36,26 @@ export class Left extends Base {
             }
         });
 
+    }
+
+    private initXButton(xbutton: WebXRControllerComponent) {
+        if (xbutton) {
+            xbutton.onButtonStateChangedObservable.add((button) => {
+                if (button.pressed) {
+                    Controllers.controllerObserver.notifyObservers({type: 'x-button', value: button.value});
+                }
+            });
+        }
+    }
+
+    private initYButton(ybutton: WebXRControllerComponent) {
+        if (ybutton) {
+            ybutton.onButtonStateChangedObservable.add((button) => {
+                if (button.pressed) {
+                    Controllers.controllerObserver.notifyObservers({type: 'y-button', value: button.value});
+                }
+            });
+        }
     }
 
     private moveMovable(value: { x: number, y: number }) {

@@ -23,7 +23,7 @@ import HavokPhysics from "@babylonjs/havok";
 import {Rigplatform} from "./controllers/rigplatform";
 import {DiagramManager} from "./diagram/diagramManager";
 import {Toolbox} from "./toolbox/toolbox";
-import {DualshockEventMapper} from "./util/DualshockEventMapper";
+import {DualshockEventMapper} from "./util/dualshockEventMapper";
 import log from "loglevel";
 
 
