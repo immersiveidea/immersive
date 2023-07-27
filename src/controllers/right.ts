@@ -8,6 +8,7 @@ import {
     WebXRInputSource
 } from "@babylonjs/core";
 import {ControllerMovementMode, Controllers} from "./controllers";
+import log from "loglevel";
 
 export class Right extends Base {
     public static instance: Right;
@@ -60,6 +61,7 @@ export class Right extends Base {
     private initThumbstick(thumbstick: WebXRControllerComponent) {
         if (thumbstick) {
             thumbstick.onAxisValueChangedObservable.add((value) => {
+                log.trace('Right', `thumbstick moved ${value.x}, ${value.y}`);
                 if (!Controllers.movable) {
                     this.moveRig(value);
                 } else {
@@ -72,6 +74,7 @@ export class Right extends Base {
             });
             thumbstick.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
+                    log.trace('Right', `thumbstick changed ${value.value}`);
                     Controllers.controllerObserver.notifyObservers({type: 'increaseVelocity', value: value.value});
                 }
             });

@@ -1,6 +1,7 @@
 import {Scene, Vector3, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {Base} from "./base";
 import {Controllers} from "./controllers";
+import log from "loglevel";
 
 
 export class Left extends Base {
@@ -16,6 +17,7 @@ export class Left extends Base {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
                     .onAxisValueChangedObservable.add((value) => {
+                    log.trace('Left', `thumbstick moved ${value.x}, ${value.y}`);
                     if (!Controllers.movable) {
                         this.moveRig(value);
                     } else {
@@ -24,6 +26,7 @@ export class Left extends Base {
                 });
                 init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
                     if (value.pressed) {
+                        log.trace('Left', 'thumbstick changed');
                         Controllers.controllerObserver.notifyObservers({type: 'decreaseVelocity', value: value.value});
                     }
                 });

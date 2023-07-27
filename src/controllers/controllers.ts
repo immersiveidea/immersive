@@ -1,4 +1,3 @@
-
 import {AbstractMesh, Observable, TransformNode} from "@babylonjs/core";
 
 export enum ControllerMovementMode {

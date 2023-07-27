@@ -3,6 +3,7 @@ import {AbstractMesh, Observable, Vector3} from "@babylonjs/core";
 import {DiagramEntity} from "./diagramEntity";
 import Dexie from "dexie";
 import {MeshConverter} from "./meshConverter";
+import log from "loglevel";
 
 export class IndexdbPersistenceManager implements  IPersistenceManager {
     public updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
@@ -10,10 +11,11 @@ export class IndexdbPersistenceManager implements  IPersistenceManager {
     constructor(name: string) {
         this.db = new Dexie(name);
         this.db.version(1).stores({entities: "id,position,rotation,last_seen,template,text,scale,color"});
+        log.debug('IndexdbPersistenceManager', "IndexdbPersistenceManager constructed");
     }
     public  add(mesh: AbstractMesh) {
         if (!mesh) {
-            console.log("Adding null mesh");
+            log.warn('IndexdbPersistenceManager', "Adding null mesh");
             return;
         }
         const entity = <any>MeshConverter.toDiagramEntity(mesh);
@@ -45,22 +47,13 @@ export class IndexdbPersistenceManager implements  IPersistenceManager {
             e.position = this.xyztovec(e.position);
             e.rotation = this.xyztovec(e.rotation);
             e.scale = this.xyztovec(e.scale);
-            console.log(e);
+            log.debug('IndexdbPersistenceManager', 'adding', e);
             this.updateObserver.notifyObservers(e);
         });
+        log.warn('IndexdbPersistenceManager', "initialize finished");
     }
-
-    private dummyEntity(): DiagramEntity {
-        const entity: DiagramEntity = <DiagramEntity>{};
-        entity.id = "test";
-        entity.position = new Vector3(0,2,-5);
-        entity.rotation = Vector3.Zero();
-        entity.last_seen = new Date();
-        entity.scale = new Vector3(.1,.1,.1);
-        entity.color = "#ff0000";
-        entity.text = "test";
-        entity.parent = null;
-        entity.template = "#text-template";
-        return entity;
+    public changeColor(oldColor, newColor) {
+        log.debug('IndexdbPersistenceManager', `changeColor ${oldColor.toHexString()} to ${newColor.toHexString()}`);
+        this.db['entities'].where('color').equals(oldColor.toHexString()).modify({color: newColor.toHexString()});
     }
 }

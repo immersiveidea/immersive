@@ -3,12 +3,11 @@ import "@babylonjs/inspector";
 
 import {
     ArcRotateCamera,
-    DualShockButton,
     DualShockPad,
     Engine,
     HavokPlugin,
     HemisphericLight,
-    MeshBuilder, OculusTouchController,
+    MeshBuilder,
     PBRMetallicRoughnessMaterial,
     PhotoDome,
     PhysicsAggregate,
@@ -25,6 +24,7 @@ import {Rigplatform} from "./controllers/rigplatform";
 import {DiagramManager} from "./diagram/diagramManager";
 import {Toolbox} from "./toolbox/toolbox";
 import {DualshockEventMapper} from "./util/DualshockEventMapper";
+import log from "loglevel";
 
 
 export class App {
@@ -36,13 +36,15 @@ export class App {
     public static gamepad: Gamepad;
 
     constructor() {
+        log.setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
         canvas.id = "gameCanvas";
         document.body.appendChild(canvas);
+        log.debug('App', 'gameCanvas created');
         this.initialize(canvas).then(() => {
-            console.log('Scene Initialized');
+            log.debug('App', 'Scene Initialized');
         });
     }
 
@@ -99,7 +101,7 @@ export class App {
                 App.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
                 window.addEventListener(('pa-button-state-change'), (event: any) => {
                     if (event.detail) {
-                        console.log(event.detail);
+                        log.debug('App', event.detail);
                     }
                 });
 
@@ -111,66 +113,70 @@ export class App {
         const toolbox = new Toolbox(scene, App.xr.baseExperience);
 
         App.scene.gamepadManager.onGamepadConnectedObservable.add((gamepad) => {
-            const dualshock = (gamepad as DualShockPad);
+            try {
+                const dualshock = (gamepad as DualShockPad);
 
-            dualshock.onButtonDownObservable.add((button: any) => {
-                const buttonEvent = DualshockEventMapper.mapButtonEvent(button, 1);
-                if (buttonEvent.objectName) {
-                    window.dispatchEvent(new CustomEvent('pa-button-state-change', {
-                            detail: buttonEvent
-                        }
-                    ));
-                }
-            });
-            dualshock.onButtonUpObservable.add((button: any) => {
-                const buttonEvent = DualshockEventMapper.mapButtonEvent(button, 0);
-                if (buttonEvent.objectName) {
-                    window.dispatchEvent(new CustomEvent('pa-button-state-change', {
-                            detail: buttonEvent
-                        }
-                    ));
-                }
-            });
+                dualshock.onButtonDownObservable.add((button: any) => {
+                    const buttonEvent = DualshockEventMapper.mapButtonEvent(button, 1);
+                    if (buttonEvent.objectName) {
+                        window.dispatchEvent(new CustomEvent('pa-button-state-change', {
+                                detail: buttonEvent
+                            }
+                        ));
+                    }
+                });
+                dualshock.onButtonUpObservable.add((button: any) => {
+                    const buttonEvent = DualshockEventMapper.mapButtonEvent(button, 0);
+                    if (buttonEvent.objectName) {
+                        window.dispatchEvent(new CustomEvent('pa-button-state-change', {
+                                detail: buttonEvent
+                            }
+                        ));
+                    }
+                });
 
-            gamepad.onleftstickchanged((values) => {
-                window.dispatchEvent(
-                    new CustomEvent('pa-analog-value-change', {
-                        detail: {
-                            objectName: "left-controller",
-                            value: values.x,
-                            axisIndex: 0
-                        }
-                    }));
-                window.dispatchEvent(
-                    new CustomEvent('pa-analog-value-change', {
-                        detail: {
-                            objectName: "left-controller",
-                            value: values.y,
-                            axisIndex: 1
-                        }
-                    }));
-            });
-            gamepad.onrightstickchanged((values) => {
-                window.dispatchEvent(
-                    new CustomEvent('pa-analog-value-change', {
-                        detail: {
-                            objectName: "right-controller",
-                            value: values.x,
-                            axisIndex: 0
-                        }
-                    }));
-                window.dispatchEvent(
-                    new CustomEvent('pa-analog-value-change', {
-                        detail: {
-                            objectName: "right-controller",
-                            value: values.y,
-                            axisIndex: 1
-                        }
-                    }));
-            });
+                gamepad.onleftstickchanged((values) => {
+                    window.dispatchEvent(
+                        new CustomEvent('pa-analog-value-change', {
+                            detail: {
+                                objectName: "left-controller",
+                                value: values.x,
+                                axisIndex: 0
+                            }
+                        }));
+                    window.dispatchEvent(
+                        new CustomEvent('pa-analog-value-change', {
+                            detail: {
+                                objectName: "left-controller",
+                                value: values.y,
+                                axisIndex: 1
+                            }
+                        }));
+                });
+                gamepad.onrightstickchanged((values) => {
+                    window.dispatchEvent(
+                        new CustomEvent('pa-analog-value-change', {
+                            detail: {
+                                objectName: "right-controller",
+                                value: values.x,
+                                axisIndex: 0
+                            }
+                        }));
+                    window.dispatchEvent(
+                        new CustomEvent('pa-analog-value-change', {
+                            detail: {
+                                objectName: "right-controller",
+                                value: values.y,
+                                axisIndex: 1
+                            }
+                        }));
+                });
+            } catch (err) {
+                log.warn('App', err);
+            }
         });
 
-        //camera.parent = App.rig.rigMesh;
+
         window.addEventListener("keydown", (ev) => {
             // Shift+Ctrl+Alt+I
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
@@ -181,11 +187,13 @@ export class App {
                 }
             }
         });
+        log.info('App', 'keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
 
         engine.runRenderLoop(() => {
             scene.render();
 
         });
+        log.info('App', 'Render loop started');
     }
 
     createGround() {
@@ -204,7 +212,7 @@ export class App {
         return ground;
     }
 }
-
 const app = new App();
+
 
 

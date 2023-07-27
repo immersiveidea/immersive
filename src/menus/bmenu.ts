@@ -20,6 +20,7 @@ import {DiagramManager} from "../diagram/diagramManager";
 import {BmenuState} from "./MenuState";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import {MeshConverter} from "../diagram/meshConverter";
+import log from "loglevel";
 
 export class Bmenu {
     private state: BmenuState = BmenuState.NONE;
@@ -48,7 +49,7 @@ export class Bmenu {
                         pointerInfo.pickInfo?.pickedMesh?.parent?.parent?.id != "toolbox") {
                         switch (this.state) {
                             case BmenuState.REMOVING:
-                                console.log("removing " + pointerInfo.pickInfo.pickedMesh.id);
+                                log.debug("removing " + pointerInfo.pickInfo.pickedMesh.id);
                                 const event: DiagramEvent = {
                                     type: DiagramEventType.REMOVE,
                                     entity:
@@ -71,7 +72,7 @@ export class Bmenu {
                                                     entity: MeshConverter.toDiagramEntity(mesh),
                                                 }
                                             )
-                                           console.log(mesh.scaling);
+                                           log.debug(mesh.scaling);
                                         });
                                     }
 
@@ -80,7 +81,7 @@ export class Bmenu {
                                 break;
                             case BmenuState.LABELING:
                                 const mesh = pointerInfo.pickInfo.pickedMesh;
-                                console.log("labeling " + mesh.id);
+                                log.debug("labeling " + mesh.id);
 /*                                const myPlane = MeshBuilder.CreatePlane("myPlane", {width: 1, height: .125}, this.scene);
                                 //myPlane.parent=mesh;
                                 const pos = mesh.absolutePosition;
@@ -106,10 +107,10 @@ export class Bmenu {
                                 textInput.value = "";
                                 textInput.focus();
                                 textInput.addEventListener('input', (event)=> {
-                                    console.log(event);
+                                    log.debug(event);
                                 });
                                 textInput.addEventListener('keydown', (event)=> {
-                                    console.log(event);
+                                    log.debug(event);
                                     if (event.key == "Enter") {
                                         textInput.blur();
                                         textInput.remove();
@@ -178,7 +179,7 @@ export class Bmenu {
                 this.state = BmenuState.LABELING;
                 break;
             default:
-                console.log("Unknown button");
+                log.error("Unknown button");
                 return;
         }
         this.manager.dispose();

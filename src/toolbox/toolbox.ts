@@ -10,6 +10,8 @@ import {
 
 import {CameraHelper} from "../util/cameraHelper";
 import {AdvancedDynamicTexture, Button3D, ColorPicker, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
+import {DiagramManager} from "../diagram/diagramManager";
+import {DiagramEventType} from "../diagram/diagramEntity";
 
 export enum ToolType {
     BOX ="#box-template",
@@ -117,14 +119,19 @@ export class Toolbox {
         colorPicker.scaleX = 5;
         colorPicker.value = color;
         colorPicker.onValueChangedObservable.add((value) => {
+            const oldColor = material.diffuseColor.clone();
             material.diffuseColor = value;
             material.id = "material-" + value.toHexString();
             material.name = "material-" + value.toHexString();
             mesh.id = "toolbox-color-" + value.toHexString();
             mesh.name = "toolbox-color-" + value.toHexString();
-            console.log(mesh.getChildren( (node) => {
-                return  (node?.parent?.id!="toolbox") &&
-                    (node?.parent?.parent?.id != "toolbox")}));
+            DiagramManager.onDiagramEventObservable.notifyObservers(
+                {
+                    type: DiagramEventType.CHANGECOLOR,
+                    oldColor: oldColor,
+                    newColor: value
+                }
+            );
         });
 
         advancedTexture2.addControl(colorPicker);

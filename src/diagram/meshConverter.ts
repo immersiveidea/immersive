@@ -2,6 +2,7 @@ import {DiagramEntity} from "./diagramEntity";
 import {AbstractMesh, Color3, InstancedMesh, Mesh, Scene, StandardMaterial} from "@babylonjs/core";
 import {v4 as uuidv4} from 'uuid';
 import {Toolbox} from "../toolbox/toolbox";
+import log from "loglevel";
 
 
 export class MeshConverter {
@@ -29,21 +30,21 @@ export class MeshConverter {
         }
         let mesh = scene.getMeshById(entity.id);
         if (mesh) {
-            console.log('mesh already exists');
+            log.debug('mesh already exists');
         } else {
             mesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
             if (mesh) {
                 if (mesh.isAnInstance) {
-                    console.log('error: mesh is an instance');
+                    log.debug('error: mesh is an instance');
                 } else {
                     mesh = new InstancedMesh(entity.id, (mesh as Mesh));
                 }
             } else {
-                console.log('no mesh found for ' + entity.template + "-" + entity.color);
+                log.debug('no mesh found for ' + entity.template + "-" + entity.color);
                 Toolbox.instance.updateToolbox(entity.color);
                 mesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
                 if (!mesh) {
-                    console.log('no mesh found for ' + entity.template + "-" + entity.color);
+                    log.debug('no mesh found for ' + entity.template + "-" + entity.color);
                 } else {
                     mesh = new InstancedMesh(entity.id, (mesh as Mesh));
                 }

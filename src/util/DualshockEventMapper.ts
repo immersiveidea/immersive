@@ -1,4 +1,5 @@
 import {DualShockButton} from "@babylonjs/core";
+import log from "loglevel";
 type ButtonEvent = {
     objectName?: string,
     pressed: boolean,
@@ -17,69 +18,69 @@ export class DualshockEventMapper {
         };
         switch (buttonid) {
             case DualShockButton.Circle:
-                console.log('circle');
+                log.debug('DualshockEventMapper','circle');
                 break;
             case DualShockButton.Cross:
-                console.log('cross');
+                log.debug('DualshockEventMapper','cross');
                 buttonEvent.objectName = "right-controller";
                 buttonEvent.buttonIndex = 3;
                 break;
             case DualShockButton.Triangle:
-                console.log('triangle');
+                log.debug('DualshockEventMapper','triangle');
                 break;
             case DualShockButton.Square:
-                console.log('square');
+                log.debug('DualshockEventMapper','square');
                 buttonEvent.objectName = "right-controller";
                 buttonEvent.buttonIndex = 4;
                 break;
             case DualShockButton.L1:
-                console.log('L1');
+                log.debug('DualshockEventMapper','L1');
                 buttonEvent.objectName = "left-controller";
                 buttonEvent.buttonIndex = 2;
                 break;
             case DualShockButton.R1:
-                console.log('R1');
+                log.debug('DualshockEventMapper','R1');
                 buttonEvent.objectName = "right-controller";
                 buttonEvent.buttonIndex = 2;
                 break;
             case 6:
-                console.log('L2');
+                log.debug('DualshockEventMapper','L2');
                 buttonEvent.objectName = "left-controller";
                 buttonEvent.buttonIndex = 1;
                 break;
             case 7:
-                console.log('R2');
+                log.debug('DualshockEventMapper','R2');
                 buttonEvent.objectName = "right-controller";
                 buttonEvent.buttonIndex = 1;
                 break;
             case 12:
-                console.log('D-Pad Up');
+                log.debug('DualshockEventMapper','D-Pad Up');
                 break;
             case 13:
-                console.log('D-Pad Down');
+                log.debug('DualshockEventMapper','D-Pad Down');
                 buttonEvent.objectName = "left-controller";
                 buttonEvent.buttonIndex = 3;
                 break;
             case 14:
-                console.log('D-Pad Left');
+                log.debug('DualshockEventMapper','D-Pad Left');
                 buttonEvent.objectName = "left-controller";
                 buttonEvent.buttonIndex = 4;
                 break;
             case 15:
-                console.log('D-Pad Right');
+                log.debug('DualshockEventMapper','D-Pad Right');
                 break;
             case 10:
-                console.log('L3');
+                log.debug('DualshockEventMapper','L3');
                 buttonEvent.objectName = "left-controller";
                 buttonEvent.buttonIndex = 0;
                 break;
             case 11:
-                console.log('R3');
+                log.debug('DualshockEventMapper','R3');
                 buttonEvent.objectName = "right-controller";
                 buttonEvent.buttonIndex = 0;
                 break;
             default:
-                console.log(buttonid);
+                log.debug('DualshockEventMapper',buttonid);
 
         }
         return buttonEvent;

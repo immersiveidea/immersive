@@ -11,7 +11,8 @@ import {
 import {MeshConverter} from "../diagram/meshConverter";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
-import log from 'loglevel';
+import log from "loglevel";
+
 
 export class Base {
     static stickVector = Vector3.Zero();
@@ -95,11 +96,11 @@ export class Base {
                         mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
                     }
                     if (!this.grabbedMesh) {
-                        console.log("no grabbed mesh");
+                        log.debug("controllers", "no grabbed mesh");
                         return;
                     }
                     if (mesh?.id != this?.grabbedMesh?.id) {
-                        console.log("not the same mesh");
+                        log.debug("controllers", "not the same mesh");
                     }
                     mesh = this.grabbedMesh;
                     if (!mesh?.metadata?.template) {
