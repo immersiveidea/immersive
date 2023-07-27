@@ -13,10 +13,7 @@ export class Cameras {
     }
 
     public async getCameras() {
-
-        const cameras = await axios.get('https://local.immersiveidea.com/api/cameras');
-        this.cameras = cameras;
-        //console.log(cameras);
+        this.cameras =  await axios.get('https://local.immersiveidea.com/api/cameras');
     }
 
     public createCameras() {

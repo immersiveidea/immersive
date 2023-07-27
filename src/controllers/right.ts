@@ -1,13 +1,12 @@
 import {Base} from "./base";
 import {
-    Angle,
     Scene,
     Vector3,
     WebXRControllerComponent,
     WebXRDefaultExperience,
     WebXRInputSource
 } from "@babylonjs/core";
-import {ControllerMovementMode, Controllers} from "./controllers";
+import {Controllers} from "./controllers";
 import log from "loglevel";
 
 export class Right extends Base {
@@ -26,6 +25,7 @@ export class Right extends Base {
 
 
     }
+
     private initBButton(bbutton: WebXRControllerComponent) {
         if (bbutton) {
             bbutton.onButtonStateChangedObservable.add((button) => {
@@ -62,15 +62,7 @@ export class Right extends Base {
         if (thumbstick) {
             thumbstick.onAxisValueChangedObservable.add((value) => {
                 log.trace('Right', `thumbstick moved ${value.x}, ${value.y}`);
-                if (!Controllers.movable) {
-                    this.moveRig(value);
-                } else {
-                    if (Controllers.movementMode == ControllerMovementMode.ROTATE) {
-                        this.rotateMovable(value);
-                    } else {
-                        this.moveMovable(value);
-                    }
-                }
+                this.moveRig(value);
             });
             thumbstick.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
@@ -96,34 +88,6 @@ export class Right extends Base {
         }
         if (Base.stickVector.equals(Vector3.Zero())) {
             Controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
-        }
-    }
-
-    private rotateMovable(value: { x: number; y: number }) {
-        if (Math.abs(value.y) > .1) {
-            Controllers.movable.rotation.x +=
-                Angle.FromDegrees(Math.sign(value.y)).radians();
-            Controllers.movable.rotation.x = this.fixRadians(Controllers.movable.rotation.x);
-        }
-        if (Math.abs(value.x) > .1) {
-            Controllers.movable.rotation.z +=
-                Angle.FromDegrees(Math.sign(value.x)).radians();
-            Controllers.movable.rotation.z = this.fixRadians(Controllers.movable.rotation.z);
-        }
-    }
-    private fixRadians(value: number) {
-        if (value > 2 * Math.PI) {
-            return value - 2 * Math.PI;
-        } else {
-            return value;
-        }
-    }
-    private moveMovable(value: { x: number; y: number }) {
-        if (Math.abs(value.y) > .1) {
-            Controllers.movable.position.z += Math.sign(value.y) * -.005;
-        }
-        if (Math.abs(value.x) > .1) {
-            Controllers.movable.position.x += Math.sign(value.x) * .005;
         }
     }
 }

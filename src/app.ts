@@ -30,10 +30,9 @@ import log from "loglevel";
 export class App {
     //preTasks = [havokModule];
 
-    public static scene: Scene;
-    public static xr: WebXRDefaultExperience;
-    public static rig: Rigplatform;
-    public static gamepad: Gamepad;
+    private scene: Scene;
+    private xr: WebXRDefaultExperience;
+    private rig: Rigplatform;
 
     constructor() {
         log.setLevel('debug');
@@ -49,13 +48,13 @@ export class App {
     }
 
     async initialize(canvas) {
-        if (App.xr) {
-            App.xr.dispose();
-            App.xr = null;
+        if (this.xr) {
+            this.xr.dispose();
+            this.xr = null;
         }
-        if (App.scene) {
-            App.scene.dispose();
-            App.scene = null;
+        if (this.scene) {
+            this.scene.dispose();
+            this.scene = null;
         }
         if (DiagramManager.onDiagramEventObservable) {
             DiagramManager.onDiagramEventObservable.clear();
@@ -64,7 +63,7 @@ export class App {
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
 
-        App.scene = scene;
+        this.scene = scene;
 
 
         const havokInstance = await HavokPhysics();
@@ -82,7 +81,7 @@ export class App {
             './outdoor_field.jpeg', {},
             scene);
         const ground = this.createGround();
-        App.xr = await WebXRDefaultExperience.CreateAsync(scene, {
+        this.xr = await WebXRDefaultExperience.CreateAsync(scene, {
             floorMeshes: [ground],
             disableTeleportation: true,
             outputCanvasOptions: {
@@ -96,9 +95,9 @@ export class App {
             }
 
         });
-        App.xr.baseExperience.onStateChangedObservable.add((state) => {
+        this.xr.baseExperience.onStateChangedObservable.add((state) => {
             if (state == WebXRState.IN_XR) {
-                App.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
+                this.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
                 window.addEventListener(('pa-button-state-change'), (event: any) => {
                     if (event.detail) {
                         log.debug('App', event.detail);
@@ -108,11 +107,11 @@ export class App {
             }
         });
 
-        const diagramManager = new DiagramManager(App.scene, App.xr.baseExperience);
-        App.rig = new Rigplatform(App.scene, App.xr);
-        const toolbox = new Toolbox(scene, App.xr.baseExperience);
+        const diagramManager = new DiagramManager(this.scene, this.xr.baseExperience);
+        this.rig = new Rigplatform(this.scene, this.xr);
+        const toolbox = new Toolbox(scene, this.xr.baseExperience);
 
-        App.scene.gamepadManager.onGamepadConnectedObservable.add((gamepad) => {
+        this.scene.gamepadManager.onGamepadConnectedObservable.add((gamepad) => {
             try {
                 const dualshock = (gamepad as DualShockPad);
 
@@ -197,18 +196,18 @@ export class App {
     }
 
     createGround() {
-        const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", App.scene);
-        const gText = new Texture("./grass1.jpeg", App.scene);
+        const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", this.scene);
+        const gText = new Texture("./grass1.jpeg", this.scene);
         gText.uScale = 40;
         gText.vScale = 40;
         groundMaterial.baseTexture = gText;
         groundMaterial.metallic = 0;
         groundMaterial.roughness = 1;
 
-        const ground = MeshBuilder.CreateGround("ground", {width: 100, height: 100, subdivisions: 1}, App.scene);
+        const ground = MeshBuilder.CreateGround("ground", {width: 100, height: 100, subdivisions: 1}, this.scene);
 
         ground.material = groundMaterial;
-        new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, App.scene);
+        new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, this.scene);
         return ground;
     }
 }

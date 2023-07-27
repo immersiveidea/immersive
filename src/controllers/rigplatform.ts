@@ -10,7 +10,7 @@ import {
     PhysicsShapeType,
     Quaternion,
     Scene,
-    StandardMaterial, TransformNode,
+    StandardMaterial,
     Vector3,
     WebXRDefaultExperience
 } from "@babylonjs/core";
@@ -26,7 +26,7 @@ export class Rigplatform {
     private velocityIndex = 2;
     private readonly velocityArray = [0.01, 0.1, 1, 2, 5];
     public bMenu: Bmenu;
-    private scene: Scene;
+    private readonly scene: Scene;
     public static instance: Rigplatform;
     private static xr: WebXRDefaultExperience;
     private yRotation: number = 0;

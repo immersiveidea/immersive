@@ -34,7 +34,7 @@ export class Toolbox {
     public readonly node : TransformNode;
     private readonly manager: GUI3DManager;
     private readonly gridsize = 5;
-    private addPanel: StackPanel3D;
+    private readonly addPanel: StackPanel3D;
     constructor (scene:Scene, xr: WebXRExperienceHelper) {
         this.scene = scene;
         this.addPanel = new StackPanel3D();
@@ -144,9 +144,6 @@ export class Toolbox {
         } else {
             this.buildColor(Color3.FromHexString(color));
         }
-    }
-    private nextPosition() {
-
     }
 
     public buildTool(tool: ToolType, parent: AbstractMesh) {

@@ -1,16 +1,9 @@
-import {AbstractMesh, MeshBuilder, Scene, Vector3, WebXRExperienceHelper} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, Scene, WebXRExperienceHelper} from "@babylonjs/core";
 import {
-    AdvancedDynamicTexture,
-    Button3D,
-    GUI3DManager, InputText, PlanePanel,
-    StackPanel, StackPanel3D,
-    TextBlock,
-    TouchHolographicButton
+    AdvancedDynamicTexture
 } from "@babylonjs/gui";
-import {MyMenu} from "../util/myMenu";
 
 export class Keyboard {
-    private manager: GUI3DManager;
     private readonly scene: Scene;
     private mesh: AbstractMesh;
     private panel: AbstractMesh;

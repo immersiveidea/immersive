@@ -1,5 +1,6 @@
 import {Angle, Color3, MeshBuilder, Scene, StandardMaterial, Texture} from "@babylonjs/core";
 import googleStaticMapsTile from "google-static-maps-tile";
+import log from "loglevel";
 
 export class Gmap {
     private readonly scene: Scene;
@@ -9,6 +10,7 @@ export class Gmap {
     }
 
     public async createMapTiles(lat, lon) {
+        log.debug('createMapTiles', lat, lon)
         googleStaticMapsTile({
             areaSize: '2560x2560',
             center: '26.443397,-82.111512',
@@ -19,10 +21,7 @@ export class Gmap {
             maptype: 'satellite'
         })
             .on('progress', function (info) {
-                //console.log(info.count);
-                //console.log(info.total);
                 const image = info.image;
-
                 image.style.position = 'absolute';
                 image.style.left = info.data.x + 'px';
                 image.style.top = info.data.y + 'px';

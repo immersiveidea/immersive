@@ -1,4 +1,4 @@
-import {PlanePanel, TouchHolographicMenu} from "@babylonjs/gui";
+import {PlanePanel} from "@babylonjs/gui";
 
 export class MyMenu extends PlanePanel {
     public arrangeChildren: boolean = true;

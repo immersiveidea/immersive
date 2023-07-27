@@ -1,34 +1,27 @@
 import {
-    Angle,
+    AbstractMesh,
     GizmoManager,
-    MeshBuilder,
     PointerEventTypes,
     Scene,
     Vector3,
     WebXRExperienceHelper
 } from "@babylonjs/core";
-import {
-    AdvancedDynamicTexture,
-    Button3D,
-    ColorPicker,
-    GUI3DManager,
-    InputText,
-    StackPanel3D,
-    TextBlock
-} from "@babylonjs/gui";
+import {Button3D, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
 import {BmenuState} from "./MenuState";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import {MeshConverter} from "../diagram/meshConverter";
 import log from "loglevel";
+import {InputTextView} from "../information/inputTextView";
 
 export class Bmenu {
     private state: BmenuState = BmenuState.NONE;
     private manager: GUI3DManager;
     private readonly scene: Scene;
+    private textView: InputTextView;
+    private textInput: HTMLElement;
     private gizmoManager: GizmoManager;
     private xr: WebXRExperienceHelper;
-    private textInput: any;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper) {
 
@@ -47,7 +40,21 @@ export class Bmenu {
                 case PointerEventTypes.POINTERPICK:
                     if (pointerInfo.pickInfo?.pickedMesh?.metadata?.template &&
                         pointerInfo.pickInfo?.pickedMesh?.parent?.parent?.id != "toolbox") {
+                        if (this.textInput) {
+                            this.textInput.blur();
+                            this.textInput.remove();
+                            this.textInput = null;
+                        }
+                        if (this.textView) {
+                            this.textView.dispose().then(() => {
+                                log.getLogger("bmenu").debug("disposed");
+                            }).catch((e) => {
+                                log.getLogger("bmenu").error(e);
+                            });
+                            this.textView = null;
+                        }
                         switch (this.state) {
+
                             case BmenuState.REMOVING:
                                 log.debug("removing " + pointerInfo.pickInfo.pickedMesh.id);
                                 const event: DiagramEvent = {
@@ -82,40 +89,51 @@ export class Bmenu {
                             case BmenuState.LABELING:
                                 const mesh = pointerInfo.pickInfo.pickedMesh;
                                 log.debug("labeling " + mesh.id);
-/*                                const myPlane = MeshBuilder.CreatePlane("myPlane", {width: 1, height: .125}, this.scene);
-                                //myPlane.parent=mesh;
-                                const pos = mesh.absolutePosition;
-                                pos.y += .2;
-                                myPlane.position= pos;
-                                myPlane.rotation.y = Angle.FromDegrees(180).radians();
-                                const advancedTexture2 = AdvancedDynamicTexture.CreateForMesh(myPlane, 1024, 128);
-                                myPlane.material.backFaceCulling = false;
-                                const inputText = new InputText("input");
-                                inputText.color= "white";
-                                inputText.background = "black";
-                                inputText.height= "128px";
-                                inputText.width= "1024px";
-                                inputText.maxWidth= "1024px";
-                                inputText.margin="0px";
-                                inputText.fontSize= "48px";
-                                advancedTexture2.addControl(inputText);
 
- */
+
                                 const textInput = document.createElement("input");
                                 textInput.type = "text";
                                 document.body.appendChild(textInput);
-                                textInput.value = "";
+                                if (mesh?.metadata?.text) {
+                                    textInput.value = mesh.metadata.text;
+                                } else {
+                                    textInput.value = "";
+                                }
                                 textInput.focus();
-                                textInput.addEventListener('input', (event)=> {
-                                    log.debug(event);
-                                });
-                                textInput.addEventListener('keydown', (event)=> {
-                                    log.debug(event);
-                                    if (event.key == "Enter") {
-                                        textInput.blur();
-                                        textInput.remove();
-                                    }
-                                });
+
+                                if (navigator.userAgent.indexOf('Macintosh') > -1) {
+                                    textInput.addEventListener('input', (event)=> {
+                                        log.debug(event);
+                                    });
+                                    const textView = new InputTextView(this.scene, this.xr, mesh)
+                                    textView.show(textInput.value);
+                                    textInput.addEventListener('keydown', (event)=> {
+                                        if (event.key == "Enter") {
+                                            this.persist(mesh, textInput.value);
+                                            textInput.blur();
+                                            textInput.remove();
+                                            this.textView.dispose();
+                                            this.textView = null;
+                                            this.textInput = null;
+                                        } else {
+                                            textView.updateText(textInput.value);
+                                        }
+                                    });
+                                    this.textView = textView;
+                                } else {
+                                    textInput.addEventListener('keydown', (event)=> {
+                                        log.debug(event);
+                                        if (event.key == "Enter") {
+                                            this.persist(mesh, textInput.value);
+                                            textInput.blur();
+                                            textInput.remove();
+                                            this.textInput = null;
+                                            this.textView = null;
+                                        }
+                                    });
+                                }
+                                this.textInput = textInput;
+
                                 break;
 
                         }
@@ -124,7 +142,17 @@ export class Bmenu {
             }
         });
     }
-
+    private persist(mesh: AbstractMesh, text: string) {
+        if (mesh.metadata) {
+            mesh.metadata.text = text;
+        } else {
+            log.getLogger('bmenu').error("mesh has no metadata");
+        }
+        DiagramManager.onDiagramEventObservable.notifyObservers({
+            type: DiagramEventType.MODIFY,
+            entity: MeshConverter.toDiagramEntity(mesh),
+        });
+    }
     makeButton(name: string, id: string) {
         const button = new Button3D(name);
         button.scaling = new Vector3(.1, .1, .1);
@@ -133,16 +161,8 @@ export class Bmenu {
         text.fontSize = "24px";
         text.color = "white";
         button.content = text;
-        button.onPointerClickObservable.add(this.#clickhandler, -1, false, this);
+        button.onPointerClickObservable.add(this.handleClick, -1, false, this);
         return button;
-    }
-
-    public getState() {
-        return this.state;
-    }
-
-    public setState(state: BmenuState) {
-        this.state = state;
     }
 
     toggle() {
@@ -167,7 +187,7 @@ export class Bmenu {
         }
     }
 
-    #clickhandler(_info, state) {
+    private handleClick(_info, state) {
         switch (state.currentTarget.name) {
             case "modify":
                 this.state = BmenuState.MODIFYING;
