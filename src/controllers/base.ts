@@ -1,5 +1,6 @@
 import {
     AbstractMesh,
+    Angle,
     InstancedMesh,
     Mesh,
     Scene,
@@ -12,6 +13,8 @@ import {MeshConverter} from "../diagram/meshConverter";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
+import {AppConfig} from "../util/appConfig";
+import round from "round";
 
 
 export class Base {
@@ -61,6 +64,24 @@ export class Base {
             return new InstancedMesh("new", (mesh as InstancedMesh).sourceMesh);
         }
 
+    }
+
+    static snapRotation(rotation): Vector3 {
+        const config = AppConfig.config;
+        if (config.rotateSnap == 0) {
+            return rotation;
+        }
+        rotation.x = this.calcDegreesToSnap(rotation.x, config.rotateSnap);
+        rotation.y = this.calcDegreesToSnap(rotation.y, config.rotateSnap);
+        rotation.z = this.calcDegreesToSnap(rotation.z, config.rotateSnap);
+        return rotation;
+    }
+
+    static calcDegreesToSnap(val, snap) {
+        const deg = Angle.FromRadians(val).degrees();
+        const snappedDegrees = round(deg, snap);
+        log.getLogger('Base').debug("deg", val, deg, snappedDegrees, snap);
+        return Angle.FromDegrees(snappedDegrees).radians();
     }
 
     private initGrip(grip: WebXRControllerComponent) {
@@ -124,16 +145,18 @@ export class Base {
                             return;
                         }
                     }
-
+                    const snapped = Base.snapRotation(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
                     if (this.previousParent) {
                         const p = this.scene.getMeshById(this.previousParent);
                         if (p) {
                             mesh && mesh.setParent(this.scene.getMeshById(this.previousParent));
                         } else {
                             mesh && mesh.setParent(null);
+
                         }
                     } else {
-                        mesh && mesh.setParent(null)
+                        mesh && mesh.setParent(null);
+                        mesh.rotation = snapped;
                     }
                     const entity = MeshConverter.toDiagramEntity(mesh);
                     const event: DiagramEvent = {
@@ -149,4 +172,5 @@ export class Base {
             }
         });
     }
+
 }

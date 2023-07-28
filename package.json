@@ -27,6 +27,7 @@
     "query-string": "^8.1.0",
     "vite-express": "^0.9.1",
     "loglevel": "^1.8.1",
+    "round": "^2.0.1",
     "express-http-proxy": "^1.6.3",
     "earcut": "^2.2.4",
     "uuid": "^9.0.0"
