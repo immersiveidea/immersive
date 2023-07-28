@@ -30,6 +30,7 @@ import {IndexdbPersistenceManager} from "./diagram/indexdbPersistenceManager";
 
 export class App {
     //preTasks = [havokModule];
+    private logger = log.getLogger('App');
 
     private scene: Scene;
     private xr: WebXRDefaultExperience;
@@ -38,7 +39,7 @@ export class App {
     constructor() {
         const config = AppConfig.config;
 
-        log.setLevel('debug');
+        log.setLevel('info');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -189,13 +190,13 @@ export class App {
                 }
             }
         });
-        log.info('App', 'keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
+        this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
         persistenceManager.initialize();
         engine.runRenderLoop(() => {
             scene.render();
 
         });
-        log.info('App', 'Render loop started');
+        this.logger.info('Render loop started');
     }
 
     createGround() {
