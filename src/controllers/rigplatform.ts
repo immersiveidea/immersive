@@ -19,6 +19,7 @@ import {Left} from "./left";
 import {EditMenu} from "../menus/editMenu";
 import {Controllers} from "./controllers";
 import log from "loglevel";
+import {DiagramManager} from "../diagram/diagramManager";
 
 
 export class Rigplatform {
@@ -34,13 +35,15 @@ export class Rigplatform {
     private camera: Camera;
     private turning: boolean = false;
     private velocity: Vector3 = Vector3.Zero();
+    private readonly diagramManager: DiagramManager;
 
-    constructor(scene: Scene, xr: WebXRDefaultExperience) {
+    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
 
         this.scene = scene;
+        this.diagramManager = diagramManager;
         Rigplatform.xr = xr;
         Rigplatform.instance = this;
-        this.bMenu = new EditMenu(scene, xr.baseExperience);
+        this.bMenu = new EditMenu(scene, xr.baseExperience, this.diagramManager);
         this.camera = scene.activeCamera;
 
         this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
@@ -111,11 +114,11 @@ export class Rigplatform {
             let controller;
             switch (source.inputSource.handedness) {
                 case "right":
-                    Right.instance = new Right(source, this.scene, Rigplatform.xr);
+                    Right.instance = new Right(source, this.scene, Rigplatform.xr, this.diagramManager);
                     Controllers.controllerObserver.add((event: { type: string, value: number }) => {
                         switch (event.type) {
                             case "increaseVelocity":
-                                if (this.velocityIndex < this.velocityArray.length -1) {
+                                if (this.velocityIndex < this.velocityArray.length - 1) {
                                     this.velocityIndex++;
                                 } else {
                                     this.velocityIndex = 0;
@@ -150,7 +153,7 @@ export class Rigplatform {
                     });
                     break;
                 case "left":
-                    Left.instance = new Left(source, this.scene, Rigplatform.xr);
+                    Left.instance = new Left(source, this.scene, Rigplatform.xr, this.diagramManager);
                     break;
 
             }

@@ -24,12 +24,13 @@ export class EditMenu {
     private textView: InputTextView;
     private textInput: HTMLElement;
     private gizmoManager: GizmoManager;
-    private xr: WebXRExperienceHelper;
+    private readonly xr: WebXRExperienceHelper;
+    private readonly diagramManager: DiagramManager;
 
-    constructor(scene: Scene, xr: WebXRExperienceHelper) {
-
+    constructor(scene: Scene, xr: WebXRExperienceHelper, diagramManager: DiagramManager) {
         this.scene = scene;
         this.xr = xr;
+        this.diagramManager = diagramManager;
         this.gizmoManager = new GizmoManager(scene);
         this.gizmoManager.boundingBoxGizmoEnabled = true;
         this.gizmoManager.gizmos.boundingBoxGizmo.scaleBoxSize = .020;
@@ -71,7 +72,7 @@ export class EditMenu {
                     entity:
                         MeshConverter.toDiagramEntity(pointerInfo.pickInfo.pickedMesh)
                 }
-                DiagramManager.onDiagramEventObservable.notifyObservers(event);
+                this.diagramManager.onDiagramEventObservable.notifyObservers(event);
                 break;
             case BmenuState.MODIFYING:
                 if (pointerInfo.pickInfo.pickedMesh.metadata?.template &&
@@ -83,7 +84,7 @@ export class EditMenu {
                         this.gizmoManager.attachToMesh(mesh);
 
                         this.gizmoManager.gizmos.boundingBoxGizmo.onScaleBoxDragObservable.add(() => {
-                            DiagramManager.onDiagramEventObservable.notifyObservers({
+                            this.diagramManager.onDiagramEventObservable.notifyObservers({
                                     type: DiagramEventType.MODIFY,
                                     entity: MeshConverter.toDiagramEntity(mesh),
                                 }
@@ -158,7 +159,7 @@ export class EditMenu {
         } else {
             log.getLogger('bmenu').error("mesh has no metadata");
         }
-        DiagramManager.onDiagramEventObservable.notifyObservers({
+        this.diagramManager.onDiagramEventObservable.notifyObservers({
             type: DiagramEventType.MODIFY,
             entity: MeshConverter.toDiagramEntity(mesh),
         });

@@ -1,6 +1,5 @@
 import {
     AbstractMesh,
-    Angle,
     InstancedMesh,
     Mesh,
     Scene,
@@ -14,7 +13,6 @@ import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
 import {AppConfig} from "../util/appConfig";
-import round from "round";
 
 
 export class Base {
@@ -29,12 +27,16 @@ export class Base {
     protected previousPosition: Vector3 = null;
 
     protected readonly xr: WebXRDefaultExperience;
+    protected readonly diagramManager: DiagramManager;
 
-    constructor(controller: WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience) {
+    constructor(controller: WebXRInputSource,
+                scene: Scene,
+                xr: WebXRDefaultExperience,
+                diagramManager: DiagramManager) {
         this.controller = controller;
         this.scene = scene;
         this.xr = xr;
-
+        this.diagramManager = diagramManager;
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-trigger']) {
                 init.components['xr-standard-trigger']
@@ -66,35 +68,6 @@ export class Base {
 
     }
 
-    static snapRotation(rotation): Vector3 {
-        const config = AppConfig.config;
-        if (config.rotateSnap == 0) {
-            return rotation;
-        }
-        rotation.x = this.CalcToSnap(rotation.x, config.rotateSnap);
-        rotation.y = this.CalcToSnap(rotation.y, config.rotateSnap);
-        rotation.z = this.CalcToSnap(rotation.z, config.rotateSnap);
-        return rotation;
-    }
-
-    static snapPosition(position): Vector3 {
-        const config = AppConfig.config;
-        if (config.gridSnap == 0) {
-            return position;
-        }
-        position.x = round(position.x, config.gridSnap);
-        position.y = round(position.y, config.gridSnap);
-        position.z = round(position.z, config.gridSnap);
-        return position;
-    }
-
-    static CalcToSnap(val, snap) {
-        const deg = Angle.FromRadians(val).degrees();
-        const snappedDegrees = round(deg, snap);
-        log.getLogger('Base').debug("deg", val, deg, snappedDegrees, snap);
-        return Angle.FromDegrees(snappedDegrees).radians();
-    }
-
     private initGrip(grip: WebXRControllerComponent) {
         grip.onButtonStateChangedObservable.add(() => {
             if (grip.changes.pressed) {
@@ -124,10 +97,11 @@ export class Base {
                         mesh && mesh.setParent(this.controller.motionController.rootMesh);
                         this.grabbedMesh = mesh;
                     } else {
+                        const config = AppConfig.config;
                         const newMesh = this.createCopy(mesh);
                         newMesh.position = mesh.absolutePosition.clone();
                         newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
-                        newMesh.scaling = mesh.absoluteScaling.clone();
+                        newMesh.scaling = config.createSnapVal;
                         newMesh.material = mesh.material;
                         newMesh.metadata = mesh.metadata;
                         newMesh && newMesh.setParent(this.controller.motionController.rootMesh);
@@ -156,15 +130,19 @@ export class Base {
                             return;
                         }
                     }
-                    const snappedRotation = Base.snapRotation(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
-                    const snappedPosition = Base.snapPosition(mesh.absolutePosition.clone());
+                    const config = AppConfig.config;
+                    const snappedRotation = config.snapRotateVal(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
+                    const snappedPosition = config.snapGridVal(mesh.absolutePosition.clone());
                     if (this.previousParent) {
                         const p = this.scene.getMeshById(this.previousParent);
                         if (p) {
                             mesh && mesh.setParent(this.scene.getMeshById(this.previousParent));
+                            log.getLogger("Base").warn("Base", "Have not implemented snapping to parent yet");
+                            //@note: this is not implemented yet
                         } else {
                             mesh && mesh.setParent(null);
-
+                            mesh.rotation = snappedRotation;
+                            mesh.position = snappedPosition;
                         }
                     } else {
                         mesh && mesh.setParent(null);
@@ -180,7 +158,7 @@ export class Base {
                     this.previousScaling = null;
                     this.previousRotation = null;
                     this.previousPosition = null;
-                    DiagramManager.onDiagramEventObservable.notifyObservers(event);
+                    this.diagramManager.onDiagramEventObservable.notifyObservers(event);
                 }
             }
         });

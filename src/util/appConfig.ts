@@ -1,10 +1,45 @@
+import {Angle, Vector3} from "@babylonjs/core";
+import round from "round";
+import log from "loglevel";
+import {IPersistenceManager} from "../diagram/persistenceManager";
+
+export type SnapValue = {
+    value: number,
+    label: string
+}
+export type AppConfigType = {
+    gridSnap: number,
+    rotateSnap: number,
+    createSnap: number
+}
+
 export class AppConfig {
-    public gridSnap = 0;
-    public rotateSnap = 0;
-    public gridSnapArray =
-        [0, 0.1, 0.5, 1];
-    public rotateSnapArray =
-        [0, 22.5, 45, 90]
+    private gridSnap = 0;
+    private rotateSnap = 0;
+    private createSnap = 0;
+    private readonly defaultGridSnapIndex = 1;
+    private persistenceManager: IPersistenceManager = null;
+    private gridSnapArray: SnapValue[] =
+        [{value: 0, label: "Off"},
+            {value: 0.05, label: "(Default)"},
+            {value: 0.01, label: "1 cm"},
+            {value: 0.1, label: "10 cm"},
+            {value: 0.25, label: "25 cm"},
+            {value: .5, label: ".5 m"}]
+    private createSnapArray: SnapValue[] =
+        [{value: .1, label: "Default (10 cm)"},
+            {value: 0.2, label: "20 cm"},
+            {value: 0.5, label: ".5 m"},
+            {value: 1, label: "1 m"}];
+    private rotateSnapArray: SnapValue[] =
+        [{value: 0, label: "Off"},
+            {value: 22.5, label: "22.5 Degrees"},
+            {value: 45, label: "45 Degrees"},
+            {value: 90, label: "90 Degrees"}];
+
+    public get currentGridSnap(): SnapValue {
+        return this.gridSnapArray[this.gridSnap];
+    }
 
     private static _config: AppConfig;
 
@@ -13,7 +48,116 @@ export class AppConfig {
             AppConfig._config = new AppConfig();
         }
         return AppConfig._config;
-
     }
 
+    public get currentRotateSnap(): SnapValue {
+        return this.rotateSnapArray[this.rotateSnap];
+    }
+
+    public get currentCreateSnap(): SnapValue {
+        return this.createSnapArray[this.createSnap];
+    }
+
+    public get currentGridSnapIndex(): number {
+        return this.gridSnap;
+    }
+
+    public set currentGridSnapIndex(val: number) {
+        this.gridSnap = val;
+        this.save();
+    }
+
+    public get currentCreateSnapIndex(): number {
+        return this.createSnap;
+    }
+
+    public set currentCreateSnapIndex(val: number) {
+        this.createSnap = val;
+        if (this.currentGridSnapIndex == this.defaultGridSnapIndex) {
+            this.currentGridSnap.value = this.currentCreateSnap.value / 2;
+            log.getLogger('AppConfig').debug("Set grid snap to " + this.currentGridSnap.value);
+        }
+        this.save();
+    }
+
+    public get currentRotateSnapIndex(): number {
+        return this.rotateSnap;
+    }
+
+    public set currentRotateSnapIndex(val: number) {
+        this.rotateSnap = val;
+        this.save();
+    }
+
+    public get createSnapVal(): Vector3 {
+        return new Vector3(this.currentCreateSnap.value, this.currentCreateSnap.value, this.currentCreateSnap.value);
+    }
+
+    public setPersistenceManager(persistenceManager: IPersistenceManager) {
+        this.persistenceManager = persistenceManager;
+        this.load();
+    }
+
+    public gridSnaps(): SnapValue[] {
+        return this.gridSnapArray;
+    }
+
+    public createSnaps(): SnapValue[] {
+        return this.createSnapArray;
+    }
+
+    public rotateSnaps(): SnapValue[] {
+        return this.rotateSnapArray;
+    }
+
+    public snapGridVal(value: Vector3): Vector3 {
+        if (this.currentGridSnapIndex == 0) {
+            return value;
+        }
+        const position = value.clone();
+        position.x = round(position.x, this.currentGridSnap.value);
+        position.y = round(position.y, this.currentGridSnap.value);
+        position.z = round(position.z, this.currentGridSnap.value);
+        return position;
+    }
+
+    public snapRotateVal(value: Vector3): Vector3 {
+        if (this.currentRotateSnapIndex == 0) {
+            return value;
+        }
+        const rotation = new Vector3();
+        rotation.x = this.snapAngle(value.x);
+        rotation.y = this.snapAngle(value.y);
+        rotation.z = this.snapAngle(value.z);
+        return rotation;
+    }
+
+    private save() {
+        this.persistenceManager.setConfig(
+            {
+                gridSnap: this.currentGridSnap.value,
+                rotateSnap: this.currentRotateSnap.value,
+                createSnap: this.currentCreateSnap.value
+            });
+    }
+
+    private load() {
+        const config = this.persistenceManager.getConfig();
+        if (config) {
+            this.rotateSnap = this.rotateSnapArray.findIndex((snap) => snap.value == config.rotateSnap);
+            this.createSnap = this.createSnapArray.findIndex((snap) => snap.value == config.createSnap);
+            const gridSnap = this.gridSnapArray.findIndex((snap) => snap.value == config.gridSnap);
+            if (gridSnap == -1) {
+                this.gridSnap = this.defaultGridSnapIndex;
+                this.currentGridSnap.value = config.gridSnap;
+            }
+        }
+    }
+
+    private snapAngle(val: number): number {
+        const deg = Angle.FromRadians(val).degrees();
+        const snappedDegrees = round(deg, this.currentRotateSnap.value);
+        log.getLogger('AppConfig').debug("deg", val, deg, snappedDegrees, this.currentRotateSnap.value);
+        return Angle.FromDegrees(snappedDegrees).radians();
+    }
 }

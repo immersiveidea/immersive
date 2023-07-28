@@ -1,7 +1,8 @@
 import {AbstractMesh, Observable, TransformNode} from "@babylonjs/core";
 
 export type ControllerEventType = {
-    type: string
+    type: string,
+    value?: number
 }
 export class Controllers {
     public static movable: TransformNode | AbstractMesh;

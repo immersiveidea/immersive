@@ -1,41 +1,42 @@
 import {Observable, Scene, WebXRExperienceHelper} from "@babylonjs/core";
-
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./diagramEntity";
 import {IPersistenceManager} from "./persistenceManager";
-import {IndexdbPersistenceManager} from "./indexdbPersistenceManager";
 import {MeshConverter} from "./meshConverter";
 import log from "loglevel";
 
 export class DiagramManager {
-    private persistenceManager: IPersistenceManager = new IndexdbPersistenceManager("diagram");
-    static onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
+    public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
+    private readonly logger = log.getLogger('DiagramManager');
+    private persistenceManager: IPersistenceManager = null;
     private readonly scene: Scene;
     private xr: WebXRExperienceHelper;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper) {
         this.scene = scene;
         this.xr = xr;
-        this.persistenceManager.updateObserver.add(this.onRemoteEvent, -1, true, this);
-        log.getLogger('DiagramManager').debug( "remote event observer added");
-        this.persistenceManager.initialize();
-
-        if (!DiagramManager.onDiagramEventObservable) {
-            log.getLogger('DiagramManager').debug( "onDiagramEventObservable missing, recreated");
-            DiagramManager.onDiagramEventObservable = new Observable();
+        if (this.onDiagramEventObservable.hasObservers()) {
+            this.logger.warn("onDiagramEventObservable already has Observers, you should be careful");
         }
-        if (DiagramManager.onDiagramEventObservable.hasObservers()) {
-            log.getLogger('DiagramManager').debug("onDiagramEventObservable already has Observers, this shouldn't happen");
-        } else {
-            DiagramManager.onDiagramEventObservable.add(this.onDiagramEvent, -1, true, this);
-            log.getLogger('DiagramManager').debug( "onDiagramEventObservable Observer added");
-        }
-        log.getLogger('DiagramManager').debug( "DiagramManager constructed");
+        this.onDiagramEventObservable.add(this.onDiagramEvent, -1, true, this);
+        this.logger.debug("DiagramManager constructed");
     }
 
+    public setPersistenceManager(persistenceManager: IPersistenceManager) {
+        this.persistenceManager = persistenceManager;
+        this.persistenceManager.updateObserver.add(this.onRemoteEvent, -1, true, this);
+    }
+
+    private getPersistenceManager(): IPersistenceManager {
+        if (!this.persistenceManager) {
+            this.logger.warn("persistenceManager not set");
+            return null;
+        }
+        return this.persistenceManager;
+    }
 
     private onRemoteEvent(event: DiagramEntity) {
         //const mesh = Toolbox.instance.newMesh(ToolType[Object.entries(ToolType).find(e => e[1] == event.template)[0]], event.id);
-        log.getLogger('DiagramManager').debug(event);
+        this.logger.debug(event);
         const mesh = MeshConverter.fromDiagramEntity(event, this.scene);
         if (event.parent) {
             mesh.parent = this.scene.getMeshById(event.parent);
@@ -43,7 +44,7 @@ export class DiagramManager {
     }
 
     private onDiagramEvent(event: DiagramEvent) {
-        log.getLogger("DiagramManager").debug(event);
+        this.logger.debug(event.type);
         const entity = event.entity;
         let mesh;
         if (entity) {
@@ -55,19 +56,19 @@ export class DiagramManager {
             case DiagramEventType.DROPPED:
                 break;
             case DiagramEventType.DROP:
-                this.persistenceManager.add(mesh);
+                this.getPersistenceManager()?.add(mesh)
                 break;
             case DiagramEventType.ADD:
                 break;
             case DiagramEventType.MODIFY:
-                this.persistenceManager.modify(mesh);
+                this.getPersistenceManager()?.modify(mesh)
                 break;
             case DiagramEventType.CHANGECOLOR:
-                this.persistenceManager.changeColor(event.oldColor, event.newColor);
+                this.getPersistenceManager()?.changeColor(event.oldColor, event.newColor);
                 break;
             case DiagramEventType.REMOVE:
                 if (mesh) {
-                    this.persistenceManager.remove(mesh);
+                    this.getPersistenceManager()?.remove(mesh)
                     mesh.dispose();
                 }
                 break;

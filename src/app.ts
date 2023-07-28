@@ -25,7 +25,8 @@ import {DiagramManager} from "./diagram/diagramManager";
 import {Toolbox} from "./toolbox/toolbox";
 import {DualshockEventMapper} from "./util/dualshockEventMapper";
 import log from "loglevel";
-
+import {AppConfig} from "./util/appConfig";
+import {IndexdbPersistenceManager} from "./diagram/indexdbPersistenceManager";
 
 export class App {
     //preTasks = [havokModule];
@@ -35,6 +36,8 @@ export class App {
     private rig: Rigplatform;
 
     constructor() {
+        const config = AppConfig.config;
+
         log.setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
@@ -55,10 +58,6 @@ export class App {
         if (this.scene) {
             this.scene.dispose();
             this.scene = null;
-        }
-        if (DiagramManager.onDiagramEventObservable) {
-            DiagramManager.onDiagramEventObservable.clear();
-            DiagramManager.onDiagramEventObservable = null;
         }
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
@@ -106,10 +105,14 @@ export class App {
 
             }
         });
-
+        const persistenceManager = new IndexdbPersistenceManager("diagram");
         const diagramManager = new DiagramManager(this.scene, this.xr.baseExperience);
-        this.rig = new Rigplatform(this.scene, this.xr);
-        const toolbox = new Toolbox(scene, this.xr.baseExperience);
+        diagramManager.setPersistenceManager(persistenceManager);
+        AppConfig.config.setPersistenceManager(persistenceManager);
+
+
+        this.rig = new Rigplatform(this.scene, this.xr, diagramManager);
+        const toolbox = new Toolbox(scene, this.xr.baseExperience, diagramManager);
 
         this.scene.gamepadManager.onGamepadConnectedObservable.add((gamepad) => {
             try {
@@ -119,7 +122,7 @@ export class App {
                     const buttonEvent = DualshockEventMapper.mapButtonEvent(button, 1);
                     if (buttonEvent.objectName) {
                         window.dispatchEvent(new CustomEvent('pa-button-state-change', {
-                                detail: buttonEvent
+                            detail: buttonEvent
                             }
                         ));
                     }
@@ -187,7 +190,7 @@ export class App {
             }
         });
         log.info('App', 'keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
-
+        persistenceManager.initialize();
         engine.runRenderLoop(() => {
             scene.render();
 

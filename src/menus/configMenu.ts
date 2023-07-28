@@ -38,30 +38,52 @@ export class ConfigMenu {
         selectionPanel.fontSize = "24px";
         selectionPanel.height = "100%";
         configTexture.addControl(selectionPanel)
-        const radio1 = new RadioGroup("Rotation Snap");
-        radio1.addRadio("Off", this.rotateVal);
-        radio1.addRadio("22.5 degrees", this.rotateVal);
-        radio1.addRadio("45 degrees", this.rotateVal);
-        radio1.addRadio("90 degrees", this.rotateVal);
-        selectionPanel.addGroup(radio1);
-        const radio2 = new RadioGroup("Grid Snap");
-        radio2.addRadio("Off", this.gridVal);
-        radio2.addRadio("1 cm", this.gridVal);
-        radio2.addRadio("10 cm", this.gridVal);
-        radio2.addRadio("25 cm", this.gridVal);
-        selectionPanel.addGroup(radio1);
-        selectionPanel.addGroup(radio2);
+        selectionPanel.addGroup(this.buildGridSizeControl());
+        selectionPanel.addGroup(this.buildRotationSnapControl());
+        selectionPanel.addGroup(this.buildCreateScaleControl());
         this.configPlane.position = CameraHelper.getFrontPosition(2, this.scene);
         this.configPlane.rotation.y = Angle.FromDegrees(180).radians();
     }
 
+    private createVal(value) {
+        AppConfig.config.currentCreateSnapIndex = value;
+        log.debug("configMenu", "create Snap", value);
+    }
+
+    private buildCreateScaleControl(): RadioGroup {
+        const radio = new RadioGroup("Create Scale");
+        for (const [index, snap] of AppConfig.config.createSnaps().entries()) {
+            const selected = AppConfig.config.currentCreateSnapIndex == index;
+            radio.addRadio(snap.label, this.createVal, selected);
+        }
+        return radio;
+    }
+
+    private buildRotationSnapControl(): RadioGroup {
+        const radio = new RadioGroup("Rotation Snap");
+        for (const [index, snap] of AppConfig.config.rotateSnaps().entries()) {
+            const selected = AppConfig.config.currentRotateSnapIndex == index;
+            radio.addRadio(snap.label, this.rotateVal, selected);
+        }
+        return radio;
+    }
+
+    private buildGridSizeControl(): RadioGroup {
+        const radio = new RadioGroup("Grid Snap");
+        for (const [index, snap] of AppConfig.config.gridSnaps().entries()) {
+            const selected = AppConfig.config.currentGridSnapIndex == index;
+            radio.addRadio(snap.label, this.gridVal, selected);
+        }
+        return radio;
+    }
+
     private rotateVal(value) {
-        AppConfig.config.rotateSnap = AppConfig.config.rotateSnapArray[value];
+        AppConfig.config.currentRotateSnapIndex = value;
         log.debug("configMenu", "rotate Snap", value);
     }
 
     private gridVal(value) {
-        AppConfig.config.gridSnap = AppConfig.config.gridSnapArray[value];
+        AppConfig.config.currentGridSnapIndex = value;
         log.debug("configMenu", "grid Snap", value);
     }
 

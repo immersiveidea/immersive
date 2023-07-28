@@ -27,27 +27,30 @@ export enum ToolType {
 }
 
 export class Toolbox {
-    public static getToolTypeFromString(type: string): ToolType {
-        return ToolType[Object.keys(ToolType).find(() => type)]
-    }
-
     private index = 0;
     public static instance: Toolbox;
     private readonly scene: Scene;
     private readonly xr: WebXRExperienceHelper;
-    public readonly node : TransformNode;
+    public readonly node: TransformNode;
+    private readonly diagramManager: DiagramManager;
     private readonly manager: GUI3DManager;
     private readonly gridsize = 5;
     private readonly addPanel: StackPanel3D;
-    constructor (scene:Scene, xr: WebXRExperienceHelper) {
+
+    constructor(scene: Scene, xr: WebXRExperienceHelper, diagramManager: DiagramManager) {
         this.scene = scene;
+        this.diagramManager = diagramManager;
         this.addPanel = new StackPanel3D();
-        this.manager  = new GUI3DManager(scene);
+        this.manager = new GUI3DManager(scene);
         this.manager.addControl(this.addPanel);
         this.node = new TransformNode("toolbox", this.scene);
-        const handle = MeshBuilder.CreateCapsule("handle", { radius: .01 , orientation: Vector3.Right(), height: .3}, this.scene);
+        const handle = MeshBuilder.CreateCapsule("handle", {
+            radius: .01,
+            orientation: Vector3.Right(),
+            height: .3
+        }, this.scene);
         handle.id = "handle";
-        const handleMaterial =  new StandardMaterial("handle-material", this.scene);
+        const handleMaterial = new StandardMaterial("handle-material", this.scene);
         handleMaterial.diffuseColor = Color3.FromHexString("#EEEEFF");
         handle.material = handleMaterial;
         handle.position = CameraHelper.getFrontPosition(2, this.scene);
@@ -129,7 +132,7 @@ export class Toolbox {
             material.name = "material-" + value.toHexString();
             mesh.id = "toolbox-color-" + value.toHexString();
             mesh.name = "toolbox-color-" + value.toHexString();
-            DiagramManager.onDiagramEventObservable.notifyObservers(
+            this.diagramManager.onDiagramEventObservable.notifyObservers(
                 {
                     type: DiagramEventType.CHANGECOLOR,
                     oldColor: oldColor,
@@ -205,9 +208,6 @@ export class Toolbox {
         } else {
             return null;
         }
-    }
-    public show() {
-        this.buildToolbox();
     }
 }
 function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {

@@ -3,7 +3,7 @@ import {AdvancedDynamicTexture, InputText} from "@babylonjs/gui";
 
 export class InputTextView {
     private mesh: AbstractMesh;
-    private scene: Scene;
+    private readonly scene: Scene;
     private xr: WebXRExperienceHelper;
     private inputPlane: AbstractMesh;
     private inputText: InputText;

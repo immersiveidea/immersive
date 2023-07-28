@@ -2,13 +2,15 @@ import {Base} from "./base";
 import {Scene, Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {Controllers} from "./controllers";
 import log from "loglevel";
+import {DiagramManager} from "../diagram/diagramManager";
 
 export class Right extends Base {
     public static instance: Right;
 
     constructor(controller:
-                    WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience) {
-        super(controller, scene, xr);
+                    WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager
+    ) {
+        super(controller, scene, xr, diagramManager);
         Right.instance = this;
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);

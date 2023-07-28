@@ -3,15 +3,17 @@ import {Base} from "./base";
 import {Controllers} from "./controllers";
 import log from "loglevel";
 import {ConfigMenu} from "../menus/configMenu";
+import {DiagramManager} from "../diagram/diagramManager";
 
 
 export class Left extends Base {
     public static instance: Left;
     public configMenu: ConfigMenu;
-    constructor(controller:
-                    WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience) {
 
-        super(controller, scene, xr);
+    constructor(controller:
+                    WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
+
+        super(controller, scene, xr, diagramManager);
         this.configMenu = new ConfigMenu(this.scene, xr.baseExperience);
         Left.instance = this;
         this.controller.onMotionControllerInitObservable.add((init) => {
