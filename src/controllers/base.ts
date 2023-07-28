@@ -71,13 +71,24 @@ export class Base {
         if (config.rotateSnap == 0) {
             return rotation;
         }
-        rotation.x = this.calcDegreesToSnap(rotation.x, config.rotateSnap);
-        rotation.y = this.calcDegreesToSnap(rotation.y, config.rotateSnap);
-        rotation.z = this.calcDegreesToSnap(rotation.z, config.rotateSnap);
+        rotation.x = this.CalcToSnap(rotation.x, config.rotateSnap);
+        rotation.y = this.CalcToSnap(rotation.y, config.rotateSnap);
+        rotation.z = this.CalcToSnap(rotation.z, config.rotateSnap);
         return rotation;
     }
 
-    static calcDegreesToSnap(val, snap) {
+    static snapPosition(position): Vector3 {
+        const config = AppConfig.config;
+        if (config.gridSnap == 0) {
+            return position;
+        }
+        position.x = round(position.x, config.gridSnap);
+        position.y = round(position.y, config.gridSnap);
+        position.z = round(position.z, config.gridSnap);
+        return position;
+    }
+
+    static CalcToSnap(val, snap) {
         const deg = Angle.FromRadians(val).degrees();
         const snappedDegrees = round(deg, snap);
         log.getLogger('Base').debug("deg", val, deg, snappedDegrees, snap);
@@ -145,7 +156,8 @@ export class Base {
                             return;
                         }
                     }
-                    const snapped = Base.snapRotation(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
+                    const snappedRotation = Base.snapRotation(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
+                    const snappedPosition = Base.snapPosition(mesh.absolutePosition.clone());
                     if (this.previousParent) {
                         const p = this.scene.getMeshById(this.previousParent);
                         if (p) {
@@ -156,7 +168,8 @@ export class Base {
                         }
                     } else {
                         mesh && mesh.setParent(null);
-                        mesh.rotation = snapped;
+                        mesh.rotation = snappedRotation;
+                        mesh.position = snappedPosition;
                     }
                     const entity = MeshConverter.toDiagramEntity(mesh);
                     const event: DiagramEvent = {
