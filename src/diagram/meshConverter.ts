@@ -15,7 +15,12 @@ import log from "loglevel";
 
 
 export class MeshConverter {
+    private static logger = log.getLogger('MeshConverter');
     public static toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
+        if (!mesh) {
+            this.logger.error("toDiagramEntity: mesh is null");
+            return null;
+        }
         const entity = <DiagramEntity>{};
         if ("new" == mesh?.id) {
             mesh.id = "id" + uuidv4();
@@ -29,11 +34,17 @@ export class MeshConverter {
         entity.scale = mesh.scaling;
         if (mesh.material) {
             entity.color = (mesh.material as any).diffuseColor.toHexString();
+        } else {
+            this.logger.error("toDiagramEntity: mesh.material is null");
         }
         return entity;
     }
 
     public static fromDiagramEntity(entity: DiagramEntity, scene: Scene): AbstractMesh {
+        if (!entity) {
+            this.logger.error("fromDiagramEntity: entity is null");
+            return null;
+        }
         if (!entity.id) {
             entity.id = "id" + uuidv4();
         }
@@ -64,10 +75,7 @@ export class MeshConverter {
 
         if (mesh) {
             mesh.metadata = {template: entity.template};
-            if (entity.text) {
-                mesh.metadata.text = entity.text;
-                this.updateTextNode(mesh, entity.text);
-            }
+
             if (entity.position) {
                 mesh.position = entity.position;
             }
@@ -85,7 +93,12 @@ export class MeshConverter {
                 material.diffuseColor = Color3.FromHexString(entity.color);
                 mesh.material = material;
             }
-
+            if (entity.text) {
+                mesh.metadata.text = entity.text;
+                this.updateTextNode(mesh, entity.text);
+            }
+        } else {
+            this.logger.error("fromDiagramEntity: mesh is null after it should have been created");
         }
 
         return mesh;
@@ -93,11 +106,18 @@ export class MeshConverter {
     }
 
     public static updateTextNode(mesh: AbstractMesh, text: string) {
+        if (!mesh) {
+            this.logger.error("updateTextNode: mesh is null");
+            return null;
+        }
         let textNode = (mesh.getChildren((node) => {
             return node.name == 'text'
         })[0] as Mesh);
         if (textNode) {
             textNode.dispose(false, true);
+        }
+        if (!text) {
+            return null;
         }
 
         //Set font
@@ -110,7 +130,7 @@ export class MeshConverter {
         const ratio = height / DTHeight;
 
         //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
-        const temp = new DynamicTexture("DynamicTexture", 64, mesh.getScene());
+        const temp = new DynamicTexture("DynamicTexture", 32, mesh.getScene());
         const tmpctx = temp.getContext();
         tmpctx.font = font;
         const DTWidth = tmpctx.measureText(text).width + 8;
@@ -133,9 +153,7 @@ export class MeshConverter {
         plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
         //textNode = this.updateTextNode(mesh, entity.text);
         plane.parent = mesh;
-        log.getLogger('bmenu').debug("max y", mesh.getBoundingInfo().boundingBox.maximum.y);
-        plane.position.y = .5+ (height / 2);
-
+        plane.position.y = .5 + (.125 / 2);
         return plane;
     }
 }

@@ -56,12 +56,14 @@ export class DiagramManager {
             case DiagramEventType.DROPPED:
                 break;
             case DiagramEventType.DROP:
-                this.getPersistenceManager()?.add(mesh)
+                this.getPersistenceManager()?.modify(mesh);
+                MeshConverter.updateTextNode(mesh, entity.text);
                 break;
             case DiagramEventType.ADD:
+                this.getPersistenceManager()?.add(mesh);
                 break;
             case DiagramEventType.MODIFY:
-                this.getPersistenceManager()?.modify(mesh)
+                this.getPersistenceManager()?.modify(mesh);
                 break;
             case DiagramEventType.CHANGECOLOR:
                 this.getPersistenceManager()?.changeColor(event.oldColor, event.newColor);

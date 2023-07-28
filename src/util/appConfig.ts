@@ -8,13 +8,15 @@ export type SnapValue = {
     label: string
 }
 export type AppConfigType = {
+    id?: number,
     gridSnap: number,
     rotateSnap: number,
     createSnap: number
 }
 
 export class AppConfig {
-    private gridSnap = 0;
+    private readonly logger = log.getLogger('AppConfig');
+    private gridSnap = 1;
     private rotateSnap = 0;
     private createSnap = 0;
     private readonly defaultGridSnapIndex = 1;
@@ -75,7 +77,7 @@ export class AppConfig {
         this.createSnap = val;
         if (this.currentGridSnapIndex == this.defaultGridSnapIndex) {
             this.currentGridSnap.value = this.currentCreateSnap.value / 2;
-            log.getLogger('AppConfig').debug("Set grid snap to " + this.currentGridSnap.value);
+            this.logger.debug("Set grid snap to " + this.currentGridSnap.value);
         }
         this.save();
     }
@@ -95,7 +97,7 @@ export class AppConfig {
 
     public setPersistenceManager(persistenceManager: IPersistenceManager) {
         this.persistenceManager = persistenceManager;
-        this.load();
+        this.persistenceManager.configObserver.add(this.configObserver, -1, false, this);
     }
 
     public gridSnaps(): SnapValue[] {
@@ -141,23 +143,32 @@ export class AppConfig {
             });
     }
 
-    private load() {
-        const config = this.persistenceManager.getConfig();
+    private configObserver(config: AppConfigType) {
         if (config) {
-            this.rotateSnap = this.rotateSnapArray.findIndex((snap) => snap.value == config.rotateSnap);
-            this.createSnap = this.createSnapArray.findIndex((snap) => snap.value == config.createSnap);
-            const gridSnap = this.gridSnapArray.findIndex((snap) => snap.value == config.gridSnap);
-            if (gridSnap == -1) {
-                this.gridSnap = this.defaultGridSnapIndex;
-                this.currentGridSnap.value = config.gridSnap;
+            if (config.createSnap != this.currentCreateSnap.value ||
+                config.gridSnap != this.currentGridSnap.value ||
+                config.rotateSnap != this.currentRotateSnap.value) {
+                this.logger.debug("Config changed", config);
+
+                this.rotateSnap = this.rotateSnapArray.findIndex((snap) => snap.value == config.rotateSnap);
+                this.createSnap = this.createSnapArray.findIndex((snap) => snap.value == config.createSnap);
+                const gridSnap = this.gridSnapArray.findIndex((snap) => snap.value == config.gridSnap);
+                if (gridSnap == -1) {
+                    this.gridSnap = this.defaultGridSnapIndex;
+                    this.currentGridSnap.value = config.gridSnap;
+                }
+            } else {
+                this.logger.debug("Config unchanged", config);
             }
+        } else {
+            this.logger.debug("Config not set");
         }
     }
 
     private snapAngle(val: number): number {
         const deg = Angle.FromRadians(val).degrees();
         const snappedDegrees = round(deg, this.currentRotateSnap.value);
-        log.getLogger('AppConfig').debug("deg", val, deg, snappedDegrees, this.currentRotateSnap.value);
+        this.logger.debug("deg", val, deg, snappedDegrees, this.currentRotateSnap.value);
         return Angle.FromDegrees(snappedDegrees).radians();
     }
 }

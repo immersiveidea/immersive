@@ -26,21 +26,24 @@ export class ConfigMenu {
             this.configPlane = null;
             return;
         }
+        const width = .25;
+        const height = .55;
+        const res = 256;
+        const heightPixels = Math.round((height / width) * res);
         this.configPlane = MeshBuilder
             .CreatePlane("gridSizePlane",
                 {
                     width: .25,
                     height: .5
                 }, this.scene);
-        const configTexture = AdvancedDynamicTexture.CreateForMesh(this.configPlane, 256, 512);
+        const configTexture = AdvancedDynamicTexture.CreateForMesh(this.configPlane, res, heightPixels);
         configTexture.background = "white";
         const selectionPanel = new SelectionPanel("selectionPanel");
-        selectionPanel.fontSize = "24px";
-        selectionPanel.height = "100%";
         configTexture.addControl(selectionPanel)
-        selectionPanel.addGroup(this.buildGridSizeControl());
-        selectionPanel.addGroup(this.buildRotationSnapControl());
-        selectionPanel.addGroup(this.buildCreateScaleControl());
+        this.buildGridSizeControl(selectionPanel);
+        this.buildRotationSnapControl(selectionPanel);
+        this.buildCreateScaleControl(selectionPanel);
+
         this.configPlane.position = CameraHelper.getFrontPosition(2, this.scene);
         this.configPlane.rotation.y = Angle.FromDegrees(180).radians();
     }
@@ -50,8 +53,10 @@ export class ConfigMenu {
         log.debug("configMenu", "create Snap", value);
     }
 
-    private buildCreateScaleControl(): RadioGroup {
+    private buildCreateScaleControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Create Scale");
+        selectionPanel.addGroup(radio);
+
         for (const [index, snap] of AppConfig.config.createSnaps().entries()) {
             const selected = AppConfig.config.currentCreateSnapIndex == index;
             radio.addRadio(snap.label, this.createVal, selected);
@@ -59,8 +64,9 @@ export class ConfigMenu {
         return radio;
     }
 
-    private buildRotationSnapControl(): RadioGroup {
+    private buildRotationSnapControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Rotation Snap");
+        selectionPanel.addGroup(radio);
         for (const [index, snap] of AppConfig.config.rotateSnaps().entries()) {
             const selected = AppConfig.config.currentRotateSnapIndex == index;
             radio.addRadio(snap.label, this.rotateVal, selected);
@@ -68,8 +74,9 @@ export class ConfigMenu {
         return radio;
     }
 
-    private buildGridSizeControl(): RadioGroup {
+    private buildGridSizeControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Grid Snap");
+        selectionPanel.addGroup(radio);
         for (const [index, snap] of AppConfig.config.gridSnaps().entries()) {
             const selected = AppConfig.config.currentGridSnapIndex == index;
             radio.addRadio(snap.label, this.gridVal, selected);

@@ -105,7 +105,11 @@ export class Base {
                         newMesh.material = mesh.material;
                         newMesh.metadata = mesh.metadata;
                         newMesh && newMesh.setParent(this.controller.motionController.rootMesh);
-
+                        const event: DiagramEvent = {
+                            type: DiagramEventType.ADD,
+                            entity: MeshConverter.toDiagramEntity(newMesh)
+                        }
+                        this.diagramManager.onDiagramEventObservable.notifyObservers(event);
                         this.grabbedMesh = newMesh;
                         this.previousParent = null;
                     }

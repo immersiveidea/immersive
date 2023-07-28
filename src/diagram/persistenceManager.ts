@@ -11,12 +11,11 @@ export interface IPersistenceManager {
 
     initialize();
 
-    getConfig(): AppConfigType;
-
     setConfig(config: AppConfigType);
 
     changeColor(oldColor: Color3, newColor: Color3)
 
     updateObserver: Observable<DiagramEntity>;
+    configObserver: Observable<AppConfigType>;
 
 }

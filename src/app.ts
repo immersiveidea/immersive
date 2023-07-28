@@ -32,6 +32,7 @@ export class App {
     //preTasks = [havokModule];
     private logger = log.getLogger('App');
 
+
     private scene: Scene;
     private xr: WebXRDefaultExperience;
     private rig: Rigplatform;
@@ -40,6 +41,9 @@ export class App {
         const config = AppConfig.config;
 
         log.setLevel('info');
+        log.getLogger('AppConfig').setLevel('debug');
+        log.getLogger('IndexdbPersistenceManager').setLevel('debug');
+
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";

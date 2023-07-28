@@ -4,18 +4,25 @@ import {DiagramEntity} from "./diagramEntity";
 import Dexie from "dexie";
 import {MeshConverter} from "./meshConverter";
 import log from "loglevel";
+import {AppConfigType} from "../util/appConfig";
 
-export class IndexdbPersistenceManager implements  IPersistenceManager {
+
+export class IndexdbPersistenceManager implements IPersistenceManager {
     private readonly logger = log.getLogger('IndexdbPersistenceManager');
-    public updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
+    public readonly updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
+    public readonly configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
     private db: Dexie;
+
     constructor(name: string) {
         this.db = new Dexie(name);
-        this.db.version(1).stores({entities: "id,position,rotation,last_seen,template,text,scale,color"});
+        const version = 2;
+        this.db.version(2).stores({config: "id,gridSnap,rotateSnap,createSnap"});
+        this.db.version(2).stores({entities: "id,position,rotation,last_seen,template,text,scale,color"});
         this.logger.debug("IndexdbPersistenceManager constructed");
 
     }
-    public  add(mesh: AbstractMesh) {
+
+    public add(mesh: AbstractMesh) {
         if (!mesh) {
             this.logger.error("Adding null mesh, early return");
             return;
@@ -24,27 +31,35 @@ export class IndexdbPersistenceManager implements  IPersistenceManager {
         entity.position = this.vectoxys(mesh.position);
         entity.rotation = this.vectoxys(mesh.rotation);
         entity.scale = this.vectoxys(mesh.scaling);
-
         this.db["entities"].add(entity);
         this.logger.debug('add', mesh, entity);
     }
 
     public remove(mesh: AbstractMesh) {
+        if (!mesh) {
+            this.logger.error("Removing null mesh, early return");
+            return;
+        }
         this.db["entities"].delete(mesh.id);
     }
 
-    public getConfig(): any {
-        this.logger.warn('getConfig not implemented');
-        //@todo implement
-    }
-
-    public setConfig(config: any) {
-        this.logger.warn('setConfig not implemented, value not persisted', config);
-        //@todo implement
+    public setConfig(config: AppConfigType) {
+        config.id = 1;
+        this.db["config"].put(config);
+        this.logger.debug('setConfig', config);
+        this.configObserver.notifyObservers(config);
     }
 
     public modify(mesh) {
+        if (!mesh) {
+            this.logger.error("Modifying null mesh, early return");
+            return;
+        }
         const entity = <any>MeshConverter.toDiagramEntity(mesh);
+        if (!entity) {
+            this.logger.error("Modifying null mesh, early return");
+            return;
+        }
         entity.position = this.vectoxys(mesh.position);
         entity.rotation = this.vectoxys(mesh.rotation);
         entity.scale = this.vectoxys(mesh.scaling);
@@ -61,10 +76,17 @@ export class IndexdbPersistenceManager implements  IPersistenceManager {
             this.logger.debug('adding', e);
             this.updateObserver.notifyObservers(e);
         });
+        this.db['config'].each((c) => {
+            this.configObserver.notifyObservers(c);
+        });
         this.logger.info("initialize finished");
     }
 
     public changeColor(oldColor, newColor) {
+        if (!oldColor || !newColor) {
+            this.logger.error("changeColor called with null color, early return");
+            return;
+        }
         this.logger.debug(`changeColor ${oldColor.toHexString()} to ${newColor.toHexString()}`);
         this.db['entities'].where('color').equals(oldColor.toHexString()).modify({color: newColor.toHexString()});
     }
