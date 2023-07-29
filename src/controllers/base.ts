@@ -1,7 +1,5 @@
 import {
     AbstractMesh,
-    InstancedMesh,
-    Mesh,
     Scene,
     Vector3,
     WebXRControllerComponent,
@@ -13,6 +11,7 @@ import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
 import {AppConfig} from "../util/appConfig";
+import {Controllers} from "./controllers";
 
 
 export class Base {
@@ -28,12 +27,14 @@ export class Base {
 
     protected readonly xr: WebXRDefaultExperience;
     protected readonly diagramManager: DiagramManager;
-
+    private logger: log.Logger;
     constructor(controller: WebXRInputSource,
                 scene: Scene,
                 xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager) {
+        this.logger = log.getLogger('Base');
         this.controller = controller;
+
         this.scene = scene;
         this.xr = xr;
         this.diagramManager = diagramManager;
@@ -47,6 +48,15 @@ export class Base {
             }
             this.initGrip(init.components['xr-standard-squeeze']);
         });
+        Controllers.controllerObserver.add((event) => {
+            if (event.type == 'pulse') {
+                this.logger.debug(event);
+                if (event.gripId == this.controller.grip.id) {
+                    this.controller.motionController.pulse(.25, 30);
+                }
+            }
+        });
+
     }
 
     public disable() {
@@ -57,15 +67,6 @@ export class Base {
     public enable() {
         this.controller.motionController.rootMesh.setEnabled(true);
         this.controller.pointer.setEnabled(true);
-    }
-
-    private createCopy(mesh: AbstractMesh) {
-        if (!mesh.isAnInstance) {
-            return new InstancedMesh("new", (mesh as Mesh));
-        } else {
-            return new InstancedMesh("new", (mesh as InstancedMesh).sourceMesh);
-        }
-
     }
 
     private initGrip(grip: WebXRControllerComponent) {
@@ -98,7 +99,7 @@ export class Base {
                         this.grabbedMesh = mesh;
                     } else {
                         const config = AppConfig.config;
-                        const newMesh = this.createCopy(mesh);
+                        const newMesh = this.diagramManager.createCopy(mesh);
                         newMesh.position = mesh.absolutePosition.clone();
                         newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
                         newMesh.scaling = config.createSnapVal;

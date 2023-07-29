@@ -1,6 +1,7 @@
 import {AbstractMesh, Color3, Observable} from "@babylonjs/core";
 import {DiagramEntity} from "./diagramEntity";
-import {AppConfigType} from "../util/appConfig";
+import {AppConfigType} from "../util/appConfigType";
+
 
 export interface IPersistenceManager {
     add(mesh: AbstractMesh);

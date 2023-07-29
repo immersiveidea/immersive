@@ -2,17 +2,13 @@ import {Angle, Vector3} from "@babylonjs/core";
 import round from "round";
 import log from "loglevel";
 import {IPersistenceManager} from "../diagram/persistenceManager";
+import {AppConfigType} from "./appConfigType";
 
 export type SnapValue = {
     value: number,
     label: string
 }
-export type AppConfigType = {
-    id?: number,
-    gridSnap: number,
-    rotateSnap: number,
-    createSnap: number
-}
+
 
 export class AppConfig {
     private readonly logger = log.getLogger('AppConfig');

@@ -40,6 +40,12 @@ export class Toolbox {
     constructor(scene: Scene, xr: WebXRExperienceHelper, diagramManager: DiagramManager) {
         this.scene = scene;
         this.diagramManager = diagramManager;
+
+        this.diagramManager.onDiagramEventObservable.add((evt) => {
+            if (evt?.entity?.color && evt.type == DiagramEventType.CHANGECOLOR) {
+                this.updateToolbox(evt.entity.color);
+            }
+        }, -1, true, this);
         this.addPanel = new StackPanel3D();
         this.manager = new GUI3DManager(scene);
         this.manager.addControl(this.addPanel);
@@ -62,8 +68,10 @@ export class Toolbox {
         } else {
             this.buildToolbox();
         }
+
         Toolbox.instance = this;
     }
+
     private buildToolbox() {
         this.node.position.y = -.2;
         this.node.scaling= new Vector3(0.5, 0.5, 0.5);

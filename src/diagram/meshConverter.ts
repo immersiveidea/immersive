@@ -10,7 +10,6 @@ import {
     StandardMaterial
 } from "@babylonjs/core";
 import {v4 as uuidv4} from 'uuid';
-import {Toolbox} from "../toolbox/toolbox";
 import log from "loglevel";
 
 
@@ -61,14 +60,6 @@ export class MeshConverter {
                 }
             } else {
                 log.debug('no mesh found for ' + entity.template + "-" + entity.color);
-                Toolbox.instance.updateToolbox(entity.color);
-                mesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
-                if (!mesh) {
-                    log.debug('no mesh found for ' + entity.template + "-" + entity.color);
-                } else {
-                    mesh = new InstancedMesh(entity.id, (mesh as Mesh));
-                }
-                //Toolbox.instance.buildTool(Toolbox.getToolTypeFromString(entity.template), entity.color);
             }
         }
 
@@ -151,9 +142,14 @@ export class MeshConverter {
         const plane = MeshBuilder.CreatePlane("text", {width: planeWidth, height: height}, mesh.getScene());
         plane.material = mat;
         plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
-        //textNode = this.updateTextNode(mesh, entity.text);
+
+
+        const yOffset = mesh.getBoundingInfo().boundingSphere.radius;
         plane.parent = mesh;
-        plane.position.y = .5 + (.125 / 2);
+        plane.position.y = yOffset;
+        plane.scaling.y = 1 / mesh.scaling.y;
+        plane.scaling.x = 1 / mesh.scaling.x;
+        plane.scaling.z = 1 / mesh.scaling.z;
         return plane;
     }
 }

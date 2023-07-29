@@ -4,7 +4,7 @@ import {DiagramEntity} from "./diagramEntity";
 import Dexie from "dexie";
 import {MeshConverter} from "./meshConverter";
 import log from "loglevel";
-import {AppConfigType} from "../util/appConfig";
+import {AppConfigType} from "../util/appConfigType";
 
 
 export class IndexdbPersistenceManager implements IPersistenceManager {
@@ -16,8 +16,8 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
     constructor(name: string) {
         this.db = new Dexie(name);
         const version = 2;
-        this.db.version(2).stores({config: "id,gridSnap,rotateSnap,createSnap"});
-        this.db.version(2).stores({entities: "id,position,rotation,last_seen,template,text,scale,color"});
+        this.db.version(version).stores({config: "id,gridSnap,rotateSnap,createSnap"});
+        this.db.version(version).stores({entities: "id,position,rotation,last_seen,template,text,scale,color"});
         this.logger.debug("IndexdbPersistenceManager constructed");
 
     }
@@ -83,8 +83,12 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
     }
 
     public changeColor(oldColor, newColor) {
-        if (!oldColor || !newColor) {
-            this.logger.error("changeColor called with null color, early return");
+        if (!oldColor) {
+            if (!newColor) {
+                this.logger.error("changeColor called with no new color, early return");
+            } else {
+                this.logger.info("changeColor called with no old Color, new color added to diagram, early return");
+            }
             return;
         }
         this.logger.debug(`changeColor ${oldColor.toHexString()} to ${newColor.toHexString()}`);

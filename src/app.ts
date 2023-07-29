@@ -39,11 +39,7 @@ export class App {
 
     constructor() {
         const config = AppConfig.config;
-
-        log.setLevel('info');
-        log.getLogger('AppConfig').setLevel('debug');
-        log.getLogger('IndexdbPersistenceManager').setLevel('debug');
-
+        log.setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
