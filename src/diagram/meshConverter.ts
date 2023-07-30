@@ -15,6 +15,7 @@ import log from "loglevel";
 
 export class MeshConverter {
     private static logger = log.getLogger('MeshConverter');
+
     public static toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
         if (!mesh) {
             this.logger.error("toDiagramEntity: mesh is null");
@@ -57,6 +58,7 @@ export class MeshConverter {
                     log.debug('error: mesh is an instance');
                 } else {
                     mesh = new InstancedMesh(entity.id, (mesh as Mesh));
+
                 }
             } else {
                 log.debug('no mesh found for ' + entity.template + "-" + entity.color);
@@ -68,7 +70,10 @@ export class MeshConverter {
             mesh.metadata = {template: entity.template};
 
             if (entity.position) {
+
                 mesh.position = entity.position;
+
+
             }
             if (entity.rotation) {
                 mesh.rotation = entity.rotation;
@@ -88,6 +93,15 @@ export class MeshConverter {
                 mesh.metadata.text = entity.text;
                 this.updateTextNode(mesh, entity.text);
             }
+            /*
+            const sphereAggregate = new PhysicsAggregate(mesh, PhysicsShapeType.BOX, {
+
+                mass: 10,
+                restitution: 0.1,
+                startAsleep: false
+            }, scene);
+
+             */
         } else {
             this.logger.error("fromDiagramEntity: mesh is null after it should have been created");
         }

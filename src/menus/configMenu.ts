@@ -4,6 +4,7 @@ import {CameraHelper} from "../util/cameraHelper";
 import log from "loglevel";
 import {AppConfig} from "../util/appConfig";
 import {Controllers} from "../controllers/controllers";
+import {DiaSounds} from "../util/diaSounds";
 
 export class ConfigMenu {
     private readonly scene: Scene;
@@ -22,10 +23,12 @@ export class ConfigMenu {
 
     public toggle() {
         if (this.configPlane) {
+            DiaSounds.instance.exit.play();
             this.configPlane.dispose();
             this.configPlane = null;
             return;
         }
+        DiaSounds.instance.enter.play();
         const width = .25;
         const height = .55;
         const res = 256;

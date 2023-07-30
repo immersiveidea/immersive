@@ -8,7 +8,6 @@ import {
     Observable,
     PlaySoundAction,
     Scene,
-    Sound,
     WebXRExperienceHelper
 } from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./diagramEntity";
@@ -16,6 +15,7 @@ import {IPersistenceManager} from "./persistenceManager";
 import {MeshConverter} from "./meshConverter";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
+import {DiaSounds} from "../util/diaSounds";
 
 export class DiagramManager {
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
@@ -24,7 +24,6 @@ export class DiagramManager {
     private readonly scene: Scene;
     private xr: WebXRExperienceHelper;
 
-    private readonly tick: Sound;
 
     public setPersistenceManager(persistenceManager: IPersistenceManager) {
         this.persistenceManager = persistenceManager;
@@ -43,11 +42,9 @@ export class DiagramManager {
     constructor(scene: Scene, xr: WebXRExperienceHelper) {
         this.scene = scene;
         this.xr = xr;
-        this.tick = new Sound("tick", './tick.mp3', this.scene);
-        this.tick.setVolume(.3);
         this.actionManager = new ActionManager(this.scene);
         this.actionManager.registerAction(
-            new PlaySoundAction(ActionManager.OnPointerOverTrigger, this.tick));
+            new PlaySoundAction(ActionManager.OnPointerOverTrigger, DiaSounds.instance.tick));
         this.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, (evt) => {
                 Controllers.controllerObserver.notifyObservers({

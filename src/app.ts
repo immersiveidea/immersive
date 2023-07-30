@@ -27,6 +27,7 @@ import {DualshockEventMapper} from "./util/dualshockEventMapper";
 import log from "loglevel";
 import {AppConfig} from "./util/appConfig";
 import {IndexdbPersistenceManager} from "./diagram/indexdbPersistenceManager";
+import {DiaSounds} from "./util/diaSounds";
 
 export class App {
     //preTasks = [havokModule];
@@ -64,6 +65,8 @@ export class App {
         const scene = new Scene(engine);
 
         this.scene = scene;
+        const sounds = new DiaSounds(scene);
+        sounds.enter.autoplay = true;
 
 
         const havokInstance = await HavokPhysics();
@@ -95,8 +98,12 @@ export class App {
             }
 
         });
+
         this.xr.baseExperience.onStateChangedObservable.add((state) => {
             if (state == WebXRState.IN_XR) {
+                this.scene.audioEnabled = true;
+
+
                 this.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
                 window.addEventListener(('pa-button-state-change'), (event: any) => {
                     if (event.detail) {

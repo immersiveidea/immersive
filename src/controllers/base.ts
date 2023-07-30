@@ -51,8 +51,8 @@ export class Base {
         Controllers.controllerObserver.add((event) => {
             if (event.type == 'pulse') {
                 this.logger.debug(event);
-                if (event.gripId == this.controller.grip.id) {
-                    this.controller.motionController.pulse(.25, 30);
+                if (event.gripId == this?.controller?.grip?.id) {
+                    this.controller?.motionController?.pulse(.25, 30);
                 }
             }
         });
