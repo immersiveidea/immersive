@@ -81,7 +81,7 @@ export class App {
 
         new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
         const photoDome = new PhotoDome('sky',
-            './outdoor_field.jpeg', {},
+            './outdoor_field2.jpeg', {},
             scene);
         const ground = this.createGround();
         this.xr = await WebXRDefaultExperience.CreateAsync(scene, {
