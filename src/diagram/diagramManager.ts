@@ -6,6 +6,9 @@ import {
     InstancedMesh,
     Mesh,
     Observable,
+    PhysicsAggregate,
+    PhysicsMotionType,
+    PhysicsShapeType,
     PlaySoundAction,
     Scene,
     WebXRExperienceHelper
@@ -88,6 +91,9 @@ export class DiagramManager {
         if (event.parent) {
             mesh.parent = this.scene.getMeshById(event.parent);
         }
+        const body = new PhysicsAggregate(mesh, PhysicsShapeType.BOX, {mass: 10, restitution: .1}, this.scene);
+        body.body.setMotionType(PhysicsMotionType.DYNAMIC);
+
     }
 
     private onDiagramEvent(event: DiagramEvent) {
@@ -97,6 +103,8 @@ export class DiagramManager {
         if (entity) {
             mesh = this.scene.getMeshById(entity.id);
         }
+        //const body = mesh?.physicsBody;
+
         switch (event.type) {
             case DiagramEventType.CLEAR:
                 break;
@@ -105,9 +113,11 @@ export class DiagramManager {
             case DiagramEventType.DROP:
                 this.getPersistenceManager()?.modify(mesh);
                 MeshConverter.updateTextNode(mesh, entity.text);
+
                 break;
             case DiagramEventType.ADD:
                 this.getPersistenceManager()?.add(mesh);
+
                 break;
             case DiagramEventType.MODIFY:
                 this.getPersistenceManager()?.modify(mesh);
@@ -134,7 +144,9 @@ export class DiagramManager {
             case DiagramEventType.REMOVE:
                 if (mesh) {
                     this.getPersistenceManager()?.remove(mesh)
+                    mesh?.physicsBody?.dispose();
                     mesh.dispose();
+                    DiaSounds.instance.exit.play();
                 }
                 break;
         }

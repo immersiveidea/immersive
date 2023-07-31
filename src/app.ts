@@ -40,7 +40,7 @@ export class App {
 
     constructor() {
         const config = AppConfig.config;
-        log.setLevel('debug');
+        log.setLevel('warn');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";

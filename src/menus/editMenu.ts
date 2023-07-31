@@ -16,6 +16,7 @@ import log from "loglevel";
 import {InputTextView} from "../information/inputTextView";
 import {Right} from "../controllers/right";
 import {Left} from "../controllers/left";
+import {DiaSounds} from "../util/diaSounds";
 
 export class EditMenu {
     private state: BmenuState = BmenuState.NONE;
@@ -180,9 +181,12 @@ export class EditMenu {
     toggle() {
         //console.log(mesh.name);
         if (this.manager) {
+            DiaSounds.instance.exit.play();
             this.manager.dispose();
             this.manager = null;
+
         } else {
+            DiaSounds.instance.enter.play();
             this.manager = new GUI3DManager(this.scene);
             const panel = new StackPanel3D();
             this.manager.addControl(panel);
@@ -196,6 +200,7 @@ export class EditMenu {
                 this.scene.activeCamera.globalPosition.add(offset);
             panel.node.lookAt(this.scene.activeCamera.globalPosition);
             panel.node.rotation.y = panel.node.rotation.y + Math.PI;
+
         }
     }
 

@@ -1,6 +1,11 @@
 import {
     AbstractMesh,
+    HavokPlugin,
+    PhysicsAggregate,
+    PhysicsMotionType,
+    PhysicsShapeType,
     Scene,
+    TransformNode,
     Vector3,
     WebXRControllerComponent,
     WebXRDefaultExperience,
@@ -20,7 +25,8 @@ export class Base {
     protected speedFactor = 4;
     protected readonly scene: Scene;
     protected grabbedMesh: AbstractMesh = null;
-    protected previousParent: string = null;
+    protected grabbedMeshParentId: string = null;
+    protected previousParentId: string = null;
     protected previousRotation: Vector3 = null;
     protected previousScaling: Vector3 = null;
     protected previousPosition: Vector3 = null;
@@ -28,6 +34,8 @@ export class Base {
     protected readonly xr: WebXRDefaultExperience;
     protected readonly diagramManager: DiagramManager;
     private logger: log.Logger;
+    private lastPosition: Vector3 = null;
+
     constructor(controller: WebXRInputSource,
                 scene: Scene,
                 xr: WebXRDefaultExperience,
@@ -36,8 +44,33 @@ export class Base {
         this.controller = controller;
 
         this.scene = scene;
+        this.scene.onAfterRenderObservable.add(() => {
+
+        }, -1, false, this);
+
+        this.scene.onBeforeRenderObservable.add(() => {
+            if (this?.grabbedMesh?.physicsBody) {
+                const hk = (this.scene.getPhysicsEngine().getPhysicsPlugin() as HavokPlugin);
+                this.lastPosition = this?.grabbedMesh?.physicsBody?.transformNode.absolutePosition.clone();
+                if (this.grabbedMeshParentId) {
+                    const parent = this.scene.getTransformNodeById(this.grabbedMeshParentId);
+                    if (parent) {
+                        hk.setPhysicsBodyTransformation(this.grabbedMesh.physicsBody, parent);
+                        hk.sync(this.grabbedMesh.physicsBody);
+                    } else {
+                        this.logger.error("parent not found for " + this.grabbedMeshParentId);
+
+                    }
+
+                } else {
+                    this.logger.warn("no parent id");
+                }
+
+            }
+        }, -1, false, this);
         this.xr = xr;
         this.diagramManager = diagramManager;
+
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-trigger']) {
                 init.components['xr-standard-trigger']
@@ -69,101 +102,176 @@ export class Base {
         this.controller.pointer.setEnabled(true);
     }
 
+    private buildTransformNode() {
+
+    }
+
+    private grab(mesh) {
+
+        if (this.xr.pointerSelection.getMeshUnderPointer) {
+            mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
+        }
+        if (!mesh) {
+            return;
+        }
+        if (!mesh?.metadata?.template) {
+            if (mesh?.id == "handle") {
+                mesh && mesh.setParent(this.controller.motionController.rootMesh);
+                this.grabbedMesh = mesh;
+            } else {
+                return;
+            }
+
+        }
+        this.previousParentId = mesh?.parent?.id;
+        this.previousRotation = mesh?.rotation.clone();
+        this.previousScaling = mesh?.scaling.clone();
+        this.previousPosition = mesh?.position.clone();
+
+        if ("toolbox" != mesh?.parent?.parent?.id) {
+            if (mesh.physicsBody) {
+                const transformNode = new TransformNode("grabAnchor, this.scene");
+                transformNode.id = "grabAnchor";
+                transformNode.position = mesh.position.clone();
+                transformNode.rotationQuaternion = mesh.rotationQuaternion.clone();
+                transformNode.setParent(this.controller.motionController.rootMesh);
+                mesh.physicsBody.setMotionType(PhysicsMotionType.STATIC);
+                //mesh.setParent(transformNode);
+                this.grabbedMeshParentId = transformNode.id;
+            } else {
+                mesh.setParent(this.controller.motionController.rootMesh);
+            }
+            this.grabbedMesh = mesh;
+        } else {
+            const config = AppConfig.config;
+            const newMesh = this.diagramManager.createCopy(mesh);
+            newMesh.position = mesh.absolutePosition.clone();
+            if (mesh.absoluteRotationQuaternion) {
+                newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
+            } else {
+                newMesh.rotation = mesh.absoluteRotation.clone();
+            }
+
+            newMesh.scaling = config.createSnapVal;
+            newMesh.material = mesh.material;
+            newMesh.metadata = mesh.metadata;
+            const transformNode = new TransformNode("grabAnchor, this.scene");
+            transformNode.id = "grabAnchor";
+            transformNode.position = newMesh.position.clone();
+            if (newMesh.rotationQuaternion) {
+                transformNode.rotationQuaternion = newMesh.rotationQuaternion.clone();
+            } else {
+                transformNode.rotation = newMesh.rotation.clone();
+            }
+
+            transformNode.setParent(this.controller.motionController.rootMesh);
+            //newMesh?.physicsBody?.setMotionType(PhysicsMotionType.STATIC);
+            //mesh.setParent(transformNode);
+            this.grabbedMeshParentId = transformNode.id;
+            const aggregate = new PhysicsAggregate(newMesh,
+                PhysicsShapeType.BOX, {mass: 10, restitution: .1, friction: .9}, this.scene);
+            aggregate.body.setMotionType(PhysicsMotionType.STATIC);
+
+
+            //newMesh && newMesh.setParent(this.controller.motionController.rootMesh);
+            this.grabbedMesh = newMesh;
+            this.previousParentId = null;
+            const event: DiagramEvent = {
+                type: DiagramEventType.ADD,
+                entity: MeshConverter.toDiagramEntity(newMesh)
+            }
+            this.diagramManager.onDiagramEventObservable.notifyObservers(event);
+
+        }
+    }
+
+    private handleGrabbed(mesh: AbstractMesh): boolean {
+        if (!mesh?.metadata?.template
+            && mesh?.id == "handle") {
+            //mesh && mesh.setParent(null);
+            this.grabbedMesh = null;
+            this.previousParentId = null;
+            mesh.setParent(null);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private reparent(mesh: AbstractMesh) {
+        const config = AppConfig.config;
+        const snappedRotation = config.snapRotateVal(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
+        const snappedPosition = config.snapGridVal(mesh.absolutePosition.clone());
+
+        if (this.previousParentId) {
+            const parent = this.scene.getMeshById(this.previousParentId);
+            if (parent) {
+                //mesh && mesh.setParent(this.scene.getMeshById(this.previousParentId));
+                log.getLogger("Base").warn("Base", "Have not implemented snapping to parent yet");
+                //@note: this is not implemented yet
+            } else {
+                //mesh.setParent(null);
+                mesh.rotation = snappedRotation;
+                mesh.position = snappedPosition;
+                mesh?.physicsBody?.setMotionType(PhysicsMotionType.DYNAMIC);
+            }
+        } else {
+            const parent = this.scene.getTransformNodeById(this.grabbedMeshParentId);
+            if (parent) {
+                parent.rotation = snappedRotation;
+                parent.position = snappedPosition;
+                this.grabbedMeshParentId = null;
+                parent.dispose();
+            }
+        }
+    }
+
+    private drop() {
+        const mesh = this.grabbedMesh;
+        if (!mesh) {
+            return;
+        }
+        if (this.handleGrabbed(mesh)) {
+            return;
+        }
+        this.reparent(mesh);
+        this.previousParentId = null;
+        this.previousScaling = null;
+        this.previousRotation = null;
+        this.previousPosition = null;
+        this.grabbedMesh = null;
+
+        const entity = MeshConverter.toDiagramEntity(mesh);
+        const event: DiagramEvent = {
+            type: DiagramEventType.DROP,
+            entity: entity
+        }
+
+        this.diagramManager.onDiagramEventObservable.notifyObservers(event);
+        const body = mesh?.physicsBody;
+        if (body) {
+            body.setMotionType(PhysicsMotionType.DYNAMIC);
+            this.logger.debug(body.transformNode.absolutePosition);
+            this.logger.debug(this.lastPosition);
+            if (this.lastPosition) {
+                body.setLinearVelocity(body.transformNode.absolutePosition.subtract(this.lastPosition).scale(20));
+                //body.setLinearVelocity(this.lastPosition.subtract(body.transformNode.absolutePosition).scale(20));
+                this.logger.debug(this.lastPosition.subtract(body.transformNode.absolutePosition).scale(20));
+            }
+
+
+        }
+
+
+    }
+
     private initGrip(grip: WebXRControllerComponent) {
         grip.onButtonStateChangedObservable.add(() => {
             if (grip.changes.pressed) {
                 if (grip.pressed) {
-                    let mesh = this.scene.meshUnderPointer;
-                    if (this.xr.pointerSelection.getMeshUnderPointer) {
-                        mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
-                    }
-                    if (!mesh) {
-                        return;
-                    }
-                    if (!mesh?.metadata?.template) {
-                        if (mesh.id == "handle") {
-                            mesh && mesh.setParent(this.controller.motionController.rootMesh);
-                            this.grabbedMesh = mesh;
-                        } else {
-                            return;
-                        }
-
-                    }
-                    this.previousParent = mesh?.parent?.id;
-                    this.previousRotation = mesh?.rotation.clone();
-                    this.previousScaling = mesh?.scaling.clone();
-                    this.previousPosition = mesh?.position.clone();
-
-                    if ("toolbox" != mesh?.parent?.parent?.id) {
-                        mesh && mesh.setParent(this.controller.motionController.rootMesh);
-                        this.grabbedMesh = mesh;
-                    } else {
-                        const config = AppConfig.config;
-                        const newMesh = this.diagramManager.createCopy(mesh);
-                        newMesh.position = mesh.absolutePosition.clone();
-                        newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
-                        newMesh.scaling = config.createSnapVal;
-                        newMesh.material = mesh.material;
-                        newMesh.metadata = mesh.metadata;
-                        newMesh && newMesh.setParent(this.controller.motionController.rootMesh);
-                        const event: DiagramEvent = {
-                            type: DiagramEventType.ADD,
-                            entity: MeshConverter.toDiagramEntity(newMesh)
-                        }
-                        this.diagramManager.onDiagramEventObservable.notifyObservers(event);
-                        this.grabbedMesh = newMesh;
-                        this.previousParent = null;
-                    }
+                    this.grab(this.scene.meshUnderPointer);
                 } else {
-                    let mesh = this.scene.meshUnderPointer;
-                    if (this.xr.pointerSelection.getMeshUnderPointer) {
-                        mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
-                    }
-                    if (!this.grabbedMesh) {
-                        log.debug("controllers", "no grabbed mesh");
-                        return;
-                    }
-                    if (mesh?.id != this?.grabbedMesh?.id) {
-                        log.debug("controllers", "not the same mesh");
-                    }
-                    mesh = this.grabbedMesh;
-                    if (!mesh?.metadata?.template) {
-                        if (mesh.id == "handle") {
-                            mesh && mesh.setParent(null);
-                            this.grabbedMesh = null;
-                            this.previousParent = null;
-                            return;
-                        }
-                    }
-                    const config = AppConfig.config;
-                    const snappedRotation = config.snapRotateVal(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
-                    const snappedPosition = config.snapGridVal(mesh.absolutePosition.clone());
-                    if (this.previousParent) {
-                        const p = this.scene.getMeshById(this.previousParent);
-                        if (p) {
-                            mesh && mesh.setParent(this.scene.getMeshById(this.previousParent));
-                            log.getLogger("Base").warn("Base", "Have not implemented snapping to parent yet");
-                            //@note: this is not implemented yet
-                        } else {
-                            mesh && mesh.setParent(null);
-                            mesh.rotation = snappedRotation;
-                            mesh.position = snappedPosition;
-                        }
-                    } else {
-                        mesh && mesh.setParent(null);
-                        mesh.rotation = snappedRotation;
-                        mesh.position = snappedPosition;
-                    }
-                    const entity = MeshConverter.toDiagramEntity(mesh);
-                    const event: DiagramEvent = {
-                        type: DiagramEventType.DROP,
-                        entity: entity
-                    }
-                    this.previousParent = null;
-                    this.previousScaling = null;
-                    this.previousRotation = null;
-                    this.previousPosition = null;
-                    this.diagramManager.onDiagramEventObservable.notifyObservers(event);
+                    this.drop();
                 }
             }
         });

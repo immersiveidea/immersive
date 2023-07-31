@@ -35,6 +35,7 @@ export class Rigplatform {
     private camera: Camera;
     private turning: boolean = false;
     private velocity: Vector3 = Vector3.Zero();
+    private logger = log.getLogger('Rigplatform');
     private readonly diagramManager: DiagramManager;
 
     constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
@@ -74,7 +75,10 @@ export class Rigplatform {
     }
     private registerVelocityObserver() {
         this.scene.onBeforeRenderObservable.add(() => {
-            const vel = this.velocity.applyRotationQuaternion(this.camera.absoluteRotation);
+            const vel = this.velocity.applyRotationQuaternion(this.scene.activeCamera.absoluteRotation);
+            if (vel.length() > 0) {
+                this.logger.debug('Velocity', this.velocity, vel, this.scene.activeCamera.absoluteRotation);
+            }
             this.body.setLinearVelocity(vel);
         });
     }

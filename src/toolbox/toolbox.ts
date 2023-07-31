@@ -51,16 +51,18 @@ export class Toolbox {
         this.manager.addControl(this.addPanel);
         this.node = new TransformNode("toolbox", this.scene);
         const handle = MeshBuilder.CreateCapsule("handle", {
-            radius: .01,
+            radius: .05,
             orientation: Vector3.Right(),
-            height: .3
+            height: .4
         }, this.scene);
         handle.id = "handle";
         const handleMaterial = new StandardMaterial("handle-material", this.scene);
         handleMaterial.diffuseColor = Color3.FromHexString("#EEEEFF");
+        handleMaterial.alpha = .5;
         handle.material = handleMaterial;
         handle.position = CameraHelper.getFrontPosition(2, this.scene);
         handle.position.y = 1.6;
+
         this.node.parent = handle;
         this.xr = xr;
         if (!this.scene.activeCamera) {
@@ -73,14 +75,14 @@ export class Toolbox {
     }
 
     private buildToolbox() {
-        this.node.position.y = -.2;
-        this.node.scaling= new Vector3(0.5, 0.5, 0.5);
+        this.node.position.y = .1;
+        this.node.scaling = new Vector3(0.6, 0.6, 0.6);
         const color = "#7777FF";
         this.buildColor(Color3.FromHexString(color));
 
-        const addButton= new Button3D("add-button");
+        const addButton = new Button3D("add-button");
         const text = new TextBlock("add-button-text", "Add Color");
-        text.color="white";
+        text.color = "white";
         text.fontSize = "48px";
         text.text = "Add Color";
         addButton.content = text;
