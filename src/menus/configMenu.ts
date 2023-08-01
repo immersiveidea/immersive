@@ -1,5 +1,5 @@
 import {AdvancedDynamicTexture, RadioGroup, SelectionPanel} from "@babylonjs/gui";
-import {AbstractMesh, Angle, MeshBuilder, Scene, WebXRExperienceHelper} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, Scene, WebXRExperienceHelper} from "@babylonjs/core";
 import {CameraHelper} from "../util/cameraHelper";
 import log from "loglevel";
 import {AppConfig} from "../util/appConfig";
@@ -46,9 +46,7 @@ export class ConfigMenu {
         this.buildGridSizeControl(selectionPanel);
         this.buildRotationSnapControl(selectionPanel);
         this.buildCreateScaleControl(selectionPanel);
-
-        this.configPlane.position = CameraHelper.getFrontPosition(2, this.scene);
-        this.configPlane.rotation.y = Angle.FromDegrees(180).radians();
+        CameraHelper.setMenuPosition(this.configPlane, this.scene);
     }
 
     private createVal(value) {
