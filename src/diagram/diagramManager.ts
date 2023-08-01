@@ -6,9 +6,7 @@ import {
     InstancedMesh,
     Mesh,
     Observable,
-    PhysicsAggregate,
     PhysicsMotionType,
-    PhysicsShapeType,
     PlaySoundAction,
     Scene,
     WebXRExperienceHelper
@@ -19,6 +17,7 @@ import {MeshConverter} from "./meshConverter";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
+import {AppConfig} from "../util/appConfig";
 
 export class DiagramManager {
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
@@ -72,8 +71,17 @@ export class DiagramManager {
             newMesh = new InstancedMesh("new", (mesh as InstancedMesh).sourceMesh);
         }
         newMesh.actionManager = this.actionManager;
-        return newMesh;
+        newMesh.position = mesh.absolutePosition.clone();
+        if (mesh.absoluteRotationQuaternion) {
+            newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
+        } else {
+            this.logger.error("no rotation quaternion");
+        }
+        newMesh.scaling = AppConfig.config.createSnapVal;
+        newMesh.material = mesh.material;
+        newMesh.metadata = mesh.metadata;
 
+        return newMesh;
     }
 
     private onRemoteEvent(event: DiagramEntity) {
@@ -91,8 +99,8 @@ export class DiagramManager {
         if (event.parent) {
             mesh.parent = this.scene.getMeshById(event.parent);
         }
-        const body = new PhysicsAggregate(mesh, PhysicsShapeType.BOX, {mass: 10, restitution: .1}, this.scene);
-        body.body.setMotionType(PhysicsMotionType.DYNAMIC);
+        MeshConverter.applyPhysics(mesh, this.scene)
+            .setMotionType(PhysicsMotionType.DYNAMIC);
 
     }
 

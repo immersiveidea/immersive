@@ -1,5 +1,6 @@
 import {Color3, Vector3} from "@babylonjs/core";
 import {BmenuState} from "../menus/MenuState";
+
 export enum DiagramEventType {
     ADD,
     REMOVE,
@@ -11,6 +12,8 @@ export enum DiagramEventType {
 
 
 }
+
+
 export type DiagramEvent = {
     type: DiagramEventType;
     menustate?: BmenuState;

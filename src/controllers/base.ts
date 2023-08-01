@@ -1,9 +1,7 @@
 import {
     AbstractMesh,
     HavokPlugin,
-    PhysicsAggregate,
     PhysicsMotionType,
-    PhysicsShapeType,
     Scene,
     TransformNode,
     Vector3,
@@ -44,9 +42,7 @@ export class Base {
         this.controller = controller;
 
         this.scene = scene;
-        this.scene.onAfterRenderObservable.add(() => {
 
-        }, -1, false, this);
 
         this.scene.onBeforeRenderObservable.add(() => {
             if (this?.grabbedMesh?.physicsBody) {
@@ -106,7 +102,16 @@ export class Base {
 
     }
 
-    private grab(mesh) {
+    private setupTransformNode(mesh: TransformNode) {
+        const transformNode = new TransformNode("grabAnchor, this.scene");
+        transformNode.id = "grabAnchor";
+        transformNode.position = mesh.position.clone();
+        transformNode.rotationQuaternion = mesh.rotationQuaternion.clone();
+        transformNode.setParent(this.controller.motionController.rootMesh);
+        return transformNode;
+    }
+
+    private grab(mesh: AbstractMesh) {
 
         if (this.xr.pointerSelection.getMeshUnderPointer) {
             mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
@@ -130,12 +135,9 @@ export class Base {
 
         if ("toolbox" != mesh?.parent?.parent?.id) {
             if (mesh.physicsBody) {
-                const transformNode = new TransformNode("grabAnchor, this.scene");
-                transformNode.id = "grabAnchor";
-                transformNode.position = mesh.position.clone();
-                transformNode.rotationQuaternion = mesh.rotationQuaternion.clone();
-                transformNode.setParent(this.controller.motionController.rootMesh);
-                mesh.physicsBody.setMotionType(PhysicsMotionType.STATIC);
+
+                const transformNode = this.setupTransformNode(mesh);
+                mesh.physicsBody.setMotionType(PhysicsMotionType.ANIMATED);
                 //mesh.setParent(transformNode);
                 this.grabbedMeshParentId = transformNode.id;
             } else {
@@ -143,18 +145,7 @@ export class Base {
             }
             this.grabbedMesh = mesh;
         } else {
-            const config = AppConfig.config;
             const newMesh = this.diagramManager.createCopy(mesh);
-            newMesh.position = mesh.absolutePosition.clone();
-            if (mesh.absoluteRotationQuaternion) {
-                newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
-            } else {
-                newMesh.rotation = mesh.absoluteRotation.clone();
-            }
-
-            newMesh.scaling = config.createSnapVal;
-            newMesh.material = mesh.material;
-            newMesh.metadata = mesh.metadata;
             const transformNode = new TransformNode("grabAnchor, this.scene");
             transformNode.id = "grabAnchor";
             transformNode.position = newMesh.position.clone();
@@ -163,14 +154,11 @@ export class Base {
             } else {
                 transformNode.rotation = newMesh.rotation.clone();
             }
-
             transformNode.setParent(this.controller.motionController.rootMesh);
-            //newMesh?.physicsBody?.setMotionType(PhysicsMotionType.STATIC);
-            //mesh.setParent(transformNode);
             this.grabbedMeshParentId = transformNode.id;
-            const aggregate = new PhysicsAggregate(newMesh,
-                PhysicsShapeType.BOX, {mass: 10, restitution: .1, friction: .9}, this.scene);
-            aggregate.body.setMotionType(PhysicsMotionType.STATIC);
+            MeshConverter
+                .applyPhysics(newMesh, this.scene)
+                .setMotionType(PhysicsMotionType.ANIMATED);
 
 
             //newMesh && newMesh.setParent(this.controller.motionController.rootMesh);
@@ -199,10 +187,6 @@ export class Base {
     }
 
     private reparent(mesh: AbstractMesh) {
-        const config = AppConfig.config;
-        const snappedRotation = config.snapRotateVal(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
-        const snappedPosition = config.snapGridVal(mesh.absolutePosition.clone());
-
         if (this.previousParentId) {
             const parent = this.scene.getMeshById(this.previousParentId);
             if (parent) {
@@ -211,19 +195,26 @@ export class Base {
                 //@note: this is not implemented yet
             } else {
                 //mesh.setParent(null);
-                mesh.rotation = snappedRotation;
-                mesh.position = snappedPosition;
+                this.applyTransform(mesh)
                 mesh?.physicsBody?.setMotionType(PhysicsMotionType.DYNAMIC);
             }
         } else {
             const parent = this.scene.getTransformNodeById(this.grabbedMeshParentId);
             if (parent) {
-                parent.rotation = snappedRotation;
-                parent.position = snappedPosition;
+                this.applyTransform(parent);
                 this.grabbedMeshParentId = null;
                 parent.dispose();
             }
         }
+    }
+
+    private applyTransform(mesh: TransformNode) {
+        const config = AppConfig.config;
+        const snappedRotation = config.snapRotateVal(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
+        const snappedPosition = config.snapGridVal(mesh.absolutePosition.clone());
+
+        mesh.rotation = snappedRotation;
+        mesh.position = snappedPosition;
     }
 
     private drop() {
@@ -258,11 +249,7 @@ export class Base {
                 //body.setLinearVelocity(this.lastPosition.subtract(body.transformNode.absolutePosition).scale(20));
                 this.logger.debug(this.lastPosition.subtract(body.transformNode.absolutePosition).scale(20));
             }
-
-
         }
-
-
     }
 
     private initGrip(grip: WebXRControllerComponent) {

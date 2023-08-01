@@ -40,7 +40,7 @@ export class App {
 
     constructor() {
         const config = AppConfig.config;
-        log.setLevel('warn');
+        log.setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -125,7 +125,6 @@ export class App {
         this.scene.gamepadManager.onGamepadConnectedObservable.add((gamepad) => {
             try {
                 const dualshock = (gamepad as DualShockPad);
-
                 dualshock.onButtonDownObservable.add((button: any) => {
                     const buttonEvent = DualshockEventMapper.mapButtonEvent(button, 1);
                     if (buttonEvent.objectName) {

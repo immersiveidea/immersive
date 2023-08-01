@@ -6,6 +6,9 @@ import {
     InstancedMesh,
     Mesh,
     MeshBuilder,
+    PhysicsAggregate,
+    PhysicsBody,
+    PhysicsShapeType,
     Scene,
     StandardMaterial
 } from "@babylonjs/core";
@@ -107,6 +110,37 @@ export class MeshConverter {
         }
 
         return mesh;
+
+    }
+
+    public static applyPhysics(mesh: AbstractMesh, scene: Scene): PhysicsBody {
+        if (!mesh?.metadata?.template || !scene) {
+            this.logger.error("applyPhysics: mesh or scene is null");
+            return null;
+        }
+        if (mesh.physicsBody) {
+            return mesh.physicsBody;
+        }
+        let shapeType = PhysicsShapeType.BOX;
+        switch (mesh.metadata.template) {
+            case "#sphere-template":
+                shapeType = PhysicsShapeType.SPHERE;
+                break;
+            case "#cylinder-template":
+                shapeType = PhysicsShapeType.CYLINDER;
+                break;
+            case "#cone-template":
+                shapeType = PhysicsShapeType.CONVEX_HULL;
+                break;
+
+        }
+        const aggregate = new PhysicsAggregate(mesh,
+            shapeType, {mass: 20, restitution: .2, friction: .9}, scene);
+        aggregate.body.setLinearDamping(.9);
+        aggregate.body.setAngularDamping(.5);
+
+
+        return aggregate.body;
 
     }
 
