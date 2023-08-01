@@ -3,7 +3,7 @@ import {Scene, Sound} from "@babylonjs/core";
 
 export class DiaSounds {
     public static instance: DiaSounds;
-    private scene: Scene;
+    private readonly scene: Scene;
 
     constructor(scene: Scene) {
         this.scene = scene;
@@ -46,19 +46,19 @@ export class DiaSounds {
         return this._enter;
     }
 
-    private _exit: Sound;
+    private readonly _exit: Sound;
 
     public get exit() {
         return this._exit;
     }
 
-    private _high: Sound;
+    private readonly _high: Sound;
 
     public get high() {
         return this._high;
     }
 
-    private _low: Sound;
+    private readonly _low: Sound;
 
     public get low() {
         return this._low;

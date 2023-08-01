@@ -42,9 +42,9 @@ export class Cameras {
         //await cam.getSnapshot();
         //const textureBlob = new Blob([photo], {type: 'image/jpeg'});
         //const textureUrl = URL.createObjectURL(textureBlob);
-        const imageText = new Texture("", this.scene);
 
-        materialPlane.diffuseTexture = imageText;
+
+        materialPlane.diffuseTexture = new Texture("", this.scene);
         materialPlane.specularColor = new Color3(0, 0, 0);
         materialPlane.backFaceCulling = false;
         plane.material = materialPlane;
