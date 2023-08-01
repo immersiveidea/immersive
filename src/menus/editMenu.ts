@@ -9,20 +9,23 @@ import {
 } from "@babylonjs/core";
 import {Button3D, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
-import {BmenuState} from "./MenuState";
+import {EditMenuState} from "./MenuState";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import {MeshConverter} from "../diagram/meshConverter";
 import log from "loglevel";
 import {InputTextView} from "../information/inputTextView";
 import {DiaSounds} from "../util/diaSounds";
 import {CameraHelper} from "../util/cameraHelper";
+import {TextLabel} from "../diagram/textLabel";
+import {DiagramShapePhysics} from "../diagram/diagramShapePhysics";
 
 export class EditMenu {
-    private state: BmenuState = BmenuState.NONE;
+    private state: EditMenuState = EditMenuState.NONE;
     private manager: GUI3DManager;
     private readonly scene: Scene;
     private textView: InputTextView;
     private textInput: HTMLElement;
+    private readonly logger: log.Logger = log.getLogger('EditMenu');
     private gizmoManager: GizmoManager;
     private readonly xr: WebXRExperienceHelper;
     private readonly diagramManager: DiagramManager;
@@ -44,10 +47,10 @@ export class EditMenu {
                 case PointerEventTypes.POINTERPICK:
                     if (pointerInfo.pickInfo?.pickedMesh?.metadata?.template &&
                         pointerInfo.pickInfo?.pickedMesh?.parent?.parent?.id != "toolbox") {
-                        this.handleEventStateAction(pointerInfo).then(() => {
-                            log.getLogger("bmenu").debug("handled");
+                        this.diagramEntityPicked(pointerInfo).then(() => {
+                            this.logger.debug("handled");
                         }).catch((e) => {
-                            log.getLogger("bmenu").error(e);
+                            this.logger.error(e);
                         });
                         break;
                     }
@@ -68,6 +71,8 @@ export class EditMenu {
             panel.addControl(this.makeButton("Modify", "modify"));
             panel.addControl(this.makeButton("Remove", "remove"));
             panel.addControl(this.makeButton("Add Label", "label"));
+            panel.addControl(this.makeButton("Copy", "copy"));
+
             //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
             this.manager.controlScaling = .5;
             CameraHelper.setMenuPosition(panel.node, this.scene);
@@ -78,7 +83,7 @@ export class EditMenu {
         if (mesh.metadata) {
             mesh.metadata.text = text;
         } else {
-            log.getLogger('bmenu').error("mesh has no metadata");
+            this.logger.error("mesh has no metadata");
         }
         this.diagramManager.onDiagramEventObservable.notifyObservers({
             type: DiagramEventType.MODIFY,
@@ -98,27 +103,30 @@ export class EditMenu {
         return button;
     }
 
-    private async handleEventStateAction(pointerInfo: PointerInfo) {
+    private async diagramEntityPicked(pointerInfo: PointerInfo) {
         const mesh = pointerInfo.pickInfo.pickedMesh;
         if (!mesh) {
-            log.warn("no mesh");
+            this.logger.warn("no mesh");
             return;
         }
         switch (this.state) {
-            case BmenuState.REMOVING:
+            case EditMenuState.REMOVING:
                 this.remove(mesh);
                 break;
-            case BmenuState.MODIFYING:
+            case EditMenuState.MODIFYING:
                 this.setModify(mesh);
                 break;
-            case BmenuState.LABELING:
+            case EditMenuState.LABELING:
                 this.setLabeling(mesh);
+                break;
+            case EditMenuState.COPYING:
+                this.setCopying(mesh);
                 break;
         }
     }
 
     private remove(mesh: AbstractMesh) {
-        log.debug("removing " + mesh?.id);
+        this.logger.debug("removing " + mesh?.id);
         const event: DiagramEvent = {
             type: DiagramEventType.REMOVE,
             entity:
@@ -140,14 +148,24 @@ export class EditMenu {
                             entity: MeshConverter.toDiagramEntity(mesh),
                         }
                     )
-                    log.debug(mesh.scaling);
+                    this.logger.debug(mesh.scaling);
                 });
             }
         }
     }
 
+    private setCopying(mesh: AbstractMesh) {
+        if (mesh) {
+            const newMesh = this.diagramManager.createCopy(mesh);
+            DiagramShapePhysics.applyPhysics(newMesh, this.scene);
+            newMesh.parent = null;
+        }
+        this.logger.warn('copying not implemented', mesh);
+        //@todo implement
+    }
+
     private setLabeling(mesh: AbstractMesh) {
-        log.debug("labeling " + mesh.id);
+        this.logger.debug("labeling " + mesh.id);
         let text = "";
         if (mesh?.metadata?.text) {
             text = mesh.metadata.text;
@@ -156,7 +174,7 @@ export class EditMenu {
         textInput.show();
         textInput.onTextObservable.addOnce((value) => {
             this.persist(mesh, value.text);
-            MeshConverter.updateTextNode(mesh, value.text);
+            TextLabel.updateTextNode(mesh, value.text);
         });
 
     }
@@ -164,16 +182,19 @@ export class EditMenu {
     private handleClick(_info, state) {
         switch (state.currentTarget.name) {
             case "modify":
-                this.state = BmenuState.MODIFYING;
+                this.state = EditMenuState.MODIFYING;
                 break;
             case "remove":
-                this.state = BmenuState.REMOVING;
+                this.state = EditMenuState.REMOVING;
                 break;
             case "label":
-                this.state = BmenuState.LABELING;
+                this.state = EditMenuState.LABELING;
+                break;
+            case "copy":
+                this.state = EditMenuState.COPYING;
                 break;
             default:
-                log.error("Unknown button");
+                this.logger.error("Unknown button");
                 return;
         }
         this.manager.dispose();

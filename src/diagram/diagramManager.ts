@@ -18,6 +18,8 @@ import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
 import {AppConfig} from "../util/appConfig";
+import {DiagramShapePhysics} from "./diagramShapePhysics";
+import {TextLabel} from "./textLabel";
 
 export class DiagramManager {
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
@@ -63,7 +65,7 @@ export class DiagramManager {
         this.logger.debug("DiagramManager constructed");
     }
 
-    public createCopy(mesh: AbstractMesh): AbstractMesh {
+    public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
         let newMesh;
         if (!mesh.isAnInstance) {
             newMesh = new InstancedMesh("new", (mesh as Mesh));
@@ -77,10 +79,13 @@ export class DiagramManager {
         } else {
             this.logger.error("no rotation quaternion");
         }
-        newMesh.scaling = AppConfig.config.createSnapVal;
+        if (copy) {
+            newMesh.scaling = mesh.scaling.clone();
+        } else {
+            newMesh.scaling = AppConfig.config.createSnapVal;
+        }
         newMesh.material = mesh.material;
         newMesh.metadata = mesh.metadata;
-
         return newMesh;
     }
 
@@ -99,7 +104,7 @@ export class DiagramManager {
         if (event.parent) {
             mesh.parent = this.scene.getMeshById(event.parent);
         }
-        MeshConverter.applyPhysics(mesh, this.scene)
+        DiagramShapePhysics.applyPhysics(mesh, this.scene)
             .setMotionType(PhysicsMotionType.DYNAMIC);
 
     }
@@ -111,8 +116,6 @@ export class DiagramManager {
         if (entity) {
             mesh = this.scene.getMeshById(entity.id);
         }
-        //const body = mesh?.physicsBody;
-
         switch (event.type) {
             case DiagramEventType.CLEAR:
                 break;
@@ -120,12 +123,10 @@ export class DiagramManager {
                 break;
             case DiagramEventType.DROP:
                 this.getPersistenceManager()?.modify(mesh);
-                MeshConverter.updateTextNode(mesh, entity.text);
-
+                TextLabel.updateTextNode(mesh, entity.text);
                 break;
             case DiagramEventType.ADD:
                 this.getPersistenceManager()?.add(mesh);
-
                 break;
             case DiagramEventType.MODIFY:
                 this.getPersistenceManager()?.modify(mesh);

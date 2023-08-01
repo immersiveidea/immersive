@@ -6,6 +6,7 @@ export class DiaSounds {
     private readonly scene: Scene;
 
     constructor(scene: Scene) {
+
         this.scene = scene;
         this._enter = new Sound("enter", "./sounds.mp3", this.scene, null, {
             autoplay: false,
@@ -28,7 +29,7 @@ export class DiaSounds {
         this._low = new Sound("low", "./sounds.mp3", this.scene, null, {
             autoplay: false,
             loop: false,
-            offset: 2,
+            offset: 3,
             length: 1.0
         });
 

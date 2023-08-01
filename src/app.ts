@@ -40,7 +40,8 @@ export class App {
 
     constructor() {
         const config = AppConfig.config;
-        log.setLevel('debug');
+        log.setLevel('info');
+        log.getLogger('App').setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -73,6 +74,8 @@ export class App {
 
         const havokPlugin = new HavokPlugin(true, havokInstance);
         scene.enablePhysics(new Vector3(0, -9.8, 0), havokPlugin);
+        scene.collisionsEnabled = true;
+
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2,
             new Vector3(0, 1.6, 0), scene);
         camera.radius = 0;
@@ -102,8 +105,6 @@ export class App {
         this.xr.baseExperience.onStateChangedObservable.add((state) => {
             if (state == WebXRState.IN_XR) {
                 this.scene.audioEnabled = true;
-
-
                 this.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
                 window.addEventListener(('pa-button-state-change'), (event: any) => {
                     if (event.detail) {

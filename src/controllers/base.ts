@@ -14,6 +14,7 @@ import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "./controllers";
+import {DiagramShapePhysics} from "../diagram/diagramShapePhysics";
 
 
 export class Base {
@@ -74,7 +75,11 @@ export class Base {
 
                     });
             }
-            this.initGrip(init.components['xr-standard-squeeze']);
+
+            if (init.components['xr-standard-squeeze']) {
+                this.initGrip(init.components['xr-standard-squeeze'])
+            }
+            ;
         });
         Controllers.controllerObserver.add((event) => {
             if (event.type == 'pulse') {
@@ -153,7 +158,7 @@ export class Base {
             }
             transformNode.setParent(this.controller.motionController.rootMesh);
             this.grabbedMeshParentId = transformNode.id;
-            MeshConverter
+            DiagramShapePhysics
                 .applyPhysics(newMesh, this.scene)
                 .setMotionType(PhysicsMotionType.ANIMATED);
 

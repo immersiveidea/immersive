@@ -1,5 +1,5 @@
 import {Color3, Vector3} from "@babylonjs/core";
-import {BmenuState} from "../menus/MenuState";
+import {EditMenuState} from "../menus/MenuState";
 
 export enum DiagramEventType {
     ADD,
@@ -8,7 +8,8 @@ export enum DiagramEventType {
     DROP,
     DROPPED,
     CLEAR,
-    CHANGECOLOR
+    CHANGECOLOR,
+    COPY
 
 
 }
@@ -16,7 +17,7 @@ export enum DiagramEventType {
 
 export type DiagramEvent = {
     type: DiagramEventType;
-    menustate?: BmenuState;
+    menustate?: EditMenuState;
     entity?: DiagramEntity;
     oldColor?: Color3;
     newColor?: Color3;

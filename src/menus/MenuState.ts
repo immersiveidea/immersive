@@ -1,7 +1,8 @@
-export enum BmenuState {
+export enum EditMenuState {
     NONE,
     LABELING,
     MODIFYING, // Editing an entity
-    REMOVING, // Removing an entity
+    REMOVING,
+    COPYING // Removing an entity
 
 }
