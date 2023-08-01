@@ -1,46 +1,57 @@
-import {Angle, Color3, MeshBuilder, Scene, StandardMaterial, Texture} from "@babylonjs/core";
-import axios from "axios";
+import {
+    Angle,
+    Color3,
+    MeshBuilder,
+    Scene,
+    StandardMaterial,
+    Texture,
+    Vector3,
+    WebXRSessionManager
+} from "@babylonjs/core";
+import log from "loglevel";
+
 
 export class Cameras {
     private readonly scene: Scene;
-    private token: string;
-    private cameras;
-    private cameratextures = new Array<Texture>();
+    private readonly logger = log.getLogger('bmenu');
 
-    constructor(scene: Scene, token: string) {
+    private xrSession: WebXRSessionManager;
+    private startPosition = new Vector3(0, 0, 0);
+
+    constructor(scene: Scene, xrSession: WebXRSessionManager) {
         this.scene = scene;
-        this.token = token;
+        this.xrSession = xrSession;
+
     }
 
-    public async getCameras() {
-        this.cameras =  await axios.get('https://local.immersiveidea.com/api/cameras');
+    public createCameras(position: Vector3) {
+        this.startPosition = position;
+        this.getCameras();
     }
 
-    public createCameras() {
-        this.createCamera(12333524, 0);
-        this.createCamera(115860395, 1);
-        this.createCamera(115855810, 2);
-        this.createCamera(99677736, 3);
-        this.createCamera(48497021, 4);
-        this.createCamera(55870327, 5);
+    private getCameras() {
+
     }
 
-    public createCamera(id, index) {
+    private async createCamera() {
         const width = 1.6;
         const height = .9
         const plane = MeshBuilder.CreatePlane("plane", {width: width, height: height}, this.scene);
         const materialPlane = new StandardMaterial("texturePlane", this.scene);
-        const imageText = new Texture("https://local.immersiveidea.com/api/cameras?id=" + id, this.scene);
+        //const photo = []
+        //await cam.getSnapshot();
+        //const textureBlob = new Blob([photo], {type: 'image/jpeg'});
+        //const textureUrl = URL.createObjectURL(textureBlob);
+        const imageText = new Texture("", this.scene);
 
-        materialPlane.diffuseTexture = new Texture("https://local.immersiveidea.com/api/cameras?id=" + id, this.scene);
+        materialPlane.diffuseTexture = imageText;
         materialPlane.specularColor = new Color3(0, 0, 0);
         materialPlane.backFaceCulling = false;
         plane.material = materialPlane;
         plane.rotation.y = Angle.FromDegrees(180).radians();
         plane.position.y = height / 2 + .2;
         plane.position.z = -3;
-        plane.position.x = (width * 3) - (index * width);
-        this.cameratextures.push(imageText);
-
+        plane.position.x = (width * 3) + this.startPosition.x;
+        this.startPosition.x += 3;
     }
 }

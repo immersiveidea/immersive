@@ -8,7 +8,9 @@ import {
     MeshBuilder,
     PhysicsAggregate,
     PhysicsBody,
+    PhysicsMotionType,
     PhysicsShapeType,
+    Quaternion,
     Scene,
     StandardMaterial
 } from "@babylonjs/core";
@@ -79,7 +81,12 @@ export class MeshConverter {
 
             }
             if (entity.rotation) {
-                mesh.rotation = entity.rotation;
+                if (mesh.rotationQuaternion) {
+                    mesh.rotationQuaternion = Quaternion.FromEulerAngles(entity.rotation.x, entity.rotation.y, entity.rotation.z);
+                } else {
+                    mesh.rotation = entity.rotation;
+                }
+
             }
             if (entity.parent) {
                 mesh.parent = scene.getNodeById(entity.parent);
@@ -119,7 +126,7 @@ export class MeshConverter {
             return null;
         }
         if (mesh.physicsBody) {
-            return mesh.physicsBody;
+            mesh.physicsBody.dispose();
         }
         let shapeType = PhysicsShapeType.BOX;
         switch (mesh.metadata.template) {
@@ -136,10 +143,11 @@ export class MeshConverter {
         }
         const aggregate = new PhysicsAggregate(mesh,
             shapeType, {mass: 20, restitution: .2, friction: .9}, scene);
-        aggregate.body.setLinearDamping(.9);
-        aggregate.body.setAngularDamping(.5);
-
-
+        const body = aggregate.body;
+        body.setMotionType(PhysicsMotionType.ANIMATED);
+        body.setLinearDamping(.9);
+        body.setAngularDamping(.5);
+        body.setGravityFactor(0);
         return aggregate.body;
 
     }

@@ -13,7 +13,6 @@ import {MeshConverter} from "../diagram/meshConverter";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
-import {AppConfig} from "../util/appConfig";
 import {Controllers} from "./controllers";
 
 
@@ -135,10 +134,8 @@ export class Base {
 
         if ("toolbox" != mesh?.parent?.parent?.id) {
             if (mesh.physicsBody) {
-
                 const transformNode = this.setupTransformNode(mesh);
                 mesh.physicsBody.setMotionType(PhysicsMotionType.ANIMATED);
-                //mesh.setParent(transformNode);
                 this.grabbedMeshParentId = transformNode.id;
             } else {
                 mesh.setParent(this.controller.motionController.rootMesh);
@@ -194,27 +191,15 @@ export class Base {
                 log.getLogger("Base").warn("Base", "Have not implemented snapping to parent yet");
                 //@note: this is not implemented yet
             } else {
-                //mesh.setParent(null);
-                this.applyTransform(mesh)
-                mesh?.physicsBody?.setMotionType(PhysicsMotionType.DYNAMIC);
+                mesh.setParent(null);
             }
         } else {
             const parent = this.scene.getTransformNodeById(this.grabbedMeshParentId);
             if (parent) {
-                this.applyTransform(parent);
                 this.grabbedMeshParentId = null;
                 parent.dispose();
             }
         }
-    }
-
-    private applyTransform(mesh: TransformNode) {
-        const config = AppConfig.config;
-        const snappedRotation = config.snapRotateVal(mesh.absoluteRotationQuaternion.toEulerAngles().clone());
-        const snappedPosition = config.snapGridVal(mesh.absolutePosition.clone());
-
-        mesh.rotation = snappedRotation;
-        mesh.position = snappedPosition;
     }
 
     private drop() {
@@ -225,6 +210,7 @@ export class Base {
         if (this.handleGrabbed(mesh)) {
             return;
         }
+
         this.reparent(mesh);
         this.previousParentId = null;
         this.previousScaling = null;
