@@ -137,16 +137,18 @@ export class Toolbox {
         colorPicker.value = color;
         colorPicker.onValueChangedObservable.add((value) => {
             const oldColor = material.diffuseColor.clone();
-            material.diffuseColor = value;
-            material.id = "material-" + value.toHexString();
-            material.name = "material-" + value.toHexString();
-            mesh.id = "toolbox-color-" + value.toHexString();
-            mesh.name = "toolbox-color-" + value.toHexString();
+            const newColor = value.clone();
+            material.diffuseColor = newColor;
+            const newColorHex = newColor.toHexString();
+            material.id = "material-" + newColorHex;
+            material.name = "material-" + newColorHex;
+            mesh.id = "toolbox-color-" + newColorHex;
+            mesh.name = "toolbox-color-" + newColorHex;
             this.diagramManager.onDiagramEventObservable.notifyObservers(
                 {
                     type: DiagramEventType.CHANGECOLOR,
                     oldColor: oldColor,
-                    newColor: value
+                    newColor: newColor
                 }
             );
         });
