@@ -79,7 +79,6 @@ export class Base {
             if (init.components['xr-standard-squeeze']) {
                 this.initGrip(init.components['xr-standard-squeeze'])
             }
-            ;
         });
         Controllers.controllerObserver.add((event) => {
             if (event.type == 'pulse') {
@@ -88,8 +87,7 @@ export class Base {
                     this.controller?.motionController?.pulse(.25, 30);
                 }
             }
-        });
-
+        })
     }
 
     public disable() {
@@ -101,11 +99,6 @@ export class Base {
         this.controller.motionController.rootMesh.setEnabled(true);
         this.controller.pointer.setEnabled(true);
     }
-
-    private buildTransformNode() {
-
-    }
-
     private setupTransformNode(mesh: TransformNode) {
         const transformNode = new TransformNode("grabAnchor, this.scene");
         transformNode.id = "grabAnchor";

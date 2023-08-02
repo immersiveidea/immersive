@@ -17,6 +17,7 @@ export class DiagramShapePhysics {
         if (mesh.physicsBody) {
             mesh.physicsBody.dispose();
         }
+
         let shapeType = PhysicsShapeType.BOX;
         switch (mesh.metadata.template) {
             case "#sphere-template":
@@ -30,8 +31,9 @@ export class DiagramShapePhysics {
                 break;
 
         }
+        let mass = mesh.scaling.x * mesh.scaling.y * mesh.scaling.z * 10;
         const aggregate = new PhysicsAggregate(mesh,
-            shapeType, {mass: 20, restitution: .02, friction: .9}, scene);
+            shapeType, {mass: mass, restitution: .02, friction: .9}, scene);
         aggregate.body.setCollisionCallbackEnabled(true);
         aggregate.body.getCollisionObservable().add((event, state) => {
             if (event.distance > .001 && !DiaSounds.instance.low.isPlaying) {

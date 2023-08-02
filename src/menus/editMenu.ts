@@ -156,9 +156,9 @@ export class EditMenu {
 
     private setCopying(mesh: AbstractMesh) {
         if (mesh) {
-            const newMesh = this.diagramManager.createCopy(mesh);
+            const newMesh = this.diagramManager.createCopy(mesh, true);
+            newMesh.setParent(null);
             DiagramShapePhysics.applyPhysics(newMesh, this.scene);
-            newMesh.parent = null;
         }
         this.logger.warn('copying not implemented', mesh);
         //@todo implement

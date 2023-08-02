@@ -1,15 +1,12 @@
-import "@babylonjs/core/Debug/debugLayer";
-import "@babylonjs/inspector";
-
 import {
     ArcRotateCamera,
     DualShockPad,
     Engine,
+    GroundMesh,
     HavokPlugin,
     HemisphericLight,
     MeshBuilder,
     PBRMetallicRoughnessMaterial,
-    PhotoDome,
     PhysicsAggregate,
     PhysicsShapeType,
     Scene,
@@ -18,7 +15,6 @@ import {
     WebXRDefaultExperience,
     WebXRState
 } from "@babylonjs/core";
-///import {havokModule} from "./util/havok";
 import HavokPhysics from "@babylonjs/havok";
 import {Rigplatform} from "./controllers/rigplatform";
 import {DiagramManager} from "./diagram/diagramManager";
@@ -26,7 +22,6 @@ import {Toolbox} from "./toolbox/toolbox";
 import {DualshockEventMapper} from "./util/dualshockEventMapper";
 import log from "loglevel";
 import {AppConfig} from "./util/appConfig";
-import {IndexdbPersistenceManager} from "./diagram/indexdbPersistenceManager";
 import {DiaSounds} from "./util/diaSounds";
 
 export class App {
@@ -35,7 +30,7 @@ export class App {
 
 
     private scene: Scene;
-    private xr: WebXRDefaultExperience;
+
     private rig: Rigplatform;
 
     constructor() {
@@ -51,13 +46,11 @@ export class App {
         this.initialize(canvas).then(() => {
             log.debug('App', 'Scene Initialized');
         });
+
+
     }
 
     async initialize(canvas) {
-        if (this.xr) {
-            this.xr.dispose();
-            this.xr = null;
-        }
         if (this.scene) {
             this.scene.dispose();
             this.scene = null;
@@ -81,13 +74,15 @@ export class App {
         camera.radius = 0;
         camera.attachControl(canvas, true);
 
-
         new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
-        const photoDome = new PhotoDome('sky',
-            './outdoor_field2.jpeg', {},
-            scene);
+        import('@babylonjs/core').then((babylon) => {
+            new babylon.PhotoDome('sky',
+                './outdoor_field2.jpeg', {},
+                scene);
+        });
+
         const ground = this.createGround();
-        this.xr = await WebXRDefaultExperience.CreateAsync(scene, {
+        const xr = await WebXRDefaultExperience.CreateAsync(scene, {
             floorMeshes: [ground],
             disableTeleportation: true,
             outputCanvasOptions: {
@@ -102,10 +97,10 @@ export class App {
 
         });
 
-        this.xr.baseExperience.onStateChangedObservable.add((state) => {
+        xr.baseExperience.onStateChangedObservable.add((state) => {
             if (state == WebXRState.IN_XR) {
                 this.scene.audioEnabled = true;
-                this.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
+                xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
                 window.addEventListener(('pa-button-state-change'), (event: any) => {
                     if (event.detail) {
                         log.debug('App', event.detail);
@@ -114,14 +109,17 @@ export class App {
 
             }
         });
-        const persistenceManager = new IndexdbPersistenceManager("diagram");
-        const diagramManager = new DiagramManager(this.scene, this.xr.baseExperience);
-        diagramManager.setPersistenceManager(persistenceManager);
-        AppConfig.config.setPersistenceManager(persistenceManager);
+        const diagramManager = new DiagramManager(this.scene, xr.baseExperience);
+        this.rig = new Rigplatform(this.scene, xr, diagramManager);
+        const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager);
 
+        import ('./diagram/indexdbPersistenceManager').then((module) => {
+            const persistenceManager = new module.IndexdbPersistenceManager("diagram");
+            diagramManager.setPersistenceManager(persistenceManager);
+            AppConfig.config.setPersistenceManager(persistenceManager);
+            persistenceManager.initialize();
+        });
 
-        this.rig = new Rigplatform(this.scene, this.xr, diagramManager);
-        const toolbox = new Toolbox(scene, this.xr.baseExperience, diagramManager);
 
         this.scene.gamepadManager.onGamepadConnectedObservable.add((gamepad) => {
             try {
@@ -190,15 +188,19 @@ export class App {
         window.addEventListener("keydown", (ev) => {
             // Shift+Ctrl+Alt+I
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-                if (scene.debugLayer.isVisible()) {
-                    scene.debugLayer.hide();
-                } else {
-                    scene.debugLayer.show();
-                }
+                import("@babylonjs/core/Debug/debugLayer").then(() => {
+                    import("@babylonjs/inspector").then(() => {
+                        if (scene.debugLayer.isVisible()) {
+                            scene.debugLayer.hide();
+                        } else {
+                            scene.debugLayer.show();
+                        }
+                    });
+                });
             }
         });
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
-        persistenceManager.initialize();
+
         engine.runRenderLoop(() => {
             scene.render();
 
@@ -215,7 +217,11 @@ export class App {
         groundMaterial.metallic = 0;
         groundMaterial.roughness = 1;
 
-        const ground = MeshBuilder.CreateGround("ground", {width: 100, height: 100, subdivisions: 1}, this.scene);
+        const ground: GroundMesh = MeshBuilder.CreateGround("ground", {
+            width: 100,
+            height: 100,
+            subdivisions: 1
+        }, this.scene);
 
         ground.material = groundMaterial;
         new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, this.scene);

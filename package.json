@@ -23,7 +23,8 @@
     "loglevel": "^1.8.1",
     "round": "^2.0.1",
     "earcut": "^2.2.4",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "p2p-data-channel": "^1.10.7"
   },
   "devDependencies": {
     "typescript": "^5.0.2",

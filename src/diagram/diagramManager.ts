@@ -12,7 +12,7 @@ import {
     WebXRExperienceHelper
 } from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./diagramEntity";
-import {IPersistenceManager} from "./persistenceManager";
+import {IPersistenceManager} from "./iPersistenceManager";
 import {MeshConverter} from "./meshConverter";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
