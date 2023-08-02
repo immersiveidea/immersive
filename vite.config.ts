@@ -1,4 +1,5 @@
-import { defineConfig } from "vite";
+import {defineConfig} from "vite";
+
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
     server: {
@@ -9,6 +10,6 @@ export default defineConfig({
         }
     },
 
-    base:"/cameras"
+    base: "/"
 
 })
