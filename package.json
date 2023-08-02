@@ -7,9 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "havok": "node ./copyHavok.cjs",
     "serve": "node server.js",
-    "postinstall": "cp ./node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm ./node_modules/.vite/deps"
+    "havok": "cp ./node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm ./node_modules/.vite/deps"
   },
   "dependencies": {
     "@babylonjs/core": "^6.14.0",
