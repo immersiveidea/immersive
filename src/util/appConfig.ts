@@ -1,5 +1,6 @@
-import {Vector3} from "@babylonjs/core";
+import {Angle, Vector3} from "@babylonjs/core";
 import log from "loglevel";
+import round from "round";
 import {IPersistenceManager} from "../integration/iPersistenceManager";
 import {AppConfigType} from "./appConfigType";
 
@@ -14,7 +15,7 @@ export class AppConfig {
     private gridSnap = 1;
     private rotateSnap = 0;
     private createSnap = 0;
-    _physicsEnabled = true;
+    _physicsEnabled = false;
     private readonly defaultGridSnapIndex = 1;
     private persistenceManager: IPersistenceManager = null;
     private gridSnapArray: SnapValue[] =
@@ -40,7 +41,7 @@ export class AppConfig {
     }
 
     public get physicsEnabled(): boolean {
-        return this.physicsEnabled;
+        return this._physicsEnabled;
     }
 
     public set phsyicsEnabled(val: boolean) {
@@ -115,6 +116,35 @@ export class AppConfig {
 
     public rotateSnaps(): SnapValue[] {
         return this.rotateSnapArray;
+    }
+
+    public snapGridVal(value: Vector3): Vector3 {
+        if (this.currentGridSnapIndex == 0) {
+            return value;
+        }
+        const position = value.clone();
+        position.x = round(position.x, this.currentGridSnap.value);
+        position.y = round(position.y, this.currentGridSnap.value);
+        position.z = round(position.z, this.currentGridSnap.value);
+        return position;
+    }
+
+    public snapRotateVal(value: Vector3): Vector3 {
+        if (this.currentRotateSnapIndex == 0) {
+            return value;
+        }
+        const rotation = new Vector3();
+        rotation.x = this.snapAngle(value.x);
+        rotation.y = this.snapAngle(value.y);
+        rotation.z = this.snapAngle(value.z);
+        return rotation;
+    }
+
+    private snapAngle(val: number): number {
+        const deg = Angle.FromRadians(val).degrees();
+        const snappedDegrees = round(deg, this.currentRotateSnap.value);
+        this.logger.debug("deg", val, deg, snappedDegrees, this.currentRotateSnap.value);
+        return Angle.FromDegrees(snappedDegrees).radians();
     }
 
     private save() {

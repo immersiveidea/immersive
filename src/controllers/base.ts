@@ -14,6 +14,7 @@ import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "./controllers";
+import {AppConfig} from "../util/appConfig";
 
 export class Base {
     static stickVector = Vector3.Zero();
@@ -191,6 +192,8 @@ export class Base {
             if (parent) {
                 this.grabbedMeshParentId = null;
                 parent.dispose();
+            } else {
+                mesh.setParent(null);
             }
         }
     }
@@ -205,6 +208,10 @@ export class Base {
         }
 
         this.reparent(mesh);
+        if (!mesh.physicsBody) {
+            mesh.position = AppConfig.config.snapGridVal(mesh.position);
+            mesh.rotation = AppConfig.config.snapRotateVal(mesh.rotation);
+        }
         this.previousParentId = null;
         this.previousScaling = null;
         this.previousRotation = null;

@@ -7,7 +7,6 @@ import {
     Mesh,
     Observable,
     PhysicsAggregate,
-    PhysicsBody,
     PhysicsMotionType,
     PhysicsShapeType,
     PlaySoundAction,
@@ -174,14 +173,17 @@ export class DiagramManager {
 class DiagramShapePhysics {
     private static logger: log.Logger = log.getLogger('DiagramShapePhysics');
 
-    public static applyPhysics(mesh: AbstractMesh, scene: Scene, motionType?: PhysicsMotionType): PhysicsBody {
+    public static applyPhysics(mesh: AbstractMesh, scene: Scene, motionType?: PhysicsMotionType) {
         if (!mesh?.metadata?.template) {
             this.logger.error("applyPhysics: mesh.metadata.template is null", mesh);
-            return null;
+            return;
         }
         if (!scene) {
             this.logger.error("applyPhysics: mesh or scene is null");
-            return null;
+            return;
+        }
+        if (!AppConfig.config.physicsEnabled) {
+            return;
         }
         if (mesh.physicsBody) {
             mesh.physicsBody.dispose();
@@ -228,6 +230,6 @@ class DiagramShapePhysics {
         body.setLinearDamping(.95);
         body.setAngularDamping(.99);
         body.setGravityFactor(0);
-        return aggregate.body;
+
     }
 }
