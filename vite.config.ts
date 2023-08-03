@@ -9,7 +9,6 @@ export default defineConfig({
             '/callback': 'https://local.immersiveidea.com'
         }
     },
-
     base: "/"
 
 })

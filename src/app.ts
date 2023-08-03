@@ -23,6 +23,7 @@ import {DualshockEventMapper} from "./util/dualshockEventMapper";
 import log from "loglevel";
 import {AppConfig} from "./util/appConfig";
 import {DiaSounds} from "./util/diaSounds";
+import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 
 export class App {
     //preTasks = [havokModule];
@@ -37,6 +38,7 @@ export class App {
         const config = AppConfig.config;
         log.setLevel('info');
         log.getLogger('App').setLevel('debug');
+        log.getLogger('PeerjsNetworkConnection').setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -112,6 +114,7 @@ export class App {
         const diagramManager = new DiagramManager(this.scene, xr.baseExperience);
         this.rig = new Rigplatform(this.scene, xr, diagramManager);
         const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager);
+        //const network = new PeerjsNetworkConnection();
 
         import ('./diagram/indexdbPersistenceManager').then((module) => {
             const persistenceManager = new module.IndexdbPersistenceManager("diagram");
