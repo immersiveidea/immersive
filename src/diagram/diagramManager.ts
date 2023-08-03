@@ -46,6 +46,7 @@ export class DiagramManager {
 
     private readonly actionManager: ActionManager;
     private config: AppConfig;
+
     constructor(scene: Scene, xr: WebXRExperienceHelper) {
         this.scene = scene;
         this.xr = xr;
@@ -108,9 +109,7 @@ export class DiagramManager {
         if (event.parent) {
             mesh.parent = this.scene.getMeshById(event.parent);
         }
-        DiagramShapePhysics.applyPhysics(mesh, this.scene)
-            .setMotionType(PhysicsMotionType.DYNAMIC);
-
+        DiagramShapePhysics.applyPhysics(mesh, this.scene, PhysicsMotionType.DYNAMIC);
     }
 
     private onDiagramEvent(event: DiagramEvent) {
@@ -175,7 +174,7 @@ export class DiagramManager {
 class DiagramShapePhysics {
     private static logger: log.Logger = log.getLogger('DiagramShapePhysics');
 
-    public static applyPhysics(mesh: AbstractMesh, scene: Scene): PhysicsBody {
+    public static applyPhysics(mesh: AbstractMesh, scene: Scene, motionType?: PhysicsMotionType): PhysicsBody {
         if (!mesh?.metadata?.template) {
             this.logger.error("applyPhysics: mesh.metadata.template is null", mesh);
             return null;
@@ -205,22 +204,27 @@ class DiagramShapePhysics {
 
         const aggregate = new PhysicsAggregate(mesh,
             shapeType, {mass: mass, restitution: .02, friction: .9}, scene);
-        if (mesh.parent) {
-            aggregate.body
-                .setMotionType(PhysicsMotionType.ANIMATED);
+        const body = aggregate.body;
+        if (motionType) {
+            body
+                .setMotionType(motionType);
         } else {
-            aggregate.body
-                .setMotionType(PhysicsMotionType.DYNAMIC);
+            if (mesh.parent) {
+                body
+                    .setMotionType(PhysicsMotionType.ANIMATED);
+            } else {
+                body
+                    .setMotionType(PhysicsMotionType.DYNAMIC);
+            }
         }
-        aggregate.body.setCollisionCallbackEnabled(true);
-        aggregate.body.getCollisionObservable().add((event, state) => {
+        body.setCollisionCallbackEnabled(true);
+        body.getCollisionObservable().add((event, state) => {
             if (event.distance > .001 && !DiaSounds.instance.low.isPlaying) {
                 this.logger.debug(event, state);
                 DiaSounds.instance.low.play();
             }
         }, -1, false, this);
-        const body = aggregate.body;
-        body.setMotionType(PhysicsMotionType.ANIMATED);
+        //body.setMotionType(PhysicsMotionType.ANIMATED);
         body.setLinearDamping(.95);
         body.setAngularDamping(.99);
         body.setGravityFactor(0);

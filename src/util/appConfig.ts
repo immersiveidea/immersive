@@ -1,5 +1,4 @@
-import {Angle, Vector3} from "@babylonjs/core";
-import round from "round";
+import {Vector3} from "@babylonjs/core";
 import log from "loglevel";
 import {IPersistenceManager} from "../integration/iPersistenceManager";
 import {AppConfigType} from "./appConfigType";
@@ -15,6 +14,7 @@ export class AppConfig {
     private gridSnap = 1;
     private rotateSnap = 0;
     private createSnap = 0;
+    _physicsEnabled = true;
     private readonly defaultGridSnapIndex = 1;
     private persistenceManager: IPersistenceManager = null;
     private gridSnapArray: SnapValue[] =
@@ -37,6 +37,15 @@ export class AppConfig {
 
     public get currentGridSnap(): SnapValue {
         return this.gridSnapArray[this.gridSnap];
+    }
+
+    public get physicsEnabled(): boolean {
+        return this.physicsEnabled;
+    }
+
+    public set phsyicsEnabled(val: boolean) {
+        this._physicsEnabled = val;
+        this.save();
     }
 
     private static _config: AppConfig;
@@ -113,12 +122,17 @@ export class AppConfig {
             {
                 gridSnap: this.currentGridSnap.value,
                 rotateSnap: this.currentRotateSnap.value,
-                createSnap: this.currentCreateSnap.value
+                createSnap: this.currentCreateSnap.value,
+                physicsEnabled: this._physicsEnabled
             });
     }
 
     private configObserver(config: AppConfigType) {
         if (config) {
+            if (config.physicsEnabled && config.physicsEnabled != this._physicsEnabled) {
+                this._physicsEnabled = config.physicsEnabled;
+                this.logger.debug("Physics enabled changed to " + this._physicsEnabled);
+            }
             if (config.createSnap != this.currentCreateSnap.value ||
                 config.gridSnap != this.currentGridSnap.value ||
                 config.rotateSnap != this.currentRotateSnap.value) {
@@ -137,12 +151,5 @@ export class AppConfig {
         } else {
             this.logger.debug("Config not set");
         }
-    }
-
-    private snapAngle(val: number): number {
-        const deg = Angle.FromRadians(val).degrees();
-        const snappedDegrees = round(deg, this.currentRotateSnap.value);
-        this.logger.debug("deg", val, deg, snappedDegrees, this.currentRotateSnap.value);
-        return Angle.FromDegrees(snappedDegrees).radians();
     }
 }
