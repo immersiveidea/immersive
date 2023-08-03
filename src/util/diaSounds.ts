@@ -41,7 +41,7 @@ export class DiaSounds {
         return new Sound("tick", './tick.mp3', this.scene);
     }
 
-    private _enter: Sound;
+    private readonly _enter: Sound;
 
     public get enter() {
         return this._enter;

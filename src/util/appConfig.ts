@@ -108,28 +108,6 @@ export class AppConfig {
         return this.rotateSnapArray;
     }
 
-    public snapGridVal(value: Vector3): Vector3 {
-        if (this.currentGridSnapIndex == 0) {
-            return value;
-        }
-        const position = value.clone();
-        position.x = round(position.x, this.currentGridSnap.value);
-        position.y = round(position.y, this.currentGridSnap.value);
-        position.z = round(position.z, this.currentGridSnap.value);
-        return position;
-    }
-
-    public snapRotateVal(value: Vector3): Vector3 {
-        if (this.currentRotateSnapIndex == 0) {
-            return value;
-        }
-        const rotation = new Vector3();
-        rotation.x = this.snapAngle(value.x);
-        rotation.y = this.snapAngle(value.y);
-        rotation.z = this.snapAngle(value.z);
-        return rotation;
-    }
-
     private save() {
         this.persistenceManager.setConfig(
             {

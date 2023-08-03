@@ -15,7 +15,7 @@ export type InputTextViewOptions = {
 
 export class InputTextView {
     public readonly onTextObservable: Observable<TextEvent> = new Observable<TextEvent>();
-    private text: string;
+    private readonly text: string;
     private readonly scene: Scene;
     private readonly xrSession: WebXRSessionManager;
 
