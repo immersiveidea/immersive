@@ -5,40 +5,33 @@ export class PeerjsNetworkConnection {
     private logger: log.Logger = log.getLogger('PeerjsNetworkConnection');
     private dataChannel: P2PDataChannel<any>;
 
-    constructor() {
+    constructor(dataChannel: string, identity: string) {
+
         const config = {
             debug: false,
-            dataChannel: 'default',
+            dataChannel: dataChannel,
             connectionTimeout: 5000,
             pingInterval: 4000,
             pingTimeout: 8000
         }
-
-
-        const data = window.location.search.replace('?', '')
-            .split('&')
-            .map((x) => x.split('='));
-        this.dataChannel = new P2PDataChannel(data[0][1], config);
+        this.dataChannel = new P2PDataChannel(identity, config);
 
         this.dataChannel.onConnected((peerId) => {
             this.logger.debug(peerId, ' connected');
         });
         this.dataChannel.onMessage((message) => {
-            this.logger.debug(message.payload, ' received from ', message.sender);
+            if (message.sender !== this.dataChannel.localPeerId) {
+                this.logger.debug(message.payload, ' received from ', message.sender);
+            }
         });
-        this.connect();
-
     }
 
-    private async connect() {
+    public connect(host: string) {
         try {
-            const data = window.location.search.replace('?', '')
-                .split('&')
-                .map((x) => x.split('='));
-            const connection = await this.dataChannel.connect(data[1][1]).then(() => {
-                console.log('Connected');
+            this.dataChannel.connect(host).then((peerId) => {
+                this.logger.debug('Broadcasting Join', peerId);
+                this.dataChannel.broadcast({payload: 'Joined'});
             });
-            this.dataChannel.broadcast({payload: 'Hello World'});
         } catch (err) {
             this.logger.error(err);
         }

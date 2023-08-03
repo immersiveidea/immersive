@@ -14,8 +14,6 @@ import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "./controllers";
-import {DiagramShapePhysics} from "../diagram/diagramShapePhysics";
-
 
 export class Base {
     static stickVector = Vector3.Zero();
@@ -151,9 +149,6 @@ export class Base {
             }
             transformNode.setParent(this.controller.motionController.rootMesh);
             this.grabbedMeshParentId = transformNode.id;
-            DiagramShapePhysics
-                .applyPhysics(newMesh, this.scene)
-                .setMotionType(PhysicsMotionType.ANIMATED);
 
 
             //newMesh && newMesh.setParent(this.controller.motionController.rootMesh);

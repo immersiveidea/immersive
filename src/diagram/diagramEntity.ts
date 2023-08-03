@@ -10,8 +10,6 @@ export enum DiagramEventType {
     CLEAR,
     CHANGECOLOR,
     COPY
-
-
 }
 
 

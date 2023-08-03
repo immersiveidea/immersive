@@ -24,6 +24,7 @@ import log from "loglevel";
 import {AppConfig} from "./util/appConfig";
 import {DiaSounds} from "./util/diaSounds";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
+import {InputTextView} from "./information/inputTextView";
 
 export class App {
     //preTasks = [havokModule];
@@ -59,6 +60,26 @@ export class App {
         }
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
+
+        const query = Object.fromEntries(new URLSearchParams(window.location.search));
+        this.logger.debug('Query', query);
+        if (query.shareCode) {
+            scene.onReadyObservable.addOnce(() => {
+                this.logger.debug('Scene ready');
+                const identityView = new InputTextView({scene: scene, text: ""});
+                identityView.onTextObservable.add((text) => {
+                    if (text?.text?.trim() != "") {
+                        this.logger.debug('Identity', text.text);
+                        const network = new PeerjsNetworkConnection(query.shareCode, text.text);
+                        if (query.host) {
+                            network.connect(query.host);
+                        }
+                    }
+                });
+                identityView.show();
+            });
+        }
+
 
         this.scene = scene;
         const sounds = new DiaSounds(scene);
@@ -114,9 +135,8 @@ export class App {
         const diagramManager = new DiagramManager(this.scene, xr.baseExperience);
         this.rig = new Rigplatform(this.scene, xr, diagramManager);
         const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager);
-        //const network = new PeerjsNetworkConnection();
 
-        import ('./diagram/indexdbPersistenceManager').then((module) => {
+        import ('./integration/indexdbPersistenceManager').then((module) => {
             const persistenceManager = new module.IndexdbPersistenceManager("diagram");
             diagramManager.setPersistenceManager(persistenceManager);
             AppConfig.config.setPersistenceManager(persistenceManager);
@@ -206,8 +226,13 @@ export class App {
 
         engine.runRenderLoop(() => {
             scene.render();
-
         });
+
+        //const data = window.location.search.replace('?', '')
+        //    .split('&')
+        //    .map((x) => x.split('='));
+        //const network = new PeerjsNetworkConnection();
+        //network.connect(data[0][1]);
         this.logger.info('Render loop started');
     }
 

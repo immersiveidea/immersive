@@ -1,8 +1,8 @@
 import {DiagramListing, DiagramListingEvent, DiagramListingEventType, IPersistenceManager} from "./iPersistenceManager";
 import {AbstractMesh, Observable, Vector3} from "@babylonjs/core";
-import {DiagramEntity} from "./diagramEntity";
+import {DiagramEntity} from "../diagram/diagramEntity";
 import Dexie from "dexie";
-import {MeshConverter} from "./meshConverter";
+import {MeshConverter} from "../diagram/meshConverter";
 import log from "loglevel";
 import {AppConfigType} from "../util/appConfigType";
 

@@ -17,14 +17,11 @@ import {InputTextView} from "../information/inputTextView";
 import {DiaSounds} from "../util/diaSounds";
 import {CameraHelper} from "../util/cameraHelper";
 import {TextLabel} from "../diagram/textLabel";
-import {DiagramShapePhysics} from "../diagram/diagramShapePhysics";
 
 export class EditMenu {
     private state: EditMenuState = EditMenuState.NONE;
     private manager: GUI3DManager;
     private readonly scene: Scene;
-    private textView: InputTextView;
-    private textInput: HTMLElement;
     private readonly logger: log.Logger = log.getLogger('EditMenu');
     private gizmoManager: GizmoManager;
     private readonly xr: WebXRExperienceHelper;
@@ -158,7 +155,6 @@ export class EditMenu {
         if (mesh) {
             const newMesh = this.diagramManager.createCopy(mesh, true);
             newMesh.setParent(null);
-            DiagramShapePhysics.applyPhysics(newMesh, this.scene);
         }
         this.logger.warn('copying not implemented', mesh);
         //@todo implement
@@ -170,7 +166,7 @@ export class EditMenu {
         if (mesh?.metadata?.text) {
             text = mesh.metadata.text;
         }
-        const textInput = new InputTextView(this.xr.sessionManager, text);
+        const textInput = new InputTextView({xrSession: this.xr.sessionManager, text: text});
         textInput.show();
         textInput.onTextObservable.addOnce((value) => {
             this.persist(mesh, value.text);

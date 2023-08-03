@@ -1,7 +1,7 @@
 import {Angle, Vector3} from "@babylonjs/core";
 import round from "round";
 import log from "loglevel";
-import {IPersistenceManager} from "../diagram/persistenceManager";
+import {IPersistenceManager} from "../integration/iPersistenceManager";
 import {AppConfigType} from "./appConfigType";
 
 export type SnapValue = {

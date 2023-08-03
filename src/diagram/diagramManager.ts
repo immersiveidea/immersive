@@ -6,19 +6,21 @@ import {
     InstancedMesh,
     Mesh,
     Observable,
+    PhysicsAggregate,
+    PhysicsBody,
     PhysicsMotionType,
+    PhysicsShapeType,
     PlaySoundAction,
     Scene,
     WebXRExperienceHelper
 } from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./diagramEntity";
-import {IPersistenceManager} from "./iPersistenceManager";
+import {IPersistenceManager} from "../integration/iPersistenceManager";
 import {MeshConverter} from "./meshConverter";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
 import {AppConfig} from "../util/appConfig";
-import {DiagramShapePhysics} from "./diagramShapePhysics";
 import {TextLabel} from "./textLabel";
 
 export class DiagramManager {
@@ -41,8 +43,9 @@ export class DiagramManager {
         }
         return this.persistenceManager;
     }
-    private readonly actionManager: ActionManager;
 
+    private readonly actionManager: ActionManager;
+    private config: AppConfig;
     constructor(scene: Scene, xr: WebXRExperienceHelper) {
         this.scene = scene;
         this.xr = xr;
@@ -86,6 +89,7 @@ export class DiagramManager {
         }
         newMesh.material = mesh.material;
         newMesh.metadata = mesh.metadata;
+        DiagramShapePhysics.applyPhysics(newMesh, this.scene);
         return newMesh;
     }
 
@@ -127,9 +131,14 @@ export class DiagramManager {
                 break;
             case DiagramEventType.ADD:
                 this.getPersistenceManager()?.add(mesh);
+                DiagramShapePhysics
+                    .applyPhysics(mesh, this.scene);
+
                 break;
             case DiagramEventType.MODIFY:
                 this.getPersistenceManager()?.modify(mesh);
+                DiagramShapePhysics
+                    .applyPhysics(mesh, this.scene);
                 break;
             case DiagramEventType.CHANGECOLOR:
                 if (!event.oldColor) {
@@ -159,5 +168,62 @@ export class DiagramManager {
                 }
                 break;
         }
+    }
+
+}
+
+class DiagramShapePhysics {
+    private static logger: log.Logger = log.getLogger('DiagramShapePhysics');
+
+    public static applyPhysics(mesh: AbstractMesh, scene: Scene): PhysicsBody {
+        if (!mesh?.metadata?.template) {
+            this.logger.error("applyPhysics: mesh.metadata.template is null", mesh);
+            return null;
+        }
+        if (!scene) {
+            this.logger.error("applyPhysics: mesh or scene is null");
+            return null;
+        }
+        if (mesh.physicsBody) {
+            mesh.physicsBody.dispose();
+        }
+
+        let shapeType = PhysicsShapeType.BOX;
+        switch (mesh.metadata.template) {
+            case "#sphere-template":
+                shapeType = PhysicsShapeType.SPHERE;
+                break;
+            case "#cylinder-template":
+                shapeType = PhysicsShapeType.CYLINDER;
+                break;
+            case "#cone-template":
+                shapeType = PhysicsShapeType.CONVEX_HULL;
+                break;
+
+        }
+        let mass = mesh.scaling.x * mesh.scaling.y * mesh.scaling.z * 10;
+
+        const aggregate = new PhysicsAggregate(mesh,
+            shapeType, {mass: mass, restitution: .02, friction: .9}, scene);
+        if (mesh.parent) {
+            aggregate.body
+                .setMotionType(PhysicsMotionType.ANIMATED);
+        } else {
+            aggregate.body
+                .setMotionType(PhysicsMotionType.DYNAMIC);
+        }
+        aggregate.body.setCollisionCallbackEnabled(true);
+        aggregate.body.getCollisionObservable().add((event, state) => {
+            if (event.distance > .001 && !DiaSounds.instance.low.isPlaying) {
+                this.logger.debug(event, state);
+                DiaSounds.instance.low.play();
+            }
+        }, -1, false, this);
+        const body = aggregate.body;
+        body.setMotionType(PhysicsMotionType.ANIMATED);
+        body.setLinearDamping(.95);
+        body.setAngularDamping(.99);
+        body.setGravityFactor(0);
+        return aggregate.body;
     }
 }

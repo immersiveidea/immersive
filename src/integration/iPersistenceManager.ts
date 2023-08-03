@@ -1,5 +1,5 @@
 import {AbstractMesh, Color3, Observable} from "@babylonjs/core";
-import {DiagramEntity} from "./diagramEntity";
+import {DiagramEntity} from "../diagram/diagramEntity";
 import {AppConfigType} from "../util/appConfigType";
 
 export enum DiagramListingEventType {

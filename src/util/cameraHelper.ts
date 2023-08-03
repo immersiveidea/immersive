@@ -7,9 +7,10 @@ export class CameraHelper {
         return scene.activeCamera.globalPosition.add(offset);
     }
 
-    public static setMenuPosition(node: TransformNode, scene: Scene) {
+    public static setMenuPosition(node: TransformNode, scene: Scene, offset: Vector3 = Vector3.Zero()) {
         node.position =
             CameraHelper.getFrontPosition(2, scene);
+        node.position.addInPlace(offset);
         node.lookAt(scene.activeCamera.globalPosition);
         node.rotation.y = node.rotation.y + Math.PI;
         node.position.y += .2;
