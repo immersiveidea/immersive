@@ -3,6 +3,7 @@ export enum EditMenuState {
     LABELING,
     MODIFYING, // Editing an entity
     REMOVING,
-    COPYING // Removing an entity
+    COPYING, // Removing an entity
+    CONNECTING
 
 }

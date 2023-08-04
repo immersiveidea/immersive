@@ -1,9 +1,13 @@
 import {
     AbstractMesh,
+    CreateGreasedLine,
     GizmoManager,
+    GreasedLineMesh,
+    GreasedLineTools,
     PointerEventTypes,
     PointerInfo,
     Scene,
+    TransformNode,
     Vector3,
     WebXRExperienceHelper
 } from "@babylonjs/core";
@@ -18,6 +22,82 @@ import {DiaSounds} from "../util/diaSounds";
 import {CameraHelper} from "../util/cameraHelper";
 import {TextLabel} from "../diagram/textLabel";
 
+class DiagramConnection {
+    private mesh: GreasedLineMesh;
+    private readonly scene: Scene;
+    private readonly fromPoint: Vector3 = new Vector3();
+    private readonly toPoint: Vector3 = new Vector3();
+    private toAnchor: TransformNode;
+    private pointerInfo: PointerInfo;
+    private points: Vector3[] = [];
+
+    constructor(from: string, to: string, id: string, scene: Scene, pointerInfo: PointerInfo) {
+        this._from = from;
+        this._to = to;
+        this._id = id;
+        this.scene = scene;
+        this.pointerInfo = pointerInfo;
+
+        if (from) {
+            const fromPoint = this.scene.getMeshById(from).getAbsolutePosition().clone();
+            this.fromPoint.copyFrom(fromPoint);
+            this.toAnchor = new TransformNode("toAnchor", this.scene);
+            this.toAnchor.position = fromPoint;
+            this.toAnchor.setParent(pointerInfo.pickInfo.gripTransform);
+            this.buildConnection();
+        }
+    }
+
+    public _from: string;
+
+    public get from(): string {
+        return this._from;
+    }
+
+    public set from(value: string) {
+        this._from = value;
+    }
+
+    public _to: string;
+
+    public get to(): string {
+        return this._to;
+    }
+
+    public set to(value: string) {
+        this._to = value;
+    }
+
+    public _id: string;
+
+    public get id(): string {
+        return this._id;
+    }
+
+    private recalculate() {
+        this.points = [this.fromPoint, this.toAnchor.absolutePosition];
+    }
+
+    private setPoints() {
+        this.mesh.setPoints([GreasedLineTools.ToNumberArray(this.points)]);
+    }
+
+    private buildConnection() {
+        this.scene.onBeforeRenderObservable.add(() => {
+            this.recalculate();
+            this.setPoints();
+        });
+
+        this.recalculate();
+
+        this.mesh = CreateGreasedLine("connection",
+            {points: (GreasedLineTools.ToNumberArray(this.points) as number[]), updatable: true}, null, this.scene);
+
+        this.setPoints();
+        //this.mesh.outlineColor = new Color3(0.5, 0.5, 1);
+    }
+}
+
 export class EditMenu {
     private state: EditMenuState = EditMenuState.NONE;
     private manager: GUI3DManager;
@@ -26,6 +106,7 @@ export class EditMenu {
     private gizmoManager: GizmoManager;
     private readonly xr: WebXRExperienceHelper;
     private readonly diagramManager: DiagramManager;
+    private connection: DiagramConnection = null;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper, diagramManager: DiagramManager) {
         this.scene = scene;
@@ -69,6 +150,7 @@ export class EditMenu {
             panel.addControl(this.makeButton("Remove", "remove"));
             panel.addControl(this.makeButton("Add Label", "label"));
             panel.addControl(this.makeButton("Copy", "copy"));
+            panel.addControl(this.makeButton("Connect", "connect"));
 
             //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
             this.manager.controlScaling = .5;
@@ -119,6 +201,22 @@ export class EditMenu {
             case EditMenuState.COPYING:
                 this.setCopying(mesh);
                 break;
+            case EditMenuState.CONNECTING:
+                this.setConnecting(mesh, pointerInfo);
+                break;
+        }
+    }
+
+    private setConnecting(mesh: AbstractMesh, pointerInfo) {
+        if (this.connection) {
+            this.connection.to = mesh.id;
+            this.diagramManager.onDiagramEventObservable.notifyObservers({
+                type: DiagramEventType.ADD,
+                entity: this.connection,
+            });
+            this.connection = null;
+        } else {
+            this.connection = new DiagramConnection(mesh.id, null, null, this.scene, pointerInfo);
         }
     }
 
@@ -188,6 +286,9 @@ export class EditMenu {
                 break;
             case "copy":
                 this.state = EditMenuState.COPYING;
+                break;
+            case "connect":
+                this.state = EditMenuState.CONNECTING;
                 break;
             default:
                 this.logger.error("Unknown button");
