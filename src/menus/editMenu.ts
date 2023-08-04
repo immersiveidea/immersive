@@ -1,13 +1,9 @@
 import {
     AbstractMesh,
-    CreateGreasedLine,
     GizmoManager,
-    GreasedLineMesh,
-    GreasedLineTools,
     PointerEventTypes,
     PointerInfo,
     Scene,
-    TransformNode,
     Vector3,
     WebXRExperienceHelper
 } from "@babylonjs/core";
@@ -21,82 +17,7 @@ import {InputTextView} from "../information/inputTextView";
 import {DiaSounds} from "../util/diaSounds";
 import {CameraHelper} from "../util/cameraHelper";
 import {TextLabel} from "../diagram/textLabel";
-
-class DiagramConnection {
-    private mesh: GreasedLineMesh;
-    private readonly scene: Scene;
-    private readonly fromPoint: Vector3 = new Vector3();
-    private readonly toPoint: Vector3 = new Vector3();
-    private toAnchor: TransformNode;
-    private pointerInfo: PointerInfo;
-    private points: Vector3[] = [];
-
-    constructor(from: string, to: string, id: string, scene: Scene, pointerInfo: PointerInfo) {
-        this._from = from;
-        this._to = to;
-        this._id = id;
-        this.scene = scene;
-        this.pointerInfo = pointerInfo;
-
-        if (from) {
-            const fromPoint = this.scene.getMeshById(from).getAbsolutePosition().clone();
-            this.fromPoint.copyFrom(fromPoint);
-            this.toAnchor = new TransformNode("toAnchor", this.scene);
-            this.toAnchor.position = fromPoint;
-            this.toAnchor.setParent(pointerInfo.pickInfo.gripTransform);
-            this.buildConnection();
-        }
-    }
-
-    public _from: string;
-
-    public get from(): string {
-        return this._from;
-    }
-
-    public set from(value: string) {
-        this._from = value;
-    }
-
-    public _to: string;
-
-    public get to(): string {
-        return this._to;
-    }
-
-    public set to(value: string) {
-        this._to = value;
-    }
-
-    public _id: string;
-
-    public get id(): string {
-        return this._id;
-    }
-
-    private recalculate() {
-        this.points = [this.fromPoint, this.toAnchor.absolutePosition];
-    }
-
-    private setPoints() {
-        this.mesh.setPoints([GreasedLineTools.ToNumberArray(this.points)]);
-    }
-
-    private buildConnection() {
-        this.scene.onBeforeRenderObservable.add(() => {
-            this.recalculate();
-            this.setPoints();
-        });
-
-        this.recalculate();
-
-        this.mesh = CreateGreasedLine("connection",
-            {points: (GreasedLineTools.ToNumberArray(this.points) as number[]), updatable: true}, null, this.scene);
-
-        this.setPoints();
-        //this.mesh.outlineColor = new Color3(0.5, 0.5, 1);
-    }
-}
+import {DiagramConnection} from "../diagram/diagramConnection";
 
 export class EditMenu {
     private state: EditMenuState = EditMenuState.NONE;
