@@ -90,6 +90,7 @@ export class DiagramManager {
         const metaCopy = this.deepCopy(mesh.metadata);
         newMesh.metadata = metaCopy;
         DiagramShapePhysics.applyPhysics(newMesh, this.scene);
+        this.persistenceManager.add(newMesh);
         return newMesh;
     }
 
