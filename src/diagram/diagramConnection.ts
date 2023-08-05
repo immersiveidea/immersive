@@ -1,4 +1,5 @@
 import {
+    AbstractMesh,
     CreateGreasedLine,
     GreasedLineMesh,
     GreasedLineTools,
@@ -37,6 +38,7 @@ export class DiagramConnection {
         }
         this.buildConnection();
     }
+
     private readonly scene: Scene;
     private toAnchor: TransformNode;
     private fromAnchor: TransformNode;
@@ -85,7 +87,6 @@ export class DiagramConnection {
         } else {
             this.points = [Vector3.Zero(), Vector3.Zero()];
         }
-
     }
 
     private setPoints() {
@@ -96,9 +97,7 @@ export class DiagramConnection {
     }
 
     private buildConnection() {
-        this.logger.debug('buildConnection');
-        this.logger.debug(this._to);
-        this.logger.debug(this._from);
+        this.logger.debug(`buildConnection from ${this._from} to ${this._to}`);
 
         this.recalculate();
         this._mesh = CreateGreasedLine(this.id,
@@ -115,25 +114,33 @@ export class DiagramConnection {
             this.recalculate();
             this.setPoints();
         });
-        this.scene.onNewMeshAddedObservable.add((mesh) => {
-            if (mesh && mesh.id) {
-                if (!this.toAnchor || !this.fromAnchor) {
-                    this.logger.debug('render');
-                    if (mesh?.id == this?._to) {
-                        this.logger.debug("Found to anchor");
-                        this.toAnchor = mesh;
-                        this._mesh.metadata.to = this.to;
-                    }
-                    if (mesh?.id == this?._from) {
-                        this.logger.debug("Found from anchor");
-                        this.fromAnchor = mesh;
-                        this._mesh.metadata.from = this.from;
-                    }
+        this.scene.onNewMeshAddedObservable.add(this.onMeshAdded, -1, true, this);
+        return;
+    }
+
+    private onMeshAdded = (mesh: AbstractMesh) => {
+        if (mesh && mesh.id) {
+            if (!this.toAnchor || !this.fromAnchor) {
+                if (mesh?.id == this?._to) {
+                    this.logger.debug("Found to anchor");
+                    this.toAnchor = mesh;
+                    this._mesh.metadata.to = this.to;
+                }
+                if (mesh?.id == this?._from) {
+                    this.logger.debug("Found from anchor");
+                    this.fromAnchor = mesh;
+                    this._mesh.metadata.from = this.from;
+                }
+                if (this.toAnchor && this.fromAnchor) {
+                    this.logger.debug(`connection built from ${this._from} to ${this._to}`);
+                    this.removeObserver();
                 }
             }
+        }
+    }
 
-        }, -1, true, this);
-        return;
-
+    private removeObserver() {
+        this.logger.debug("removing observer");
+        this.scene.onNewMeshAddedObservable.removeCallback(this.onMeshAdded);
     }
 }

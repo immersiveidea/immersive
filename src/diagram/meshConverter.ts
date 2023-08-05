@@ -44,22 +44,25 @@ export class MeshConverter {
         }
         let mesh: AbstractMesh = scene.getMeshById(entity.id);
         if (mesh) {
-            log.debug('mesh already exists');
+            this.logger.debug(`mesh ${mesh.id} already exists`);
         } else {
             if (entity.template == "#connection-template") {
                 const connection: DiagramConnection = new DiagramConnection(entity.from, entity.to, scene);
-
-            }
-            mesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
-            if (mesh) {
-                if (mesh.isAnInstance) {
-                    log.debug('error: mesh is an instance');
-                } else {
-                    mesh = new InstancedMesh(entity.id, (mesh as Mesh));
-                }
+                this.logger.debug(`connection.mesh = ${connection.mesh.id}`);
+                mesh = connection.mesh;
             } else {
-                log.debug('no mesh found for ' + entity.template + "-" + entity.color);
+                mesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
+                if (mesh) {
+                    if (mesh.isAnInstance) {
+                        this.logger.error(`mesh ${mesh.id} is an instance`);
+                    } else {
+                        mesh = new InstancedMesh(entity.id, (mesh as Mesh));
+                    }
+                } else {
+                    this.logger.warn('no mesh found for ' + entity.template + "-" + entity.color);
+                }
             }
+
         }
         if (mesh) {
             mesh.metadata = {template: entity.template};
