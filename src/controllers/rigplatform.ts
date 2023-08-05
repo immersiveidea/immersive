@@ -55,7 +55,7 @@ export class Rigplatform {
         rigMaterial.diffuseColor = Color3.Blue();
         this.rigMesh.material = rigMaterial;
         this.rigMesh.setAbsolutePosition(new Vector3(0, .1, -3));
-        this.rigMesh.visibility = 1;
+        this.rigMesh.visibility = 0;
         const rigAggregate =
             new PhysicsAggregate(
                 this.rigMesh,
