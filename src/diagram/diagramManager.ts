@@ -67,7 +67,6 @@ export class DiagramManager {
         this.onDiagramEventObservable.add(this.onDiagramEvent, -1, true, this);
         this.logger.debug("DiagramManager constructed");
     }
-
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
         let newMesh;
         if (!mesh.isAnInstance) {
@@ -147,9 +146,11 @@ export class DiagramManager {
                 break;
             case DiagramEventType.ADD:
                 this.getPersistenceManager()?.add(mesh);
+                if (!mesh.actionManager) {
+                    mesh.actionManager = this.actionManager;
+                }
                 DiagramShapePhysics
                     .applyPhysics(mesh, this.scene);
-
                 break;
             case DiagramEventType.MODIFY:
                 this.getPersistenceManager()?.modify(mesh);

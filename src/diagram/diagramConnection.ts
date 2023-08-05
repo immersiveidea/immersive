@@ -1,5 +1,6 @@
 import {
     AbstractMesh,
+    Color3,
     CreateGreasedLine,
     GreasedLineMesh,
     GreasedLineTools,
@@ -39,7 +40,7 @@ export class DiagramConnection {
         this.buildConnection();
     }
 
-    private readonly scene: Scene;
+    private scene: Scene;
     private toAnchor: TransformNode;
     private fromAnchor: TransformNode;
     private points: Vector3[] = [];
@@ -101,23 +102,55 @@ export class DiagramConnection {
 
         this.recalculate();
         this._mesh = CreateGreasedLine(this.id,
-            {points: (GreasedLineTools.ToNumberArray(this.points) as number[]), updatable: true}, null, this.scene);
+            {
+                points: (GreasedLineTools.ToNumberArray(this.points) as number[]),
+                updatable: true
+            }, {color: Color3.Black()}, this.scene);
+        this._mesh.intersectionThreshold = 10;
+        this.logger.debug(this._mesh.widths);
+        this._mesh.widths = [0.1, 0.1, .1, .1];
+
         this._mesh.id = this.id;
         if (!this._mesh.metadata) {
             this._mesh.metadata = {template: "#connection-template", from: this._from};
+        } else {
+            this._mesh.metadata.template = "#connection-template";
+            this._mesh.metadata.from = this._from;
         }
         if (this._to) {
             this.mesh.metadata.to = this.to;
         }
         this.setPoints();
-        this.scene.onBeforeRenderObservable.add(() => {
-            this.recalculate();
-            this.setPoints();
-        });
+        this.scene.onBeforeRenderObservable.add(this.beforeRender, -1, true, this);
         this.scene.onNewMeshAddedObservable.add(this.onMeshAdded, -1, true, this);
+        this.mesh.onDisposeObservable.add(this.removeConnection, -1, true, this);
         return;
     }
 
+    private beforeRender = () => {
+        this.recalculate();
+        this.setPoints();
+    }
+    private removeConnection = () => {
+        this.logger.debug("removeConnection");
+        this.scene.onBeforeRenderObservable.removeCallback(this.beforeRender);
+        this.removeObserver();
+        if (this.toAnchor) {
+            this.toAnchor = null;
+        }
+        if (this.fromAnchor) {
+            this.fromAnchor = null;
+        }
+        if (this._mesh) {
+            this._mesh = null;
+        }
+        if (this.scene) {
+            this.scene = null;
+        }
+        if (this.logger) {
+            this.logger = null;
+        }
+    }
     private onMeshAdded = (mesh: AbstractMesh) => {
         if (mesh && mesh.id) {
             if (!this.toAnchor || !this.fromAnchor) {
