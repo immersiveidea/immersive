@@ -115,14 +115,20 @@ export class Base {
         if (!mesh) {
             return;
         }
-        if (!mesh?.metadata?.template) {
+        const template = mesh?.metadata?.template;
+        if (!template) {
             if (mesh?.id == "handle") {
                 mesh && mesh.setParent(this.controller.motionController.rootMesh);
                 this.grabbedMesh = mesh;
             } else {
+
                 return;
             }
 
+        } else {
+            if (template == '#connection-template') {
+                return;
+            }
         }
         this.previousParentId = mesh?.parent?.id;
         this.previousRotation = mesh?.rotation.clone();
