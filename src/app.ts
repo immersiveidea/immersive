@@ -38,8 +38,11 @@ export class App {
     constructor() {
         const config = AppConfig.config;
         log.setLevel('info');
-        log.getLogger('App').setLevel('debug');
-        log.getLogger('PeerjsNetworkConnection').setLevel('debug');
+        log.getLogger('App').setLevel('info');
+        log.getLogger('IndexdbPersistenceManager').setLevel('info');
+        log.getLogger('DiagramManager').setLevel('info');
+
+        log.getLogger('DiagramConnection').setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";

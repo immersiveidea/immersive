@@ -17,6 +17,7 @@ export type DiagramEvent = {
     type: DiagramEventType;
     menustate?: EditMenuState;
     entity?: DiagramEntity;
+
     oldColor?: Color3;
     newColor?: Color3;
 
@@ -24,6 +25,8 @@ export type DiagramEvent = {
 export type DiagramEntity = {
     color?: string;
     id?: string;
+    from?: string;
+    to?: string;
     last_seen?: Date;
     position?: Vector3;
     rotation?: Vector3;

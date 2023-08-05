@@ -7,96 +7,133 @@ import {
     TransformNode,
     Vector3
 } from "@babylonjs/core";
+import log, {Logger} from "loglevel";
+
 
 export class DiagramConnection {
-    private mesh: GreasedLineMesh;
+    private logger: Logger = log.getLogger('DiagramConnection');
+
+    constructor(from: string, to: string, scene?: Scene, pointerInfo?: PointerInfo) {
+        this.logger.debug('buildConnection constructor');
+        this.scene = scene;
+        this._to = to;
+        this._from = from;
+        const fromMesh = this.scene.getMeshById(from);
+        if (fromMesh) {
+            this.fromAnchor = fromMesh;
+        }
+        const toMesh = this.scene.getMeshById(to);
+        if (toMesh) {
+            this.toAnchor = toMesh;
+        } else {
+            if (fromMesh) {
+                this.toAnchor = new TransformNode(this.id + "_to", this.scene);
+                this.toAnchor.id = this.id + "_to";
+                this.toAnchor.position = fromMesh.absolutePosition.clone();
+                if (pointerInfo) {
+                    this.toAnchor.setParent(pointerInfo.pickInfo.gripTransform);
+                }
+            }
+        }
+        this.buildConnection();
+    }
     private readonly scene: Scene;
     private toAnchor: TransformNode;
     private fromAnchor: TransformNode;
-    private pointerInfo: PointerInfo;
     private points: Vector3[] = [];
 
-    constructor(from: string, to: string, id: string, scene: Scene, pointerInfo: PointerInfo) {
-        this._from = from;
-        this._to = to;
-        this._id = id;
-        this.scene = scene;
-        this.pointerInfo = pointerInfo;
+    private _mesh: GreasedLineMesh;
 
-        if (from) {
-            const fromMesh = this.scene.getMeshById(from);
-            if (fromMesh) {
-                this.fromAnchor = fromMesh;
-                this.toAnchor = new TransformNode("toAnchor", this.scene);
-                this.toAnchor.position = fromMesh.absolutePosition.clone();
-                this.toAnchor.setParent(pointerInfo.pickInfo.gripTransform);
-
-                this.buildConnection();
-            }
-
-        }
+    public get mesh(): GreasedLineMesh {
+        return this._mesh;
     }
 
-    public _from: string;
-
-    public get from(): string {
-        return this._from;
-    }
-
-    public set from(value: string) {
-        this._from = value;
-    }
-
-    public _to: string;
+    private _to: string;
 
     public get to(): string {
-        return this._to;
+        return this?.toAnchor?.id;
     }
 
     public set to(value: string) {
         if (!value) {
             return;
         }
-        const toMesh = this.scene.getMeshById(value);
-        if (toMesh) {
-            const toAnchor = this.toAnchor;
-            this.toAnchor = toMesh;
-            toAnchor.dispose();
+        const toAnchor = this.scene.getMeshById(value);
+        if (this.fromAnchor && toAnchor) {
+            this.toAnchor.dispose();
+            this.toAnchor = toAnchor;
+            this._mesh.metadata.to = this.to;
+            this._mesh.id = this.id;
             this.recalculate();
             this.setPoints();
-            this._to = value;
         }
     }
 
-    public _id: string;
+    private _from: string;
+
+    public get from(): string {
+        return this?.fromAnchor?.id;
+    }
 
     public get id(): string {
-        return this._id;
+        return "connection_" + this?.fromAnchor?.id + "_" + this?.toAnchor?.id;
     }
 
     private recalculate() {
-        //this.fromAnchor.computeWorldMatrix(true);
-        //this.toAnchor.computeWorldMatrix(true);
-        this.points = [this.fromAnchor.absolutePosition, this.toAnchor.absolutePosition];
+        if (this.fromAnchor && this.toAnchor) {
+            this.points = [this.fromAnchor.absolutePosition, this.toAnchor.absolutePosition];
+        } else {
+            this.points = [Vector3.Zero(), Vector3.Zero()];
+        }
+
     }
 
     private setPoints() {
-        this.mesh.setPoints([GreasedLineTools.ToNumberArray(this.points)]);
+        if (this.points.length > 1) {
+            this._mesh.setPoints([GreasedLineTools.ToNumberArray(this.points)]);
+        }
+
     }
 
     private buildConnection() {
+        this.logger.debug('buildConnection');
+        this.logger.debug(this._to);
+        this.logger.debug(this._from);
 
         this.recalculate();
-
-        this.mesh = CreateGreasedLine("connection",
+        this._mesh = CreateGreasedLine(this.id,
             {points: (GreasedLineTools.ToNumberArray(this.points) as number[]), updatable: true}, null, this.scene);
-
+        this._mesh.id = this.id;
+        if (!this._mesh.metadata) {
+            this._mesh.metadata = {template: "#connection-template", from: this._from};
+        }
+        if (this._to) {
+            this.mesh.metadata.to = this.to;
+        }
         this.setPoints();
         this.scene.onBeforeRenderObservable.add(() => {
             this.recalculate();
             this.setPoints();
         });
+        this.scene.onNewMeshAddedObservable.add((mesh) => {
+            if (mesh && mesh.id) {
+                if (!this.toAnchor || !this.fromAnchor) {
+                    this.logger.debug('render');
+                    if (mesh?.id == this?._to) {
+                        this.logger.debug("Found to anchor");
+                        this.toAnchor = mesh;
+                        this._mesh.metadata.to = this.to;
+                    }
+                    if (mesh?.id == this?._from) {
+                        this.logger.debug("Found from anchor");
+                        this.fromAnchor = mesh;
+                        this._mesh.metadata.from = this.from;
+                    }
+                }
+            }
 
-        //this.mesh.outlineColor = new Color3(0.5, 0.5, 1);
+        }, -1, true, this);
+        return;
+
     }
 }

@@ -3,6 +3,7 @@ import {AbstractMesh, Color3, InstancedMesh, Mesh, Quaternion, Scene, StandardMa
 import {v4 as uuidv4} from 'uuid';
 import log from "loglevel";
 import {TextLabel} from "./textLabel";
+import {DiagramConnection} from "./diagramConnection";
 
 export class MeshConverter {
     private static logger = log.getLogger('MeshConverter');
@@ -18,10 +19,13 @@ export class MeshConverter {
         }
         entity.id = mesh.id;
         entity.position = mesh.position;
+
         entity.rotation = mesh.rotation;
         entity.last_seen = new Date();
         entity.template = mesh?.metadata?.template;
         entity.text = mesh?.metadata?.text;
+        entity.from = mesh?.metadata?.from;
+        entity.to = mesh?.metadata?.to;
         entity.scale = mesh.scaling;
         if (mesh.material) {
             entity.color = (mesh.material as any).diffuseColor.toHexString();
@@ -38,10 +42,14 @@ export class MeshConverter {
         if (!entity.id) {
             entity.id = "id" + uuidv4();
         }
-        let mesh = scene.getMeshById(entity.id);
+        let mesh: AbstractMesh = scene.getMeshById(entity.id);
         if (mesh) {
             log.debug('mesh already exists');
         } else {
+            if (entity.template == "#connection-template") {
+                const connection: DiagramConnection = new DiagramConnection(entity.from, entity.to, scene);
+
+            }
             mesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
             if (mesh) {
                 if (mesh.isAnInstance) {
@@ -79,6 +87,12 @@ export class MeshConverter {
             if (entity.text) {
                 mesh.metadata.text = entity.text;
                 TextLabel.updateTextNode(mesh, entity.text);
+            }
+            if (entity.from) {
+                mesh.metadata.from = entity.from;
+            }
+            if (entity.to) {
+                mesh.metadata.to = entity.to;
             }
         } else {
             this.logger.error("fromDiagramEntity: mesh is null after it should have been created");

@@ -133,11 +133,11 @@ export class EditMenu {
             this.connection.to = mesh.id;
             this.diagramManager.onDiagramEventObservable.notifyObservers({
                 type: DiagramEventType.ADD,
-                entity: this.connection,
+                entity: MeshConverter.toDiagramEntity(this.connection.mesh)
             });
             this.connection = null;
         } else {
-            this.connection = new DiagramConnection(mesh.id, null, null, this.scene, pointerInfo);
+            this.connection = new DiagramConnection(mesh.id, null, this.scene, pointerInfo);
         }
     }
 

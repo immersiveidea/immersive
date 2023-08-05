@@ -196,6 +196,9 @@ class DiagramShapePhysics {
             this.logger.error("applyPhysics: mesh.metadata.template is null", mesh);
             return;
         }
+        if (mesh.metadata.template == '#connector-template') {
+            return;
+        }
         if (!scene) {
             this.logger.error("applyPhysics: mesh or scene is null");
             return;
