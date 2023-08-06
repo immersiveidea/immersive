@@ -87,8 +87,8 @@ export class DiagramManager {
             newMesh.scaling = AppConfig.config.createSnapVal;
         }
         newMesh.material = mesh.material;
-        const metaCopy = this.deepCopy(mesh.metadata);
-        newMesh.metadata = metaCopy;
+
+        newMesh.metadata = this.deepCopy(mesh.metadata);
         DiagramShapePhysics.applyPhysics(newMesh, this.scene);
         this.persistenceManager.add(newMesh);
         return newMesh;

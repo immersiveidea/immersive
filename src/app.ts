@@ -1,42 +1,28 @@
 import {
     ArcRotateCamera,
-    DualShockPad,
     Engine,
-    GroundMesh,
-    HavokPlugin,
     HemisphericLight,
-    MeshBuilder,
-    PBRMetallicRoughnessMaterial,
-    PhysicsAggregate,
-    PhysicsShapeType,
     Scene,
-    Texture,
     Vector3,
     WebXRDefaultExperience,
     WebXRState
 } from "@babylonjs/core";
-import HavokPhysics from "@babylonjs/havok";
+
 import {Rigplatform} from "./controllers/rigplatform";
 import {DiagramManager} from "./diagram/diagramManager";
 import {Toolbox} from "./toolbox/toolbox";
-import {DualshockEventMapper} from "./util/dualshockEventMapper";
 import log from "loglevel";
 import {AppConfig} from "./util/appConfig";
-import {DiaSounds} from "./util/diaSounds";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 import {InputTextView} from "./information/inputTextView";
+import {GamepadManager} from "./controllers/gamepadManager";
+import {CustomEnvironment} from "./util/customEnvironment";
 
 export class App {
     //preTasks = [havokModule];
-    private logger = log.getLogger('App');
-
-
-    private scene: Scene;
-
-    private rig: Rigplatform;
-
     constructor() {
         const config = AppConfig.config;
+        const logger = log.getLogger('App');
         log.setLevel('info');
         log.getLogger('App').setLevel('info');
         log.getLogger('IndexdbPersistenceManager').setLevel('info');
@@ -50,29 +36,24 @@ export class App {
         document.body.appendChild(canvas);
         log.debug('App', 'gameCanvas created');
         this.initialize(canvas).then(() => {
-            log.debug('App', 'Scene Initialized');
+            logger.debug('App', 'Scene Initialized');
         });
-
-
     }
 
     async initialize(canvas) {
-        if (this.scene) {
-            this.scene.dispose();
-            this.scene = null;
-        }
+        const logger = log.getLogger('App');
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
-
+        const environment = new CustomEnvironment(scene);
         const query = Object.fromEntries(new URLSearchParams(window.location.search));
-        this.logger.debug('Query', query);
+        logger.debug('Query', query);
         if (query.shareCode) {
             scene.onReadyObservable.addOnce(() => {
-                this.logger.debug('Scene ready');
+                logger.debug('Scene ready');
                 const identityView = new InputTextView({scene: scene, text: ""});
                 identityView.onTextObservable.add((text) => {
                     if (text?.text?.trim() != "") {
-                        this.logger.debug('Identity', text.text);
+                        logger.debug('Identity', text.text);
                         const network = new PeerjsNetworkConnection(query.shareCode, text.text);
                         if (query.host) {
                             network.connect(query.host);
@@ -83,134 +64,49 @@ export class App {
             });
         }
 
-
-        this.scene = scene;
-        const sounds = new DiaSounds(scene);
-        sounds.enter.autoplay = true;
-
-
-        const havokInstance = await HavokPhysics();
-
-        const havokPlugin = new HavokPlugin(true, havokInstance);
-        scene.enablePhysics(new Vector3(0, -9.8, 0), havokPlugin);
-        scene.collisionsEnabled = true;
-
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2,
             new Vector3(0, 1.6, 0), scene);
         camera.radius = 0;
         camera.attachControl(canvas, true);
-
         new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
-        import('@babylonjs/core').then((babylon) => {
-            new babylon.PhotoDome('sky',
-                './outdoor_field2.jpeg', {},
-                scene);
-        });
-
-        const ground = this.createGround();
-        const xr = await WebXRDefaultExperience.CreateAsync(scene, {
-            floorMeshes: [ground],
-            disableTeleportation: true,
-            outputCanvasOptions: {
-                canvasOptions: {
-                    framebufferScaleFactor: 1
+        environment.groundMeshObservable.add(async (ground) => {
+            const xr = await WebXRDefaultExperience.CreateAsync(scene, {
+                floorMeshes: [ground],
+                disableTeleportation: true,
+                outputCanvasOptions: {
+                    canvasOptions: {
+                        framebufferScaleFactor: 1
+                    }
+                },
+                optionalFeatures: true,
+                pointerSelectionOptions: {
+                    enablePointerSelectionOnAllControllers: true
                 }
-            },
-            optionalFeatures: true,
-            pointerSelectionOptions: {
-                enablePointerSelectionOnAllControllers: true
-            }
 
+            });
+            xr.baseExperience.onStateChangedObservable.add((state) => {
+                if (state == WebXRState.IN_XR) {
+                    scene.audioEnabled = true;
+                    xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
+                    window.addEventListener(('pa-button-state-change'), (event: any) => {
+                        if (event.detail) {
+                            log.debug('App', event.detail);
+                        }
+                    });
+
+                }
+            });
+            const diagramManager = new DiagramManager(scene, xr.baseExperience);
+            const rig = new Rigplatform(scene, xr, diagramManager);
+            const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager);
+            import ('./integration/indexdbPersistenceManager').then((module) => {
+                const persistenceManager = new module.IndexdbPersistenceManager("diagram");
+                diagramManager.setPersistenceManager(persistenceManager);
+                AppConfig.config.setPersistenceManager(persistenceManager);
+                persistenceManager.initialize();
+            });
         });
-
-        xr.baseExperience.onStateChangedObservable.add((state) => {
-            if (state == WebXRState.IN_XR) {
-                this.scene.audioEnabled = true;
-                xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
-                window.addEventListener(('pa-button-state-change'), (event: any) => {
-                    if (event.detail) {
-                        log.debug('App', event.detail);
-                    }
-                });
-
-            }
-        });
-        const diagramManager = new DiagramManager(this.scene, xr.baseExperience);
-        this.rig = new Rigplatform(this.scene, xr, diagramManager);
-        const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager);
-
-        import ('./integration/indexdbPersistenceManager').then((module) => {
-            const persistenceManager = new module.IndexdbPersistenceManager("diagram");
-            diagramManager.setPersistenceManager(persistenceManager);
-            AppConfig.config.setPersistenceManager(persistenceManager);
-            persistenceManager.initialize();
-        });
-
-
-        this.scene.gamepadManager.onGamepadConnectedObservable.add((gamepad) => {
-            try {
-                const dualshock = (gamepad as DualShockPad);
-                dualshock.onButtonDownObservable.add((button: any) => {
-                    const buttonEvent = DualshockEventMapper.mapButtonEvent(button, 1);
-                    if (buttonEvent.objectName) {
-                        window.dispatchEvent(new CustomEvent('pa-button-state-change', {
-                            detail: buttonEvent
-                            }
-                        ));
-                    }
-                });
-                dualshock.onButtonUpObservable.add((button: any) => {
-                    const buttonEvent = DualshockEventMapper.mapButtonEvent(button, 0);
-                    if (buttonEvent.objectName) {
-                        window.dispatchEvent(new CustomEvent('pa-button-state-change', {
-                                detail: buttonEvent
-                            }
-                        ));
-                    }
-                });
-
-                gamepad.onleftstickchanged((values) => {
-                    window.dispatchEvent(
-                        new CustomEvent('pa-analog-value-change', {
-                            detail: {
-                                objectName: "left-controller",
-                                value: values.x,
-                                axisIndex: 0
-                            }
-                        }));
-                    window.dispatchEvent(
-                        new CustomEvent('pa-analog-value-change', {
-                            detail: {
-                                objectName: "left-controller",
-                                value: values.y,
-                                axisIndex: 1
-                            }
-                        }));
-                });
-                gamepad.onrightstickchanged((values) => {
-                    window.dispatchEvent(
-                        new CustomEvent('pa-analog-value-change', {
-                            detail: {
-                                objectName: "right-controller",
-                                value: values.x,
-                                axisIndex: 0
-                            }
-                        }));
-                    window.dispatchEvent(
-                        new CustomEvent('pa-analog-value-change', {
-                            detail: {
-                                objectName: "right-controller",
-                                value: values.y,
-                                axisIndex: 1
-                            }
-                        }));
-                });
-            } catch (err) {
-                log.warn('App', err);
-            }
-        });
-
-
+        const gamepadManager = new GamepadManager(scene);
         window.addEventListener("keydown", (ev) => {
             // Shift+Ctrl+Alt+I
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
@@ -225,38 +121,11 @@ export class App {
                 });
             }
         });
-        this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
-
+        logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
         engine.runRenderLoop(() => {
             scene.render();
         });
-
-        //const data = window.location.search.replace('?', '')
-        //    .split('&')
-        //    .map((x) => x.split('='));
-        //const network = new PeerjsNetworkConnection();
-        //network.connect(data[0][1]);
-        this.logger.info('Render loop started');
-    }
-
-    createGround() {
-        const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", this.scene);
-        const gText = new Texture("./grass1.jpeg", this.scene);
-        gText.uScale = 40;
-        gText.vScale = 40;
-        groundMaterial.baseTexture = gText;
-        groundMaterial.metallic = 0;
-        groundMaterial.roughness = 1;
-
-        const ground: GroundMesh = MeshBuilder.CreateGround("ground", {
-            width: 100,
-            height: 100,
-            subdivisions: 1
-        }, this.scene);
-
-        ground.material = groundMaterial;
-        new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, this.scene);
-        return ground;
+        logger.info('Render loop started');
     }
 }
 const app = new App();

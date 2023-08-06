@@ -51,7 +51,7 @@ export class DiagramConnection {
         return this._mesh;
     }
 
-    private _to: string;
+    private readonly _to: string;
 
     public get to(): string {
         return this?.toAnchor?.id;
@@ -72,7 +72,7 @@ export class DiagramConnection {
         }
     }
 
-    private _from: string;
+    private readonly _from: string;
 
     public get from(): string {
         return this?.fromAnchor?.id;
