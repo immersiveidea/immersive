@@ -1,6 +1,8 @@
 import {Scene, Sound} from "@babylonjs/core";
 
 export class DiaSounds {
+    private readonly scene: Scene;
+
     constructor(scene: Scene) {
         this.scene = scene;
         this._enter = new Sound("enter", "./sounds.mp3", this.scene, null, {
@@ -30,7 +32,6 @@ export class DiaSounds {
         this._enter.autoplay = true;
         DiaSounds._instance = this;
     }
-    private readonly scene: Scene;
 
     private static _instance: DiaSounds;
 
