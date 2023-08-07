@@ -105,7 +105,7 @@ export class App {
             const diagramManager = new DiagramManager(scene, xr.baseExperience);
             const rig = new Rigplatform(scene, xr, diagramManager);
             const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager);
-            const dioManager = new DrawioManager(scene, diagramManager);
+            //const dioManager = new DrawioManager(scene, diagramManager);
             import ('./integration/indexdbPersistenceManager').then((module) => {
                 const persistenceManager = new module.IndexdbPersistenceManager("diagram");
                 diagramManager.setPersistenceManager(persistenceManager);
