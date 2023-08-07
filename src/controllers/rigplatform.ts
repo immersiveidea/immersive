@@ -20,6 +20,7 @@ import {EditMenu} from "../menus/editMenu";
 import {Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
+import {AppConfig} from "../util/appConfig";
 
 
 export class Rigplatform {
@@ -35,6 +36,7 @@ export class Rigplatform {
     private camera: Camera;
     private turning: boolean = false;
     private velocity: Vector3 = Vector3.Zero();
+    private turnVelocity: number = 0;
     private logger = log.getLogger('Rigplatform');
     private readonly diagramManager: DiagramManager;
 
@@ -92,12 +94,13 @@ export class Rigplatform {
         this.velocity.y = (val * this.velocityArray[this.velocityIndex])*-1;
     }
     public turn(val: number) {
-        const snap = true;
-        if (snap) {
+        const snap = AppConfig.config.currentTurnSnap.value;
+
+        if (snap > 0) {
             if (!this.turning) {
                 if (Math.abs(val) > .1) {
                     this.turning = true;
-                    this.yRotation += Angle.FromDegrees(Math.sign(val) * 22.5).radians();
+                    this.yRotation += Angle.FromDegrees(Math.sign(val) * snap).radians();
                 }
             } else {
                 if (Math.abs(val) < .1) {
@@ -106,9 +109,9 @@ export class Rigplatform {
             }
         } else {
             if (Math.abs(val) > .1) {
-                this.body.setAngularVelocity(Vector3.Up().scale(val));
+                this.turnVelocity = val;
             } else {
-                this.body.setAngularVelocity(Vector3.Zero());
+                this.turnVelocity = 0;
             }
         }
     }
@@ -169,13 +172,18 @@ export class Rigplatform {
     }
     private fixRotation() {
         this.scene.registerBeforeRender(() => {
-            const q = this.rigMesh.rotationQuaternion;
-            this.body.setAngularVelocity(Vector3.Zero());
-            if (q) {
-                const e = q.toEulerAngles();
-                e.y += this.yRotation;
-                q.copyFrom(Quaternion.FromEulerAngles(0, e.y, 0));
+            if (AppConfig?.config?.currentTurnSnap?.value > 0) {
+                const q = this.rigMesh.rotationQuaternion;
+                this.body.setAngularVelocity(Vector3.Zero());
+                if (q) {
+                    const e = q.toEulerAngles();
+                    e.y += this.yRotation;
+                    q.copyFrom(Quaternion.FromEulerAngles(0, e.y, 0));
+                }
+            } else {
+                this.body.setAngularVelocity(Vector3.Up().scale(this.turnVelocity));
             }
+
         });
     }
 }

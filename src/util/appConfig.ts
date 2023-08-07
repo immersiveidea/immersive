@@ -13,6 +13,7 @@ export type SnapValue = {
 export class AppConfig {
     private readonly logger = log.getLogger('AppConfig');
     private gridSnap = 1;
+    private _turnSnap = 0;
     private rotateSnap = 0;
     private createSnap = 0;
     _physicsEnabled = false;
@@ -31,6 +32,11 @@ export class AppConfig {
             {value: 0.5, label: ".5 m"},
             {value: 1, label: "1 m"}];
     private rotateSnapArray: SnapValue[] =
+        [{value: 0, label: "Off"},
+            {value: 22.5, label: "22.5 Degrees"},
+            {value: 45, label: "45 Degrees"},
+            {value: 90, label: "90 Degrees"}];
+    private turnSnapArray: SnapValue[] =
         [{value: 0, label: "Off"},
             {value: 22.5, label: "22.5 Degrees"},
             {value: 45, label: "45 Degrees"},
@@ -66,8 +72,17 @@ export class AppConfig {
         return this.createSnapArray[this.createSnap];
     }
 
+    public get currentTurnSnap(): SnapValue {
+        return this.turnSnapArray[this._turnSnap];
+    }
+
     public get currentGridSnapIndex(): number {
         return this.gridSnap;
+    }
+
+    public set currentTurnSnapIndex(val: number) {
+        this._turnSnap = val;
+        this.save();
     }
 
     public set currentGridSnapIndex(val: number) {
@@ -108,6 +123,10 @@ export class AppConfig {
 
     public gridSnaps(): SnapValue[] {
         return this.gridSnapArray;
+    }
+
+    public turnSnaps(): SnapValue[] {
+        return this.turnSnapArray;
     }
 
     public createSnaps(): SnapValue[] {
@@ -153,6 +172,7 @@ export class AppConfig {
                 gridSnap: this.currentGridSnap.value,
                 rotateSnap: this.currentRotateSnap.value,
                 createSnap: this.currentCreateSnap.value,
+                turnSnap: this.currentTurnSnap.value,
                 physicsEnabled: this._physicsEnabled
             });
     }
@@ -167,7 +187,10 @@ export class AppConfig {
                 config.gridSnap != this.currentGridSnap.value ||
                 config.rotateSnap != this.currentRotateSnap.value) {
                 this.logger.debug("Config changed", config);
-
+                this._turnSnap = this.turnSnapArray.findIndex((snap) => snap.value == config.turnSnap);
+                if (!this._turnSnap || this._turnSnap == -1) {
+                    this._turnSnap = 0;
+                }
                 this.rotateSnap = this.rotateSnapArray.findIndex((snap) => snap.value == config.rotateSnap);
                 this.createSnap = this.createSnapArray.findIndex((snap) => snap.value == config.createSnap);
                 const gridSnap = this.gridSnapArray.findIndex((snap) => snap.value == config.gridSnap);

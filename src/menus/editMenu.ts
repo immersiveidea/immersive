@@ -18,6 +18,7 @@ import {DiaSounds} from "../util/diaSounds";
 import {CameraHelper} from "../util/cameraHelper";
 import {TextLabel} from "../diagram/textLabel";
 import {DiagramConnection} from "../diagram/diagramConnection";
+import {GLTF2Export} from "@babylonjs/serializers";
 
 export class EditMenu {
     private state: EditMenuState = EditMenuState.NONE;
@@ -44,14 +45,17 @@ export class EditMenu {
         this.scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERPICK:
-                    if (pointerInfo.pickInfo?.pickedMesh?.metadata?.template &&
-                        pointerInfo.pickInfo?.pickedMesh?.parent?.parent?.id != "toolbox") {
+                    const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
+                    if (pickedMesh.metadata?.template &&
+                        pickedMesh?.parent?.parent?.id != "toolbox") {
                         this.diagramEntityPicked(pointerInfo).then(() => {
                             this.logger.debug("handled");
                         }).catch((e) => {
                             this.logger.error(e);
                         });
                         break;
+                    } else {
+
                     }
             }
         });
@@ -72,6 +76,7 @@ export class EditMenu {
             panel.addControl(this.makeButton("Add Label", "label"));
             panel.addControl(this.makeButton("Copy", "copy"));
             panel.addControl(this.makeButton("Connect", "connect"));
+            panel.addControl(this.makeButton("Export", "export"));
 
             //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
             this.manager.controlScaling = .5;
@@ -211,9 +216,23 @@ export class EditMenu {
             case "connect":
                 this.state = EditMenuState.CONNECTING;
                 break;
+            case "export":
+                GLTF2Export.GLTFAsync(this.scene, 'diagram.gltf', {
+                    shouldExportNode: function (node) {
+                        if (node?.metadata?.template) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+
+                    }
+                }).then((gltf) => {
+                    gltf.downloadFiles();
+                });
             default:
                 this.logger.error("Unknown button");
                 return;
+
         }
         this.manager.dispose();
         this.manager = null;

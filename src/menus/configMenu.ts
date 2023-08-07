@@ -30,22 +30,24 @@ export class ConfigMenu {
         }
         DiaSounds.instance.enter.play();
         const width = .25;
-        const height = .55;
+        const height = .75;
         const res = 256;
         const heightPixels = Math.round((height / width) * res);
         this.configPlane = MeshBuilder
             .CreatePlane("gridSizePlane",
                 {
                     width: .25,
-                    height: .5
+                    height: .75
                 }, this.scene);
         const configTexture = AdvancedDynamicTexture.CreateForMesh(this.configPlane, res, heightPixels);
         configTexture.background = "white";
         const selectionPanel = new SelectionPanel("selectionPanel");
         configTexture.addControl(selectionPanel)
         this.buildGridSizeControl(selectionPanel);
-        this.buildRotationSnapControl(selectionPanel);
         this.buildCreateScaleControl(selectionPanel);
+        this.buildRotationSnapControl(selectionPanel);
+        this.buildTurnSnapControl(selectionPanel);
+
         CameraHelper.setMenuPosition(this.configPlane, this.scene);
     }
 
@@ -85,9 +87,24 @@ export class ConfigMenu {
         return radio;
     }
 
+    private buildTurnSnapControl(selectionPanel: SelectionPanel): RadioGroup {
+        const radio = new RadioGroup("Turn Snap");
+        selectionPanel.addGroup(radio);
+        for (const [index, snap] of AppConfig.config.turnSnaps().entries()) {
+            const selected = AppConfig.config.currentTurnSnapIndex == index;
+            radio.addRadio(snap.label, this.turnVal, selected);
+        }
+        return radio;
+    }
+
     private rotateVal(value) {
         AppConfig.config.currentRotateSnapIndex = value;
         log.debug("configMenu", "rotate Snap", value);
+    }
+
+    private turnVal(value) {
+        AppConfig.config.currentTurnSnapIndex = value;
+        log.debug("configMenu", "turn Snap", value);
     }
 
     private gridVal(value) {

@@ -3,5 +3,6 @@ export type AppConfigType = {
     gridSnap: number,
     rotateSnap: number,
     createSnap: number,
+    turnSnap: number,
     physicsEnabled: boolean
 }

@@ -17,18 +17,22 @@ import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 import {InputTextView} from "./information/inputTextView";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
+import {DrawioManager} from "./integration/drawioManager";
 
 export class App {
     //preTasks = [havokModule];
     constructor() {
         const config = AppConfig.config;
         const logger = log.getLogger('App');
-        log.setLevel('info');
-        log.getLogger('App').setLevel('info');
-        log.getLogger('IndexdbPersistenceManager').setLevel('info');
-        log.getLogger('DiagramManager').setLevel('info');
+        log.disableAll();
+        log.setDefaultLevel('info');
 
-        log.getLogger('DiagramConnection').setLevel('debug');
+        log.getLogger('App').setLevel('info');
+        //log.getLogger('IndexdbPersistenceManager').setLevel('info');
+        //log.getLogger('DiagramManager').setLevel('info');
+
+        //log.getLogger('DiagramConnection').setLevel('debug');
+        log.getLogger('DrawioManager').setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -41,6 +45,7 @@ export class App {
     }
 
     async initialize(canvas) {
+
         const logger = log.getLogger('App');
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
@@ -69,6 +74,7 @@ export class App {
         camera.radius = 0;
         camera.attachControl(canvas, true);
         new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
+
         environment.groundMeshObservable.add(async (ground) => {
             const xr = await WebXRDefaultExperience.CreateAsync(scene, {
                 floorMeshes: [ground],
@@ -99,6 +105,7 @@ export class App {
             const diagramManager = new DiagramManager(scene, xr.baseExperience);
             const rig = new Rigplatform(scene, xr, diagramManager);
             const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager);
+            const dioManager = new DrawioManager(scene, diagramManager);
             import ('./integration/indexdbPersistenceManager').then((module) => {
                 const persistenceManager = new module.IndexdbPersistenceManager("diagram");
                 diagramManager.setPersistenceManager(persistenceManager);
