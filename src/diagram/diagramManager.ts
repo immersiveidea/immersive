@@ -136,7 +136,7 @@ export class DiagramManager {
         if (entity) {
             mesh = this.scene.getMeshById(entity.id);
         }
-        if (!mesh) {
+        if (!mesh && event?.entity?.template) {
             const toolMesh = this.scene.getMeshById("tool-" + event.entity.template + "-" + event.entity.color);
             if (!toolMesh) {
                 log.debug('no mesh found for ' + event.entity.template + "-" + event.entity.color, 'adding it');
@@ -145,13 +145,16 @@ export class DiagramManager {
                     entity: event.entity
                 });
             }
-
             mesh = MeshConverter.fromDiagramEntity(event.entity, this.scene);
-            mesh.actionManager = this.actionManager;
-            DiagramShapePhysics.applyPhysics(mesh, this.scene, PhysicsMotionType.DYNAMIC);
+            if (mesh) {
+                mesh.actionManager = this.actionManager;
+                DiagramShapePhysics.applyPhysics(mesh, this.scene, PhysicsMotionType.DYNAMIC);
+            }
+
         }
         switch (event.type) {
             case DiagramEventType.CLEAR:
+
                 break;
             case DiagramEventType.DROPPED:
                 break;

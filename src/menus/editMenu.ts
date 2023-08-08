@@ -1,9 +1,13 @@
 import {
     AbstractMesh,
+    Color3,
     GizmoManager,
+    InstancedMesh,
+    Mesh,
     PointerEventTypes,
     PointerInfo,
     Scene,
+    StandardMaterial,
     Vector3,
     WebXRExperienceHelper
 } from "@babylonjs/core";
@@ -24,6 +28,7 @@ export class EditMenu {
     private state: EditMenuState = EditMenuState.NONE;
     private manager: GUI3DManager;
     private readonly scene: Scene;
+    private paintColor: string = null;
     private readonly logger: log.Logger = log.getLogger('EditMenu');
     private gizmoManager: GizmoManager;
     private readonly xr: WebXRExperienceHelper;
@@ -55,6 +60,13 @@ export class EditMenu {
                         });
                         break;
                     } else {
+                        const tool = pickedMesh?.metadata?.tool;
+                        if (tool) {
+                            this.logger.debug("tool type", tool);
+                            this.paintColor = (pickedMesh.material as StandardMaterial).diffuseColor.toHexString();
+                            this.logger.debug((pickedMesh.material as StandardMaterial).diffuseColor.toHexString());
+                            this.logger.debug(pickedMesh.id);
+                        }
 
                     }
             }
@@ -77,11 +89,17 @@ export class EditMenu {
             panel.addControl(this.makeButton("Copy", "copy"));
             panel.addControl(this.makeButton("Connect", "connect"));
             panel.addControl(this.makeButton("Export", "export"));
+            panel.addControl(this.makeButton("Recolor", "recolor"));
 
             //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
             this.manager.controlScaling = .5;
             CameraHelper.setMenuPosition(panel.node, this.scene);
         }
+    }
+
+    private getTool(template: string, color: Color3): Mesh {
+        const baseMeshId = 'tool-' + template + '-' + color.toHexString();
+        return (this.scene.getMeshById(baseMeshId) as Mesh);
     }
 
     private persist(mesh: AbstractMesh, text: string) {
@@ -116,24 +134,43 @@ export class EditMenu {
         }
         switch (this.state) {
             case EditMenuState.REMOVING:
-                this.remove(mesh);
+                this.removeMesh(mesh);
                 break;
             case EditMenuState.MODIFYING:
-                this.setModify(mesh);
+                this.modifyMesh(mesh);
                 break;
             case EditMenuState.LABELING:
-                this.setLabeling(mesh);
+                this.labelMesh(mesh);
                 break;
             case EditMenuState.COPYING:
-                this.setCopying(mesh);
+                this.copyMesh(mesh);
                 break;
             case EditMenuState.CONNECTING:
-                this.setConnecting(mesh, pointerInfo);
+                this.createMeshConnection(mesh, pointerInfo);
                 break;
+            case EditMenuState.RECOLORING:
+                if (this.paintColor) {
+                    const template = mesh.metadata.template;
+                    const newBase = this.getTool(template,
+                        Color3.FromHexString(this.paintColor));
+                    const newMesh = (mesh as InstancedMesh).clone(mesh.name, mesh.parent, false, newBase);
+                    newMesh.id = mesh.id;
+                    newMesh.physicsBody = mesh.physicsBody;
+                    newMesh.metadata = mesh.metadata;
+                    mesh.physicsBody = null;
+                    mesh.dispose();
+                    this.diagramManager.onDiagramEventObservable.notifyObservers({
+                        type: DiagramEventType.MODIFY,
+                        entity: MeshConverter.toDiagramEntity(newMesh)
+                    });
+
+                } else {
+                    this.logger.error("no paint color selectced");
+                }
         }
     }
 
-    private setConnecting(mesh: AbstractMesh, pointerInfo) {
+    private createMeshConnection(mesh: AbstractMesh, pointerInfo) {
         if (this.connection) {
             this.connection.to = mesh.id;
             this.diagramManager.onDiagramEventObservable.notifyObservers({
@@ -146,7 +183,7 @@ export class EditMenu {
         }
     }
 
-    private remove(mesh: AbstractMesh) {
+    private removeMesh(mesh: AbstractMesh) {
         this.logger.debug("removing " + mesh?.id);
         const event: DiagramEvent = {
             type: DiagramEventType.REMOVE,
@@ -156,7 +193,7 @@ export class EditMenu {
         this.diagramManager.onDiagramEventObservable.notifyObservers(event);
     }
 
-    private setModify(mesh: AbstractMesh) {
+    private modifyMesh(mesh: AbstractMesh) {
         if (mesh.metadata?.template &&
             mesh.parent?.parent?.id != "toolbox") {
             if (this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh?.id == mesh.id) {
@@ -165,8 +202,8 @@ export class EditMenu {
                 this.gizmoManager.attachToMesh(mesh);
                 this.gizmoManager.gizmos.boundingBoxGizmo.onScaleBoxDragObservable.add(() => {
                     this.diagramManager.onDiagramEventObservable.notifyObservers({
-                            type: DiagramEventType.MODIFY,
-                            entity: MeshConverter.toDiagramEntity(mesh),
+                        type: DiagramEventType.MODIFY,
+                        entity: MeshConverter.toDiagramEntity(mesh),
                         }
                     )
                     this.logger.debug(mesh.scaling);
@@ -175,16 +212,16 @@ export class EditMenu {
         }
     }
 
-    private setCopying(mesh: AbstractMesh) {
+    private copyMesh(mesh: AbstractMesh) {
         if (mesh) {
             const newMesh = this.diagramManager.createCopy(mesh, true);
-            newMesh.setParent(null);
+            newMesh.setParent(mesh.parent);
         }
         this.logger.warn('copying not implemented', mesh);
         //@todo implement
     }
 
-    private setLabeling(mesh: AbstractMesh) {
+    private labelMesh(mesh: AbstractMesh) {
         this.logger.debug("labeling " + mesh.id);
         let text = "";
         if (mesh?.metadata?.text) {
@@ -215,6 +252,9 @@ export class EditMenu {
                 break;
             case "connect":
                 this.state = EditMenuState.CONNECTING;
+                break;
+            case "recolor":
+                this.state = EditMenuState.RECOLORING;
                 break;
             case "export":
                 GLTF2Export.GLTFAsync(this.scene, 'diagram.gltf', {

@@ -24,7 +24,7 @@ export class App {
     constructor() {
         const config = AppConfig.config;
         const logger = log.getLogger('App');
-        log.disableAll();
+
         log.setDefaultLevel('info');
 
         log.getLogger('App').setLevel('info');
@@ -33,6 +33,7 @@ export class App {
 
         //log.getLogger('DiagramConnection').setLevel('debug');
         log.getLogger('DrawioManager').setLevel('debug');
+        log.getLogger('EditMenu').setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";

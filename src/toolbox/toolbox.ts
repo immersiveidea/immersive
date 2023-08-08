@@ -84,7 +84,7 @@ export class Toolbox {
 
     public buildTool(tool: ToolType, parent: AbstractMesh) {
         let newItem: Mesh;
-        const id = tool + "-" + (parent.material as StandardMaterial).diffuseColor.toHexString();
+        const id = this.toolId(tool, (parent.material as StandardMaterial).diffuseColor);
         const material = parent.material;
         const toolname = "tool-" + id;
         switch (tool) {
@@ -108,7 +108,7 @@ export class Toolbox {
         }
         if (newItem)  {
             newItem.material = material;
-            newItem.id = "tool-" + id;
+            newItem.id = toolname
             if (tool === ToolType.PLANE) {
                 newItem.material.backFaceCulling = false;
             }
@@ -120,6 +120,7 @@ export class Toolbox {
             if (!newItem.material) {
                 newItem.material = parent.material;
             }
+
             if (newItem.metadata) {
                 newItem.metadata.template = tool;
             } else {
@@ -140,6 +141,10 @@ export class Toolbox {
         } else {
             return null;
         }
+    }
+
+    private toolId(tool: ToolType, color: Color3) {
+        return tool + "-" + color.toHexString();
     }
     private calculatePosition(i: number) {
         return (i/this.gridsize)-.5-(1/this.gridsize/2);
@@ -186,6 +191,7 @@ export class Toolbox {
         mesh.material = material;
         mesh.position.z = this.index++/4;
         mesh.parent = this.node;
+        mesh.metadata = {tool: 'color'};
         let i = 0;
         for (const tool of enumKeys(ToolType)) {
             const newItem = this.buildTool(ToolType[tool], mesh);
