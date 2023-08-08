@@ -211,6 +211,9 @@ class DiagramShapePhysics {
     private static logger: log.Logger = log.getLogger('DiagramShapePhysics');
 
     public static applyPhysics(mesh: AbstractMesh, scene: Scene, motionType?: PhysicsMotionType) {
+        if (!AppConfig.config.physicsEnabled) {
+            return;
+        }
         if (!mesh?.metadata?.template) {
             this.logger.error("applyPhysics: mesh.metadata.template is null", mesh);
             return;
@@ -222,9 +225,7 @@ class DiagramShapePhysics {
             this.logger.error("applyPhysics: mesh or scene is null");
             return;
         }
-        if (!AppConfig.config.physicsEnabled) {
-            return;
-        }
+
         if (mesh.physicsBody) {
             mesh.physicsBody.dispose();
         }
@@ -247,6 +248,9 @@ class DiagramShapePhysics {
         const aggregate = new PhysicsAggregate(mesh,
             shapeType, {mass: mass, restitution: .02, friction: .9}, scene);
         const body = aggregate.body;
+        body.setLinearDamping(.95);
+        body.setAngularDamping(.99);
+
         if (motionType) {
             body
                 .setMotionType(motionType);

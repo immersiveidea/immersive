@@ -1,16 +1,5 @@
 import log from "loglevel";
-import {
-    AbstractMesh,
-    Axis,
-    Color3,
-    DynamicTexture,
-    MeshBuilder,
-    Scene,
-    Space,
-    StandardMaterial,
-    TransformNode,
-    Vector3
-} from "@babylonjs/core";
+import {Color3, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEventType} from "../diagram/diagramEntity";
 
@@ -30,49 +19,7 @@ export class DrawioManager {
         this.getGraph();
     }
 
-    public static updateTextNode(mesh: AbstractMesh, text: string): AbstractMesh {
-        //Set font
-        const height = 0.1;
-        const font_size = 24;
-        const font = "bold " + font_size + "px Arial";
-        //Set height for dynamic texture
-        const DTHeight = 1.5 * font_size; //or set as wished
-        //Calc Ratio
-        const ratio = height / DTHeight;
 
-        //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
-        const temp = new DynamicTexture("DynamicTexture", 32, mesh.getScene());
-        const tmpctx = temp.getContext();
-        tmpctx.font = font;
-        const DTWidth = tmpctx.measureText(text).width + 8;
-
-        //Calculate width the plane has to be
-        const planeWidth = DTWidth * ratio;
-
-        //Create dynamic texture and write the text
-        const dynamicTexture = new DynamicTexture("DynamicTexture", {
-            width: DTWidth,
-            height: DTHeight
-        }, mesh.getScene(), false);
-        const mat = new StandardMaterial("mat", mesh.getScene());
-        mat.diffuseTexture = dynamicTexture;
-        dynamicTexture.drawText(text, null, null, font, "#000000", "#ffffff", true);
-
-        //Create plane and set dynamic texture as material
-        const plane = MeshBuilder.CreatePlane("text", {width: planeWidth, height: height}, mesh.getScene());
-        plane.material = mat;
-        //plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
-        plane.parent = mesh;
-        plane.position.z = .51;
-        plane.scaling.y = 1 / mesh.scaling.y;
-        plane.scaling.x = 1 / mesh.scaling.x;
-        plane.scaling.z = 1 / mesh.scaling.z;
-        plane.rotate(Axis.Z, Math.PI, Space.LOCAL);
-        plane.rotate(Axis.Y, Math.PI, Space.LOCAL);
-        //plane.rotate(Axis.X, Math.PI, Space.LOCAL);
-
-        return plane;
-    }
 
     private async getGraph() {
         this.logger.debug("starting to get graph");
@@ -141,23 +88,7 @@ export class DrawioManager {
         const anchor = new TransformNode('anchor', this.scene);
 
         if (entities.length > 0) {
-            //const basebox = MeshBuilder.CreateBox("box", {
-            //    height: 1,
-            //    width: 1, depth: 1
-            //}, this.scene);
-
-            //const material: StandardMaterial = new StandardMaterial("mat", this.scene);
-            //material.diffuseColor = new Color3(0.5, 0.5, 0.5);
-            //material.alpha = .4;
-            //basebox.material = material;
             entities.forEach((entity) => {
-                /*  const box = new InstancedMesh("box", basebox);
-                  box.scaling.z = .1;
-                  box.scaling.y = entity.geometry.height * scale;
-                  box.scaling.x = entity.geometry.width * scale;
-                  box.position.x = (entity.geometry.x - this.minX) * scale + (entity.geometry.width * scale / 2);
-                  box.position.y = (entity.geometry.y - this.minY) * scale + (entity.geometry.height * scale / 2);
-                  box.position.z = 2 + this.zdepth.get(entity.id); */
                 this.diagramManager.onDiagramEventObservable.notifyObservers(
                     {
                         type: DiagramEventType.ADD,

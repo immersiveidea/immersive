@@ -16,7 +16,7 @@ export class AppConfig {
     private _turnSnap = 0;
     private rotateSnap = 0;
     private createSnap = 0;
-    _physicsEnabled = false;
+    _physicsEnabled = true;
     private readonly defaultGridSnapIndex = 1;
     private persistenceManager: IPersistenceManager = null;
     private gridSnapArray: SnapValue[] =
