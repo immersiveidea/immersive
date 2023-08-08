@@ -269,6 +269,7 @@ export class EditMenu {
                 }).then((gltf) => {
                     gltf.downloadFiles();
                 });
+                break;
             default:
                 this.logger.error("Unknown button");
                 return;

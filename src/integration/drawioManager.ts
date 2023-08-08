@@ -17,7 +17,7 @@ import {DiagramEventType} from "../diagram/diagramEntity";
 export class DrawioManager {
     private diagramManager: DiagramManager;
     private readonly zdepth: Map<string, number> = new Map<string, number>();
-    private scene: Scene;
+    private readonly scene: Scene;
     private readonly logger = log.getLogger('DrawioManager');
     private minY = 0;
     private minX = 0;
