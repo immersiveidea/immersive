@@ -3,7 +3,7 @@ interface Env {
 }
 
 const handler: ExportedHandler<Env> = {
-    async fetch(request, env: Env, context) {
+    async fetch(request, env) {
         async function gatherResponse(response) {
             const {headers} = response;
             const contentType = headers.get("content-type") || "";
@@ -20,7 +20,7 @@ const handler: ExportedHandler<Env> = {
         };
         const response = await fetch('https://api.assemblyai.com/v2/realtime/token', init);
         const results = await gatherResponse(response);
-        return new Response(results, init);
+        return new Response(results);
     }
 }
 export default handler;
