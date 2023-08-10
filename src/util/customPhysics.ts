@@ -21,21 +21,29 @@ export class CustomPhysics {
                     const linearVelocity = new Vector3();
                     body.getLinearVelocityToRef(linearVelocity);
                     if (linearVelocity.length() < .1) {
-                        body.disablePreStep = false;
-                        const bodyId = body._pluginData.hpBodyId[0];
-                        // const position = body._pluginData._hknp.HP_Body_GetPosition(bodyId);
-                        const pos: Vector3 = body.getObjectCenterWorld();
-                        const val: Vector3 = AppConfig.config.snapGridVal(pos);
-                        //body.setTargetTransform(val, body.transformNode.rotationQuaternion);
-                        body.transformNode.position.set(val.x, val.y, val.z);
-                        const rot: Quaternion =
-                            Quaternion.FromEulerVector(AppConfig.config.snapRotateVal(body.transformNode.rotationQuaternion.toEulerAngles()))
+                        if (true) {
+                            body.disablePreStep = false;
+                            const pos: Vector3 = body.getObjectCenterWorld();
+                            const val: Vector3 = AppConfig.config.snapGridVal(pos);
+                            body.transformNode.position.set(val.x, val.y, val.z);
+                            const rot: Quaternion =
+                                Quaternion.FromEulerVector(AppConfig.config.snapRotateVal(body.transformNode.rotationQuaternion.toEulerAngles()))
 
-                        body.transformNode.rotationQuaternion.set(
-                            rot.x, rot.y, rot.z, rot.w
-                        );
+                            body.transformNode.rotationQuaternion.set(
+                                rot.x, rot.y, rot.z, rot.w
+                            );
 
-                        body.disablePreStep = true;
+                            //mesh.metadata.snapped=true;
+                            //(this.scene.getPhysicsEngine().getPhysicsPlugin() as IPhysicsEnginePluginV2).syncTransform(body, body.transformNode);
+                            this.scene.onAfterRenderObservable.addOnce(() => {
+                                body.disablePreStep = true;
+                            });
+
+                        } else {
+
+                        }
+                    } else {
+                        //mesh.metadata.snapped = false;
                     }
                     //mesh.position = mesh.physicsImpostor.physicsBody.position;
                     //mesh.rotationQuaternion = mesh.physicsImpostor.physicsBody.quaternion;

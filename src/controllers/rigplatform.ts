@@ -64,10 +64,12 @@ export class Rigplatform {
                 PhysicsShapeType.CYLINDER,
                 {friction: 1, center: Vector3.Zero(), radius: .5, mass: 10, restitution: .01},
                 scene);
+
         rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
         rigAggregate.body.setGravityFactor(.001);
         this.fixRotation();
         this.body = rigAggregate.body;
+
         this.initializeControllers();
         scene.onActiveCameraChanged.add((s) => {
             this.camera = s.activeCamera;

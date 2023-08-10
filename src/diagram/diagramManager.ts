@@ -159,8 +159,11 @@ export class DiagramManager {
             case DiagramEventType.DROPPED:
                 break;
             case DiagramEventType.DROP:
-                this.getPersistenceManager()?.modify(mesh);
-                TextLabel.updateTextNode(mesh, entity.text);
+                if (mesh.metadata.template.indexOf('#') > -1) {
+                    this.getPersistenceManager()?.modify(mesh);
+                    TextLabel.updateTextNode(mesh, entity.text);
+                }
+
                 break;
             case DiagramEventType.ADD:
                 this.getPersistenceManager()?.add(mesh);
@@ -248,8 +251,8 @@ class DiagramShapePhysics {
         const aggregate = new PhysicsAggregate(mesh,
             shapeType, {mass: mass, restitution: .02, friction: .9}, scene);
         const body = aggregate.body;
-        body.setLinearDamping(.95);
-        body.setAngularDamping(.99);
+        body.setLinearDamping(1.95);
+        body.setAngularDamping(1.99);
 
         if (motionType) {
             body

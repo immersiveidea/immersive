@@ -223,7 +223,9 @@ export class Base {
         this.previousRotation = null;
         this.previousPosition = null;
         this.grabbedMesh = null;
-
+        if (mesh?.metadata?.template.indexOf('#') == -1) {
+            return;
+        }
         const entity = MeshConverter.toDiagramEntity(mesh);
         const event: DiagramEvent = {
             type: DiagramEventType.DROP,

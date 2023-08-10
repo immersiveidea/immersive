@@ -19,6 +19,7 @@ import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {DrawioManager} from "./integration/drawioManager";
 
+
 export class App {
     //preTasks = [havokModule];
     constructor() {
@@ -30,9 +31,10 @@ export class App {
         log.getLogger('App').setLevel('info');
         //log.getLogger('IndexdbPersistenceManager').setLevel('info');
         //log.getLogger('DiagramManager').setLevel('info');
-
         //log.getLogger('DiagramConnection').setLevel('debug');
         log.getLogger('DrawioManager').setLevel('debug');
+
+        log.getLogger('EntityTree').setLevel('debug');
         log.getLogger('EditMenu').setLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
@@ -106,7 +108,7 @@ export class App {
             const diagramManager = new DiagramManager(scene, xr.baseExperience);
             const rig = new Rigplatform(scene, xr, diagramManager);
             const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager);
-            //const dioManager = new DrawioManager(scene, diagramManager);
+            const dioManager = new DrawioManager(scene, diagramManager);
             import ('./integration/indexdbPersistenceManager').then((module) => {
                 const persistenceManager = new module.IndexdbPersistenceManager("diagram");
                 diagramManager.setPersistenceManager(persistenceManager);
@@ -114,6 +116,8 @@ export class App {
                 persistenceManager.initialize();
             });
         });
+
+
         const gamepadManager = new GamepadManager(scene);
         window.addEventListener("keydown", (ev) => {
             // Shift+Ctrl+Alt+I
@@ -129,6 +133,7 @@ export class App {
                 });
             }
         });
+
         logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
         engine.runRenderLoop(() => {
             scene.render();

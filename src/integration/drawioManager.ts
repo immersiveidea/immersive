@@ -1,147 +1,291 @@
 import log from "loglevel";
-import {Color3, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {Color3, Scene, Vector3} from "@babylonjs/core";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEventType} from "../diagram/diagramEntity";
 
+type DrawIOEntity = {
+    text?: string,
+    id?: string,
+    parent?: string,
+    parentEntity?: DrawIOEntity,
+    geometry?: DrawIOGeometry,
+
+}
+type DrawIOGeometry = {
+    zIndex?: number,
+    x: number,
+    y: number,
+    width: number,
+    height: number
+
+}
+
+class EntityTree {
+    private readonly logger = log.getLogger('EntityTree');
+    private root: DrawIOEntity;
+    private readonly nodes: Map<string, DrawIOEntity> = new Map<string, DrawIOEntity>();
+    private readonly unparented: Array<DrawIOEntity> = new Array<DrawIOEntity>();
+
+    constructor() {
+        this.root = {};
+    }
+
+    public getNodes(): Array<DrawIOEntity> {
+        this.reparent();
+        const output: Array<DrawIOEntity> = new Array<DrawIOEntity>();
+        this.nodes.forEach((node) => {
+            if (node.parentEntity) {
+                const geometry = this.computeOffset(node);
+                node.geometry = geometry;
+            }
+            output.push(node);
+        });
+        return output;
+    }
+
+    public reparent() {
+        this.unparented.forEach((node) => {
+            if (this.nodes.has(node.parent)) {
+                this.logger.debug('reparenting node: ' + node.id + ' to parent: ' + node.parent);
+                node.parentEntity = this.nodes.get(node.parent);
+            } else {
+                this.logger.warn('parent node does not exist for id: ' + node.id +
+                    ' parent id: ' + node.parent);
+            }
+        });
+    }
+
+    public addNode(node: DrawIOEntity) {
+        if (this.nodes.has(node.id)) {
+            this.logger.warn('node already exists for id: ' + node.id);
+        } else {
+            if (node.parent) {
+                if (this.nodes.has(node.parent)) {
+                    node.parentEntity = this.nodes.get(node.parent);
+                    this.nodes.set(node.id, node);
+                } else {
+                    this.logger.warn('parent node does not exist for id: ' + node.id +
+                        ' parent id: ' + node.parent);
+                    this.unparented.push(node);
+                }
+            } else {
+                this.logger.warn('no parent for node id: ' + node.id + 'setting as root');
+                this.nodes.set(node.id, node);
+                this.root = node;
+            }
+        }
+    }
+
+    private computeOffset(node: DrawIOEntity): DrawIOGeometry {
+        if (node.parentEntity) {
+            const parentgeo = this.computeOffset(node.parentEntity);
+            if (parentgeo) {
+                const parentzIndex = 1 + parentgeo.zIndex ? parentgeo.zIndex : 0;
+                const geo = {
+                    x: node.geometry.x,
+                    y: node.geometry.y,
+                    width: node.geometry.width,
+                    height: node.geometry.height,
+                    zIndex: node.geometry.zIndex ? node.geometry.zIndex + parentzIndex : parentzIndex + 1
+                };
+                return geo;
+            } else {
+                const geo = {
+                    x: node.geometry.x,
+                    y: node.geometry.y,
+                    width: node.geometry.width,
+                    height: node.geometry.height,
+                    zIndex: node.geometry.zIndex ? node.geometry.zIndex : 0
+                };
+                return geo;
+            }
+
+        } else {
+            if (node.geometry) {
+                if (node.geometry.zIndex === undefined) {
+                    node.geometry.zIndex = 0;
+                }
+                return node.geometry;
+            } else {
+                return {
+                    x: 0,
+                    y: 0,
+                    width: 0,
+                    height: 0,
+                    zIndex: 0
+                }
+            }
+
+        }
+    }
+}
+
+type DrawIOConnector = {
+    id: string,
+    source: string,
+    target: string,
+    text: string
+}
+
 export class DrawioManager {
     private diagramManager: DiagramManager;
-    private readonly zdepth: Map<string, number> = new Map<string, number>();
+    private connectors: Array<DrawIOConnector> = [];
     private readonly scene: Scene;
     private readonly logger = log.getLogger('DrawioManager');
     private minY = 0;
     private minX = 0;
     private maxX = 0;
     private maxY = 0;
+    private maxZ = 0;
 
     constructor(scene: Scene, diagramManager: DiagramManager) {
         this.scene = scene;
         this.diagramManager = diagramManager;
-        this.getGraph();
+        this.buildGraph();
     }
 
 
-
-    private async getGraph() {
+    private async fetchData(url: string): Promise<Document> {
         this.logger.debug("starting to get graph");
-        const entities: Array<{ text: string, id: string, geometry: { x: number, y: number, width: number, height: number } }>
-            = new Array<{ text: string; id: string, geometry: { x: number; y: number; width: number; height: number } }>();
-
-        const graph = await fetch('/arch_demo.xml');
+        const graph = await fetch(url);
         this.logger.debug('got graph');
         const graphXml = await graph.text();
         const doc = new DOMParser().parseFromString(graphXml, 'text/html');
-        //this.logger.debug(doc);
-        const firstDiagram = doc.querySelectorAll('diagram')[0];
-        const mxDiagram = firstDiagram.querySelector('mxGraphModel');
-        const width = mxDiagram.getAttribute('pageWidth');
-        const height = mxDiagram.getAttribute('pageHeight');
-        this.logger.debug('begin parse');
-        mxDiagram.querySelectorAll('mxCell').forEach((cell) => {
+        return doc;
+    }
 
+    private getDiagram(doc: Document, index: number): Element {
+        const firstDiagram = doc.querySelectorAll('diagram')[index];
+        const mxDiagram = firstDiagram.querySelector('mxGraphModel');
+        return mxDiagram;
+    }
+
+    private parseDiagram(mxDiagram: Element): EntityTree {
+        const entityTree = new EntityTree();
+
+        mxDiagram.querySelectorAll('mxCell').forEach((cell) => {
             const value = cell.getAttribute('value');
-            if (!value) {
-                //this.logger.warn('no value for :' , cell);
-            } else {
-                const ent = new DOMParser().parseFromString(value, 'text/html');
+            let ent = null;
+            if (value) {
+                ent = new DOMParser().parseFromString(value, 'text/html');
                 const errorNode = ent.querySelector("parsererror");
-                this.logger.debug(value);
                 if (errorNode) {
-                    //this.logger.debug(value);
+                    this.logger.error(value);
+                }
+
+            }
+
+            const text = ent ? this.getText(ent, '') : '';
+            const id = cell.getAttribute('id');
+            const parent = cell.getAttribute('parent');
+            const source = cell.getAttribute('source');
+            const target = cell.getAttribute('target');
+            const edge = cell.getAttribute('target');
+            if (source && target && edge) {
+                this.connectors.push({id: id, source: source, target: target, text: text});
+            } else {
+
+                const geo = cell.querySelector('[id="' + id + '"] > mxGeometry');
+                let geometry = null;
+                if (geo) {
+                    geometry = {
+                        x: Number.parseFloat(geo.getAttribute('x')),
+                        y: Number.parseFloat(geo.getAttribute('y')),
+                        width: Number.parseFloat(geo.getAttribute('width')),
+                        height: Number.parseFloat(geo.getAttribute('height')),
+                    }
                 } else {
-                    const text = this.getText(ent, '');
-                    const id = cell.getAttribute('id');
-                    const parent = cell.getAttribute('parent');
-                    if (this.zdepth.has(parent)) {
-                        this.zdepth.set(id, this.zdepth.get(parent) + .2);
+                    geometry = {
+                        x: 0,
+                        y: 0,
+                        width: 0,
+                        height: 0
+                    }
+                }
+
+
+                //entities.push({text: text, id: id, parent: parent, geometry: this.fixMinMax(geometry)});
+                if (text) {
+                    this.logger.debug('Text' + text);
+                    this.logger.debug('Geometry' + JSON.stringify(geometry));
+                }
+                if (geometry) {
+                    if (Number.isNaN(geometry.x) || Number.isNaN(geometry.y)
+                        || Number.isNaN(geometry.width) ||
+                        Number.isNaN(geometry.height)) {
+                        this.logger.warn('invalid geometry for node: ' + id, geometry);
                     } else {
-                        this.zdepth.set(cell.getAttribute('id'), 0);
-                    }
-                    const geo = cell.querySelector('mxGeometry');
-                    const geometry = {
-                        x: geo.getAttribute('x'),
-                        y: geo.getAttribute('y'),
-                        width: geo.getAttribute('width'),
-                        height: geo.getAttribute('height'),
-                    }
-                    entities.push({text: text, id: id, geometry: this.fixMinMax(geometry)});
-                    if (text) {
-                        this.logger.debug('Text' + text);
-                        this.logger.debug('Geometry' + JSON.stringify(geometry));
+                        entityTree.addNode({text: text, id: id, parent: parent, geometry: geometry});
+
                     }
                 }
             }
         });
+        return entityTree
+    }
+
+    private async buildGraph() {
+
+        const doc = await this.fetchData('/arch_demo.xml');
+        const mxDiagram = this.getDiagram(doc, 0);
+        this.logger.debug('begin parse');
+        const entities: EntityTree = this.parseDiagram(mxDiagram);
+
+        entities.getNodes().forEach((node) => {
+            if (node.geometry.x < this.minX) {
+                this.minX = node.geometry.x;
+                this.logger.debug('minX: ' + this.minX);
+            }
+            if (node.geometry.y < this.minY) {
+                this.minY = node.geometry.y;
+                this.logger.debug('minY: ' + this.minY);
+            }
+            if (node.geometry.x + node.geometry.width > this.maxX) {
+                this.maxX = node.geometry.x + node.geometry.width;
+                this.logger.debug('maxX: ' + this.maxX);
+            }
+            if (node.geometry.y + node.geometry.height > this.maxY) {
+                this.maxY = node.geometry.y + node.geometry.height;
+                this.logger.debug('maxY: ' + this.maxY);
+            }
+            if (node.geometry.zIndex > this.maxZ) {
+                this.maxZ = node.geometry.zIndex;
+                this.logger.debug('maxZ: ' + this.maxZ);
+            }
+
+        });
+        this.logger.info('minX: ' + this.minX + ' minY: ' + this.minY + ' maxX: ' + this.maxX + ' maxY: ' + this.maxY);
+
+
         this.logger.debug('done parsing');
-
-        this.logger.debug('MinX' + this.minX);
-        this.logger.debug('MinY' + this.minY);
-        this.logger.debug('MaxX' + this.maxX);
-        this.logger.debug('MaxY' + this.maxY);
-        const diagramWidth = this.maxX - this.minX;
-        const diagramHeight = this.maxY - this.minY;
-        let scale = 1;
-        if (diagramHeight > diagramWidth) {
-            scale = 20 / diagramHeight;
-        } else {
-            scale = 20 / diagramWidth;
-        }
-        const anchor = new TransformNode('anchor', this.scene);
-
-        if (entities.length > 0) {
-            entities.forEach((entity) => {
-                this.diagramManager.onDiagramEventObservable.notifyObservers(
-                    {
-                        type: DiagramEventType.ADD,
-                        entity: {
-                            text: entity.text,
-                            id: entity.id,
-                            position: new Vector3((entity.geometry.x - this.minX) * scale + (entity.geometry.width * scale / 2),
-                                (entity.geometry.y - this.minY) * scale + (entity.geometry.height * scale / 2),
-                                2 + this.zdepth.get(entity.id)),
-                            scale: new Vector3(entity.geometry.width * scale, entity.geometry.height * scale, .1),
-                            color: Color3.Blue().toHexString(),
-                            template: '#box-template'
-                        }
-                    }
-                );
-
-                //box.metadata = {text: entity.text};
-                //box.setParent(anchor);
-                //DrawioManager.updateTextNode(box, entity.text);
-            });
-            anchor.position.y = 20;
-            anchor.rotation.x = Math.PI;
-
-        }
-
-        this.logger.debug('Scale' + scale);
-
+        this.logger.debug(this.connectors);
+        this.createSceneData(entities.getNodes());
 
     }
 
-    private fixMinMax(geometry: { x: string; y: string; width: string; height: string; }):
-        { x: number, y: number, width: number, height: number } {
-        let x = 0;
-        if (geometry.x) {
-            x = parseFloat(geometry.x);
-            if (x < this.minX) {
-                this.minX = x;
-            }
-            if (x > this.maxX) {
-                this.maxX = x;
-            }
-        }
-        let y = 0;
-        if (geometry.y) {
-            y = parseFloat(geometry.y);
-            if (y < this.minY) {
-                this.minY = y;
-            }
-            if (y > this.maxY) {
-                this.maxY = y;
-            }
-        }
-        return ({x: x, y: y, width: parseFloat(geometry.width), height: parseFloat(geometry.height)});
+    private createSceneData(nodes) {
+        const yOffset = 20;
+        const scale = .001;
+        nodes.forEach((entity) => {
+            this.diagramManager.onDiagramEventObservable.notifyObservers(
+                {
+                    type: DiagramEventType.ADD,
+                    entity: {
+                        text: entity.text,
+                        id: entity.id,
+                        position: new Vector3(
+                            (entity.geometry.x * scale) - (entity.geometry.width * scale / 2),
+                            yOffset - (entity.geometry.y * scale) + (entity.geometry.height * scale / 2),
+                            entity.geometry.zIndex * .1),
+                        scale: new Vector3(entity.geometry.width * scale, entity.geometry.height * scale, .05),
+                        color: Color3.Blue().toHexString(),
+                        template: '#box-template'
+                    }
+                }
+            );
+        });
+
+
     }
 
     private getText(obj: Node, text: string): string {

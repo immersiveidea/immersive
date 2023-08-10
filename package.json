@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "serve": "node server.js",
+    "serverBuild": "cd server && tsc",
     "havok": "cp ./node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm ./node_modules/.vite/deps"
   },
   "dependencies": {
@@ -16,6 +17,8 @@
     "@babylonjs/havok": "1.1.1",
     "@babylonjs/inspector": "^6.15.0",
     "@babylonjs/serializers": "^6.15.0",
+    "@babylonjs/loaders": "^6.15.0",
+    "@cloudflare/workers-types": "^4.20230807.0",
     "ring-client-api": "11.7.7",
     "dexie": "^3.2.4",
     "dexie-observable": "^4.0.1-beta.13",
@@ -23,6 +26,7 @@
     "loglevel": "^1.8.1",
     "mxgraph": "^4.2.2",
     "@typed-mxgraph/typed-mxgraph": "^1.0.8",
+    "recordrtc": "^5.6.2",
     "round": "^2.0.1",
     "earcut": "^2.2.4",
     "uuid": "^9.0.0",
