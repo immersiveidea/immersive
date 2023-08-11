@@ -18,6 +18,8 @@ import {InputTextView} from "./information/inputTextView";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {DrawioManager} from "./integration/drawioManager";
+import {VoiceManager} from "./integration/voiceManager";
+import {TranscriptType} from "./integration/voiceTranscript";
 
 
 export class App {
@@ -32,10 +34,10 @@ export class App {
         //log.getLogger('IndexdbPersistenceManager').setLevel('info');
         //log.getLogger('DiagramManager').setLevel('info');
         //log.getLogger('DiagramConnection').setLevel('debug');
-        log.getLogger('DrawioManager').setLevel('debug');
-
-        log.getLogger('EntityTree').setLevel('debug');
-        log.getLogger('EditMenu').setLevel('debug');
+        log.getLogger('DrawioManager').setLevel('warn');
+        log.getLogger('VoiceManager').setLevel('debug');
+        log.getLogger('EntityTree').setLevel('warn');
+        log.getLogger('EditMenu').setLevel('warn');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -53,6 +55,7 @@ export class App {
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
         const environment = new CustomEnvironment(scene);
+
         const query = Object.fromEntries(new URLSearchParams(window.location.search));
         logger.debug('Query', query);
         if (query.shareCode) {
@@ -119,8 +122,37 @@ export class App {
 
 
         const gamepadManager = new GamepadManager(scene);
+        const voiceManager = new VoiceManager();
+        voiceManager.transcriptionObserver.add((text) => {
+            logger.info('Transcription', text);
+            switch (text.type) {
+                case TranscriptType.PartialTranscript:
+                    if (text.words.length > 0 &&
+                        text.words[0].text.toLowerCase() == 'meta') {
+                        logger.info('Meta command', text.text);
+                    }
+                    break;
+                case TranscriptType.FinalTranscript:
+                    logger.info('Final', text.words[0].text.toLowerCase().substring(0, 4));
+                    if (text.words.length > 0 &&
+                        text.words[0].text.toLowerCase().substring(0, 4) == 'meta' &&
+                        text.words[0].confidence > .8) {
+                        logger.info('Meta Final command',
+                            text.words.map((e) => {
+                                return e.text
+                            }).slice(1).join(' '));
+                    }
+
+            }
+
+        });
         window.addEventListener("keydown", (ev) => {
-            // Shift+Ctrl+Alt+I
+            if (ev.key == "z") {
+                voiceManager.startRecording();
+            }
+            if (ev.key == "x") {
+                voiceManager.stopRecording();
+            }
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
                 import("@babylonjs/core/Debug/debugLayer").then(() => {
                     import("@babylonjs/inspector").then(() => {
@@ -134,6 +166,7 @@ export class App {
             }
         });
 
+
         logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
         engine.runRenderLoop(() => {
             scene.render();
@@ -141,6 +174,7 @@ export class App {
         logger.info('Render loop started');
     }
 }
+
 const app = new App();
 
 

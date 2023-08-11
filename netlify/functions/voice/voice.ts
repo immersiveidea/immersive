@@ -12,8 +12,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
             headers: {'Content-Type': 'application/json'},
             statusCode: 200,
             body: JSON.stringify(data)
-        };
-
+        }
     } catch (error) {
         return {
             statusCode: 500,
