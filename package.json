@@ -19,6 +19,7 @@
     "@babylonjs/serializers": "^6.15.0",
     "@babylonjs/loaders": "^6.15.0",
     "@cloudflare/workers-types": "^4.20230807.0",
+    "@netlify/functions": "^1.6.0",
     "ring-client-api": "11.7.7",
     "dexie": "^3.2.4",
     "dexie-observable": "^4.0.1-beta.13",
