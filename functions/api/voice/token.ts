@@ -9,7 +9,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             const {headers} = response;
             const contentType = headers.get('content-type') || '';
             if (contentType.includes('application/json')) {
-                return JSON.stringify(await response.json());
+                return await response.text();
             } else if (contentType.includes('application/text')) {
                 return await response.text();
             } else if (contentType.includes('text/html')) {
