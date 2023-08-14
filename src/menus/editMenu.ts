@@ -34,6 +34,7 @@ export class EditMenu {
     private readonly xr: WebXRExperienceHelper;
     private readonly diagramManager: DiagramManager;
     private connection: DiagramConnection = null;
+    private panel: StackPanel3D;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper, diagramManager: DiagramManager) {
         this.scene = scene;
@@ -46,7 +47,20 @@ export class EditMenu {
         this.gizmoManager.gizmos.boundingBoxGizmo.scaleDragSpeed = 2;
         this.gizmoManager.clearGizmoOnEmptyPointerEvent = true;
         this.gizmoManager.usePointerToAttachGizmos = false;
+        this.manager = new GUI3DManager(this.scene);
+        const panel = new StackPanel3D();
 
+        this.manager.addControl(panel);
+        panel.addControl(this.makeButton("Modify", "modify"));
+        panel.addControl(this.makeButton("Remove", "remove"));
+        panel.addControl(this.makeButton("Add Label", "label"));
+        panel.addControl(this.makeButton("Copy", "copy"));
+        panel.addControl(this.makeButton("Connect", "connect"));
+        panel.addControl(this.makeButton("Export", "export"));
+        panel.addControl(this.makeButton("Recolor", "recolor"));
+
+        //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
+        this.manager.controlScaling = .5;
         this.scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERPICK:
@@ -71,32 +85,32 @@ export class EditMenu {
                     }
             }
         });
+        this.panel = panel;
+        this.isVisible = false;
+    }
+
+    private get isVisible(): boolean {
+        return this.panel.isVisible;
+    }
+
+    private set isVisible(visible: boolean) {
+        this.panel.isVisible = visible;
+        this.panel.children.forEach((child) => {
+            child.isVisible = visible;
+        });
     }
 
     toggle() {
-        if (this.manager) {
+        if (this.isVisible) {
             DiaSounds.instance.exit.play();
-            this.manager.dispose();
-            this.manager = null;
+            this.isVisible = false;
+
         } else {
             DiaSounds.instance.enter.play();
-            this.manager = new GUI3DManager(this.scene);
-            const panel = new StackPanel3D();
-            this.manager.addControl(panel);
-            panel.addControl(this.makeButton("Modify", "modify"));
-            panel.addControl(this.makeButton("Remove", "remove"));
-            panel.addControl(this.makeButton("Add Label", "label"));
-            panel.addControl(this.makeButton("Copy", "copy"));
-            panel.addControl(this.makeButton("Connect", "connect"));
-            panel.addControl(this.makeButton("Export", "export"));
-            panel.addControl(this.makeButton("Recolor", "recolor"));
-
-            //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
-            this.manager.controlScaling = .5;
-            CameraHelper.setMenuPosition(panel.node, this.scene);
+            CameraHelper.setMenuPosition(this.manager.rootContainer.children[0].node, this.scene);
+            this.isVisible = true;
         }
     }
-
     private getTool(template: string, color: Color3): Mesh {
         const baseMeshId = 'tool-' + template + '-' + color.toHexString();
         return (this.scene.getMeshById(baseMeshId) as Mesh);
@@ -275,7 +289,7 @@ export class EditMenu {
                 return;
 
         }
-        this.manager.dispose();
-        this.manager = null;
+
+        this.isVisible = false;
     }
 }

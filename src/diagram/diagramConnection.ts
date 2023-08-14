@@ -24,6 +24,7 @@ export class DiagramConnection {
         if (fromMesh) {
             this.fromAnchor = fromMesh;
         }
+
         const toMesh = this.scene.getMeshById(to);
         if (toMesh) {
             this.toAnchor = toMesh;
@@ -142,6 +143,7 @@ export class DiagramConnection {
             this.fromAnchor = null;
         }
         if (this._mesh) {
+            this._mesh.dispose();
             this._mesh = null;
         }
         if (this.scene) {

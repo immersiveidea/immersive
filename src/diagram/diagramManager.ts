@@ -66,6 +66,21 @@ export class DiagramManager {
         }
         this.onDiagramEventObservable.add(this.onDiagramEvent, -1, true, this);
         this.logger.debug("DiagramManager constructed");
+        scene.onMeshRemovedObservable.add((mesh) => {
+            if (mesh?.metadata?.template) {
+                if (mesh.metadata.template != '#connection-template') {
+                    scene.meshes.forEach((m) => {
+                        if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {
+                            this.logger.debug("removing connection", m.id);
+                            this.onDiagramEventObservable.notifyObservers({
+                                type: DiagramEventType.REMOVE,
+                                entity: MeshConverter.toDiagramEntity(m)
+                            });
+                        }
+                    });
+                }
+            }
+        });
     }
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
         let newMesh;
@@ -114,7 +129,7 @@ export class DiagramManager {
     private onRemoteEvent(event: DiagramEntity) {
         this.logger.debug(event);
         const toolMesh = this.scene.getMeshById("tool-" + event.template + "-" + event.color);
-        if (!toolMesh) {
+        if (!toolMesh && (event.template != '#connection-template')) {
             log.debug('no mesh found for ' + event.template + "-" + event.color, 'adding it');
             this.onDiagramEventObservable.notifyObservers({
                 type: DiagramEventType.CHANGECOLOR,
@@ -203,6 +218,7 @@ export class DiagramManager {
                     mesh?.physicsBody?.dispose();
                     mesh.dispose();
                     DiaSounds.instance.exit.play();
+
                 }
                 break;
         }

@@ -35,10 +35,10 @@ export class MeshConverter {
         return entity;
     }
     public static fromDiagramEntity(entity: DiagramEntity, scene: Scene): AbstractMesh {
-        if (!entity) {
-            this.logger.error("fromDiagramEntity: entity is null");
-            return null;
-        }
+      if (!entity) {
+          this.logger.error("fromDiagramEntity: entity is null");
+          return null;
+      }
         if (!entity.id) {
             entity.id = "id" + uuidv4();
         }

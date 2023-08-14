@@ -6,7 +6,6 @@ export class PeerjsNetworkConnection {
     private dataChannel: P2PDataChannel<any>;
 
     constructor(dataChannel: string, identity: string) {
-
         const config = {
             debug: false,
             dataChannel: dataChannel,
@@ -15,7 +14,6 @@ export class PeerjsNetworkConnection {
             pingTimeout: 8000
         }
         this.dataChannel = new P2PDataChannel(identity, config);
-
         this.dataChannel.onConnected((peerId) => {
             this.logger.debug(peerId, ' connected');
         });
