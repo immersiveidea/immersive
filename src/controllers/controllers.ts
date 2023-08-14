@@ -6,6 +6,6 @@ export type ControllerEventType = {
     gripId?: string;
 }
 export class Controllers {
-    public static movable: TransformNode | AbstractMesh;
-    public static controllerObserver: Observable<ControllerEventType> = new Observable();
+    public movable: TransformNode | AbstractMesh;
+    public readonly controllerObserver: Observable<ControllerEventType> = new Observable();
 }

@@ -135,6 +135,8 @@ export class DiagramConnection {
     private removeConnection = () => {
         this.logger.debug("removeConnection");
         this.scene.onBeforeRenderObservable.removeCallback(this.beforeRender);
+        this._mesh.onDisposeObservable.removeCallback(this.removeConnection);
+
         this.removeObserver();
         if (this.toAnchor) {
             this.toAnchor = null;

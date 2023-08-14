@@ -1,6 +1,5 @@
 import {AbstractMesh, Color3, MeshBuilder, Scene, Vector3} from "@babylonjs/core";
 import {AdvancedDynamicTexture, StackPanel, TextBlock} from "@babylonjs/gui";
-import {Controllers} from "../controllers/controllers";
 
 export class Hud {
     private scene: Scene;
@@ -32,12 +31,7 @@ export class Hud {
         stackPanel.addControl(textPosition);
         stackPanel.addControl(textRotation);
 
-        this.scene.onBeforeRenderObservable.add(() => {
-            if (Controllers.movable) {
-                textPosition.text = 'position: '+ this.formatVector3(Controllers.movable.position);
-                textRotation.text = 'rotation: '+ this.formatVector3(Controllers.movable.rotation);
-            }
-        });
+
     }
     createTextBlock(): TextBlock {
         const text = new TextBlock();

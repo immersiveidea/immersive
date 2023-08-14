@@ -15,9 +15,9 @@ import log from "loglevel";
 import {AppConfig} from "./util/appConfig";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
-import {DrawioManager} from "./integration/drawioManager";
 import {VoiceManager} from "./integration/voiceManager";
 import {TranscriptType} from "./integration/voiceTranscript";
+import {Controllers} from "./controllers/controllers";
 
 
 export class App {
@@ -25,17 +25,17 @@ export class App {
     constructor() {
         const config = AppConfig.config;
         const logger = log.getLogger('App');
+        log.enableAll(true);
+        log.setDefaultLevel('debug');
 
-        log.setDefaultLevel('info');
-
-        log.getLogger('App').setLevel('info');
+        //log.getLogger('App').setLevel('info');
         //log.getLogger('IndexdbPersistenceManager').setLevel('info');
         //log.getLogger('DiagramManager').setLevel('info');
         //log.getLogger('DiagramConnection').setLevel('debug');
-        log.getLogger('DrawioManager').setLevel('warn');
-        log.getLogger('VoiceManager').setLevel('debug');
-        log.getLogger('EntityTree').setLevel('warn');
-        log.getLogger('EditMenu').setLevel('warn');
+        //log.getLogger('DrawioManager').setLevel('warn');
+        //log.getLogger('VoiceManager').setLevel('debug');
+        //log.getLogger('EntityTree').setLevel('warn');
+        //log.getLogger('EditMenu').setLevel('warn');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -92,9 +92,10 @@ export class App {
 
                 }
             });
-            const diagramManager = new DiagramManager(scene, xr.baseExperience);
-            const rig = new Rigplatform(scene, xr, diagramManager);
-            const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager);
+            const controllers = new Controllers();
+            const diagramManager = new DiagramManager(scene, xr.baseExperience, controllers);
+            const rig = new Rigplatform(scene, xr, diagramManager, controllers);
+            const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager, controllers);
             //const dioManager = new DrawioManager(scene, diagramManager);
             import ('./integration/indexdbPersistenceManager').then((module) => {
                 const persistenceManager = new module.IndexdbPersistenceManager("diagram");

@@ -8,9 +8,9 @@ export class Right extends Base {
     public static instance: Right;
 
     constructor(controller:
-                    WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager
+                    WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers,
     ) {
-        super(controller, scene, xr, diagramManager);
+        super(controller, scene, xr, controllers, diagramManager);
         Right.instance = this;
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
@@ -24,7 +24,7 @@ export class Right extends Base {
         if (bbutton) {
             bbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
-                    Controllers.controllerObserver.notifyObservers({type: 'b-button', value: button.value});
+                    this.controllers.controllerObserver.notifyObservers({type: 'b-button', value: button.value});
                 }
             });
         }
@@ -36,7 +36,7 @@ export class Right extends Base {
                 .onButtonStateChangedObservable
                 .add((button) => {
                     if (button.pressed) {
-                        Controllers.controllerObserver.notifyObservers({type: 'trigger', value: button.value});
+                        this.controllers.controllerObserver.notifyObservers({type: 'trigger', value: button.value});
                     }
                 });
         }
@@ -47,7 +47,7 @@ export class Right extends Base {
             abutton.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
                     log.getLogger("right").debug("a-button pressed");
-                    Controllers.controllerObserver.notifyObservers({type: 'menu'});
+                    this.controllers.controllerObserver.notifyObservers({type: 'menu'});
                 }
             });
         }
@@ -62,7 +62,7 @@ export class Right extends Base {
             thumbstick.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
                     log.trace('Right', `thumbstick changed ${value.value}`);
-                    Controllers.controllerObserver.notifyObservers({type: 'increaseVelocity', value: value.value});
+                    this.controllers.controllerObserver.notifyObservers({type: 'increaseVelocity', value: value.value});
                 }
             });
         }
@@ -70,19 +70,19 @@ export class Right extends Base {
 
     private moveRig(value) {
         if (Math.abs(value.x) > .1) {
-            Controllers.controllerObserver.notifyObservers({type: 'turn', value: value.x});
+            this.controllers.controllerObserver.notifyObservers({type: 'turn', value: value.x});
         } else {
-            Controllers.controllerObserver.notifyObservers({type: 'turn', value: 0});
+            this.controllers.controllerObserver.notifyObservers({type: 'turn', value: 0});
         }
         if (Math.abs(value.y) > .1) {
-            Controllers.controllerObserver.notifyObservers({type: 'updown', value: value.y * this.speedFactor});
+            this.controllers.controllerObserver.notifyObservers({type: 'updown', value: value.y * this.speedFactor});
             Base.stickVector.z = 1;
         } else {
-            Controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
+            this.controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
             Base.stickVector.z = 0;
         }
         if (Base.stickVector.equals(Vector3.Zero())) {
-            Controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
+            this.controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
         }
     }
 }

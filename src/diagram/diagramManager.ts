@@ -45,16 +45,18 @@ export class DiagramManager {
 
     private readonly actionManager: ActionManager;
     private config: AppConfig;
+    private controllers: Controllers;
 
-    constructor(scene: Scene, xr: WebXRExperienceHelper) {
+    constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {
         this.scene = scene;
         this.xr = xr;
+        this.controllers = controllers;
         this.actionManager = new ActionManager(this.scene);
         this.actionManager.registerAction(
             new PlaySoundAction(ActionManager.OnPointerOverTrigger, DiaSounds.instance.tick));
         this.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, (evt) => {
-                Controllers.controllerObserver.notifyObservers({
+                this.controllers.controllerObserver.notifyObservers({
                     type: 'pulse',
                     gripId: evt?.additionalData?.pickResult?.gripTransform?.id
                 })

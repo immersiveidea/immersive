@@ -13,7 +13,7 @@ import {
 } from "@babylonjs/core";
 import {Button3D, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
-import {EditMenuState} from "./MenuState";
+import {EditMenuState} from "./editMenuState";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import {MeshConverter} from "../diagram/meshConverter";
 import log from "loglevel";
@@ -60,7 +60,7 @@ export class EditMenu {
         panel.addControl(this.makeButton("Recolor", "recolor"));
 
         //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
-        this.manager.controlScaling = .5;
+        this.manager.controlScaling = .1;
         this.scene.onPointerObservable.add((pointerInfo) => {
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERPICK:

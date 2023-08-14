@@ -11,14 +11,21 @@ export class ConfigMenu {
     private readonly xr: WebXRExperienceHelper;
     private configPlane: AbstractMesh = null;
 
-    constructor(scene: Scene, xr: WebXRExperienceHelper) {
+    private controllers: Controllers;
+    private yObserver;
+
+    constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {
         this.scene = scene;
         this.xr = xr;
-        Controllers.controllerObserver.add((event) => {
-            if (event.type == 'x-button') {
-                this.toggle();
-            }
-        });
+        this.controllers = controllers;
+        if (!this.yObserver) {
+            this.controllers.controllerObserver.add((event) => {
+                if (event.type == 'y-button') {
+                    this.toggle();
+                }
+            });
+        }
+
     }
 
     public toggle() {

@@ -32,13 +32,15 @@ export class Base {
     protected readonly diagramManager: DiagramManager;
     private logger: log.Logger;
     private lastPosition: Vector3 = null;
-
+    protected controllers: Controllers;
     constructor(controller: WebXRInputSource,
                 scene: Scene,
                 xr: WebXRDefaultExperience,
+                controllers: Controllers,
                 diagramManager: DiagramManager) {
         this.logger = log.getLogger('Base');
         this.controller = controller;
+        this.controllers = controllers;
 
         this.scene = scene;
 
@@ -79,7 +81,7 @@ export class Base {
                 this.initGrip(init.components['xr-standard-squeeze'])
             }
         });
-        Controllers.controllerObserver.add((event) => {
+        this.controllers.controllerObserver.add((event) => {
             if (event.type == 'pulse') {
                 this.logger.debug(event);
                 if (event.gripId == this?.controller?.grip?.id) {

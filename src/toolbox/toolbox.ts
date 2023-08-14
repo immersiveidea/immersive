@@ -36,11 +36,13 @@ export class Toolbox {
     private readonly manager: GUI3DManager;
     private readonly gridsize = 5;
     private readonly addPanel: StackPanel3D;
+    private readonly controllers: Controllers;
+    private xObserver;
 
-    constructor(scene: Scene, xr: WebXRExperienceHelper, diagramManager: DiagramManager) {
+    constructor(scene: Scene, xr: WebXRExperienceHelper, diagramManager: DiagramManager, controllers: Controllers) {
         this.scene = scene;
+        this.controllers = controllers;
         this.diagramManager = diagramManager;
-
         this.diagramManager.onDiagramEventObservable.add((evt) => {
             if (evt?.entity?.color && evt.type == DiagramEventType.CHANGECOLOR) {
                 this.updateToolbox(evt.entity.color);
@@ -71,15 +73,17 @@ export class Toolbox {
         }
 
         Toolbox.instance = this;
-        Controllers.controllerObserver.add((evt) => {
-            if (evt.type == 'y-button') {
-                if (evt.value == 1) {
-                    this.node.parent.setEnabled(!this.node.parent.isEnabled(false));
-                    CameraHelper.setMenuPosition(this.node.parent as Mesh, this.scene,
-                        new Vector3(0, -.5, 0));
+        if (!this.xObserver) {
+            this.xObserver = this.controllers.controllerObserver.add((evt) => {
+                if (evt.type == 'x-button') {
+                    if (evt.value == 1) {
+                        this.node.parent.setEnabled(!this.node.parent.isEnabled(false));
+                        CameraHelper.setMenuPosition(this.node.parent as Mesh, this.scene,
+                            new Vector3(0, 0, 0));
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     public buildTool(tool: ToolType, parent: AbstractMesh) {

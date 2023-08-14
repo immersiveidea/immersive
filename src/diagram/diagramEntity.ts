@@ -1,5 +1,5 @@
 import {Color3, Vector3} from "@babylonjs/core";
-import {EditMenuState} from "../menus/MenuState";
+import {EditMenuState} from "../menus/editMenuState";
 
 export enum DiagramEventType {
     ADD,

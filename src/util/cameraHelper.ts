@@ -8,12 +8,14 @@ export class CameraHelper {
     }
 
     public static setMenuPosition(node: TransformNode, scene: Scene, offset: Vector3 = Vector3.Zero()) {
-        node.position =
-            CameraHelper.getFrontPosition(2, scene);
+        const front = CameraHelper.getFrontPosition(.8, scene);
+        front.y = scene.activeCamera.globalPosition.y;
+
+        node.position = front;
         node.position.addInPlace(offset);
         node.lookAt(scene.activeCamera.globalPosition);
         node.rotation.y = node.rotation.y + Math.PI;
-        node.position.y += .2;
+        node.position.y -= .5;
 
     }
 }

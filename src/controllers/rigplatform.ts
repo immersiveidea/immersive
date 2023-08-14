@@ -39,44 +39,8 @@ export class Rigplatform {
     private turnVelocity: number = 0;
     private logger = log.getLogger('Rigplatform');
     private readonly diagramManager: DiagramManager;
-
-    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
-
-        this.scene = scene;
-        this.diagramManager = diagramManager;
-        Rigplatform.xr = xr;
-        Rigplatform.instance = this;
-        this.bMenu = new EditMenu(scene, xr.baseExperience, this.diagramManager);
-        this.camera = scene.activeCamera;
-
-        this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
-        for (const cam of scene.cameras) {
-            cam.parent = this.rigMesh;
-        }
-        const rigMaterial = new StandardMaterial("rigMaterial", scene);
-        rigMaterial.diffuseColor = Color3.Blue();
-        this.rigMesh.material = rigMaterial;
-        this.rigMesh.setAbsolutePosition(new Vector3(0, .1, -3));
-        this.rigMesh.visibility = 0;
-        const rigAggregate =
-            new PhysicsAggregate(
-                this.rigMesh,
-                PhysicsShapeType.CYLINDER,
-                {friction: 1, center: Vector3.Zero(), radius: .5, mass: 10, restitution: .01},
-                scene);
-
-        rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
-        rigAggregate.body.setGravityFactor(.001);
-        this.fixRotation();
-        this.body = rigAggregate.body;
-
-        this.initializeControllers();
-        scene.onActiveCameraChanged.add((s) => {
-            this.camera = s.activeCamera;
-            this.camera.parent = this.rigMesh;
-        });
-        this.registerVelocityObserver();
-    }
+    private readonly controllers: Controllers;
+    private registered = false;
     private registerVelocityObserver() {
         this.scene.onBeforeRenderObservable.add(() => {
             const vel = this.velocity.applyRotationQuaternion(this.scene.activeCamera.absoluteRotation);
@@ -118,51 +82,103 @@ export class Rigplatform {
         }
     }
 
+    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
+
+        this.scene = scene;
+        this.diagramManager = diagramManager;
+        this.controllers = controllers;
+        Rigplatform.xr = xr;
+        Rigplatform.instance = this;
+        this.bMenu = new EditMenu(scene, xr.baseExperience, this.diagramManager);
+        this.camera = scene.activeCamera;
+
+        this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
+        for (const cam of scene.cameras) {
+            cam.parent = this.rigMesh;
+        }
+        const rigMaterial = new StandardMaterial("rigMaterial", scene);
+        rigMaterial.diffuseColor = Color3.Blue();
+        this.rigMesh.material = rigMaterial;
+        this.rigMesh.setAbsolutePosition(new Vector3(0, .1, -3));
+        this.rigMesh.visibility = 0;
+        const rigAggregate =
+            new PhysicsAggregate(
+                this.rigMesh,
+                PhysicsShapeType.CYLINDER,
+                {friction: 1, center: Vector3.Zero(), radius: .5, mass: 10, restitution: .01},
+                scene);
+
+        rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
+        rigAggregate.body.setGravityFactor(.001);
+        this.fixRotation();
+        this.body = rigAggregate.body;
+
+        this.initializeControllers();
+        scene.onActiveCameraChanged.add((s) => {
+            this.camera = s.activeCamera;
+            this.camera.parent = this.rigMesh;
+        });
+        this.registerVelocityObserver();
+    }
+
+    private registerObserver() {
+        if (!this.registered) {
+            this.registered = true;
+            this.controllers.controllerObserver.add((event: { type: string, value: number }) => {
+                switch (event.type) {
+                    case "increaseVelocity":
+                        if (this.velocityIndex < this.velocityArray.length - 1) {
+                            this.velocityIndex++;
+                        } else {
+                            this.velocityIndex = 0;
+                        }
+                        break;
+                    case "decreaseVelocity":
+                        if (this.velocityIndex > 0) {
+                            this.velocityIndex--;
+                        } else {
+                            this.velocityIndex = this.velocityArray.length - 1;
+                        }
+                        break;
+                    case "turn":
+                        this.turn(event.value);
+                        break;
+                    case "forwardback":
+                        this.forwardback(event.value);
+                        break;
+                    case "leftright":
+                        this.leftright(event.value);
+                        break;
+                    case "updown":
+                        this.updown(event.value);
+                        break;
+                    case "stop":
+                        log.warn("Rigplatform", "stop is no longer implemented");
+                        break;
+                    case "menu":
+                        this.bMenu.toggle();
+                        break;
+                }
+            });
+        }
+
+    }
+
     private initializeControllers() {
         Rigplatform.xr.input.onControllerAddedObservable.add((source) => {
+            this.registerObserver();
             let controller;
             switch (source.inputSource.handedness) {
                 case "right":
-                    Right.instance = new Right(source, this.scene, Rigplatform.xr, this.diagramManager);
-                    Controllers.controllerObserver.add((event: { type: string, value: number }) => {
-                        switch (event.type) {
-                            case "increaseVelocity":
-                                if (this.velocityIndex < this.velocityArray.length - 1) {
-                                    this.velocityIndex++;
-                                } else {
-                                    this.velocityIndex = 0;
-                                }
-                                break;
-                            case "decreaseVelocity":
-                                if (this.velocityIndex > 0) {
-                                    this.velocityIndex--;
-                                } else {
-                                    this.velocityIndex = this.velocityArray.length-1;
-                                }
-                                break;
-                            case "turn":
-                                this.turn(event.value);
-                                break;
-                            case "forwardback":
-                                this.forwardback(event.value);
-                                break;
-                            case "leftright":
-                                this.leftright(event.value);
-                                break;
-                            case "updown":
-                                this.updown(event.value);
-                                break;
-                            case "stop":
-                                log.warn("Rigplatform", "stop is no longer implemented");
-                                break;
-                            case "menu":
-                                this.bMenu.toggle();
-                                break;
-                        }
-                    });
+                    if (!Right.instance) {
+                        Right.instance = new Right(source, this.scene, Rigplatform.xr, this.diagramManager, this.controllers);
+                    }
                     break;
                 case "left":
-                    Left.instance = new Left(source, this.scene, Rigplatform.xr, this.diagramManager);
+                    if (!Left.instance) {
+                        Left.instance = new Left(source, this.scene, Rigplatform.xr, this.diagramManager, this.controllers);
+                    }
+
                     break;
 
             }
