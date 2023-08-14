@@ -26,7 +26,7 @@ export class App {
         const config = AppConfig.config;
         const logger = log.getLogger('App');
         log.enableAll(true);
-        log.setDefaultLevel('debug');
+        log.setDefaultLevel('info');
 
         //log.getLogger('App').setLevel('info');
         //log.getLogger('IndexdbPersistenceManager').setLevel('info');
