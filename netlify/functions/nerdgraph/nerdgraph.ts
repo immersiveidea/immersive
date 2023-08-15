@@ -24,9 +24,8 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
                     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE'
                 };
                 return {
-                    statusCode: 200,
-                    headers,
-                    body: 'OK'
+                    statusCode: 204,
+                    headers
                 }
                 break;
             default:
