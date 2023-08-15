@@ -3,6 +3,7 @@ import axios from 'axios';
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
     try {
+        console.log(JSON.stringify(event.headers));
         const apiKey = event.headers['Api-Key'];
         console.log(apiKey.substring(-5));
         const query = event.body;
