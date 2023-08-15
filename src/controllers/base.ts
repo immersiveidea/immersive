@@ -80,7 +80,7 @@ export class Base {
             if (init.components['xr-standard-squeeze']) {
                 this.initGrip(init.components['xr-standard-squeeze'])
             }
-        });
+        }, -1, false, this);
         this.controllers.controllerObserver.add((event) => {
             if (event.type == 'pulse') {
                 this.logger.debug(event);

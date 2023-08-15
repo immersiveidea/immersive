@@ -5,13 +5,10 @@ import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 
 export class Right extends Base {
-    public static instance: Right;
-
     constructor(controller:
                     WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers,
     ) {
         super(controller, scene, xr, controllers, diagramManager);
-        Right.instance = this;
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
             this.initBButton(init.components['b-button']);

@@ -9,7 +9,7 @@ import {
     Scene,
     StandardMaterial,
     Vector3,
-    WebXRExperienceHelper
+    WebXRDefaultExperience
 } from "@babylonjs/core";
 import {Button3D, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
@@ -31,12 +31,12 @@ export class EditMenu {
     private paintColor: string = null;
     private readonly logger: log.Logger = log.getLogger('EditMenu');
     private gizmoManager: GizmoManager;
-    private readonly xr: WebXRExperienceHelper;
+    private readonly xr: WebXRDefaultExperience;
     private readonly diagramManager: DiagramManager;
     private connection: DiagramConnection = null;
     private panel: StackPanel3D;
 
-    constructor(scene: Scene, xr: WebXRExperienceHelper, diagramManager: DiagramManager) {
+    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
         this.scene = scene;
         this.xr = xr;
         this.diagramManager = diagramManager;
@@ -241,7 +241,7 @@ export class EditMenu {
         if (mesh?.metadata?.text) {
             text = mesh.metadata.text;
         }
-        const textInput = new InputTextView({xrSession: this.xr.sessionManager, text: text});
+        const textInput = new InputTextView({xr: this.xr, text: text});
         textInput.show();
         textInput.onTextObservable.addOnce((value) => {
             this.persist(mesh, value.text);

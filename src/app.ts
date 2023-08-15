@@ -7,7 +7,7 @@ import {
     WebXRDefaultExperience,
     WebXRState
 } from "@babylonjs/core";
-
+import '@babylonjs/loaders';
 import {Rigplatform} from "./controllers/rigplatform";
 import {DiagramManager} from "./diagram/diagramManager";
 import {Toolbox} from "./toolbox/toolbox";

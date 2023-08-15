@@ -1,6 +1,4 @@
-import {Right} from "../controllers/right";
-import {Left} from "../controllers/left";
-import {Observable, Scene, WebXRSessionManager} from "@babylonjs/core";
+import {Observable, Scene, WebXRDefaultExperience} from "@babylonjs/core";
 import log from "loglevel";
 import {AdvancedDynamicTexture, InputText} from "@babylonjs/gui";
 
@@ -9,7 +7,7 @@ export type TextEvent = {
 }
 export type InputTextViewOptions = {
     scene?: Scene;
-    xrSession?: WebXRSessionManager;
+    xr?: WebXRDefaultExperience;
     text?: string;
 }
 
@@ -17,14 +15,14 @@ export class InputTextView {
     public readonly onTextObservable: Observable<TextEvent> = new Observable<TextEvent>();
     private readonly text: string;
     private readonly scene: Scene;
-    private readonly xrSession: WebXRSessionManager;
+    private readonly xr: WebXRDefaultExperience;
 
     constructor(options: InputTextViewOptions) {
         if (options.text) {
             this.text = options.text;
         }
-        if (options.xrSession) {
-            this.xrSession = options.xrSession;
+        if (options.xr) {
+            this.xr = options.xr;
         }
         if (options.scene) {
             this.scene = options.scene;
@@ -32,7 +30,7 @@ export class InputTextView {
     }
 
     public show() {
-        if (this?.xrSession?.inXRSession) {
+        if (this?.xr?.baseExperience?.sessionManager?.inXRSession) {
             this.showXr();
         } else {
             this.showWeb();
@@ -64,11 +62,14 @@ export class InputTextView {
         textInput.type = "text";
         document.body.appendChild(textInput);
         textInput.value = this.text;
+        if (this.xr?.baseExperience?.sessionManager?.inXRSession) {
+            this.xr.input.controllers.forEach((controller) => {
+                controller.grip.setEnabled(false);
+                controller.pointer.setEnabled(false);
+            });
 
-        if (this.xrSession.inXRSession) {
-            Right.instance.disable();
-            Left.instance.disable();
         }
+
         textInput.focus();
         if (navigator.userAgent.indexOf('Macintosh') > -1) {
             textInput.addEventListener('input', (event) => {
@@ -79,8 +80,12 @@ export class InputTextView {
             textInput.addEventListener('blur', () => {
                 log.getLogger('bmenu').debug("blur");
                 this.onTextObservable.notifyObservers({text: textInput.value});
-                Right.instance.enable();
-                Left.instance.enable();
+                if (this.xr?.baseExperience?.sessionManager?.inXRSession) {
+                    this.xr.input.controllers.forEach((controller) => {
+                        controller.grip.setEnabled(true);
+                        controller.pointer.setEnabled(true);
+                    });
+                }
                 textInput.blur();
                 textInput.remove();
             });

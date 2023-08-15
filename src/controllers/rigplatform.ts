@@ -29,6 +29,8 @@ export class Rigplatform {
     public bMenu: EditMenu;
     private readonly scene: Scene;
     public static instance: Rigplatform;
+    private rightController: Right;
+    private leftController: Left;
     private static xr: WebXRDefaultExperience;
     private yRotation: number = 0;
     public body: PhysicsBody;
@@ -89,7 +91,7 @@ export class Rigplatform {
         this.controllers = controllers;
         Rigplatform.xr = xr;
         Rigplatform.instance = this;
-        this.bMenu = new EditMenu(scene, xr.baseExperience, this.diagramManager);
+        this.bMenu = new EditMenu(scene, xr, this.diagramManager);
         this.camera = scene.activeCamera;
 
         this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
@@ -170,13 +172,13 @@ export class Rigplatform {
             let controller;
             switch (source.inputSource.handedness) {
                 case "right":
-                    if (!Right.instance) {
-                        Right.instance = new Right(source, this.scene, Rigplatform.xr, this.diagramManager, this.controllers);
+                    if (!this.rightController) {
+                        this.rightController = new Right(source, this.scene, Rigplatform.xr, this.diagramManager, this.controllers);
                     }
                     break;
                 case "left":
-                    if (!Left.instance) {
-                        Left.instance = new Left(source, this.scene, Rigplatform.xr, this.diagramManager, this.controllers);
+                    if (!this.leftController) {
+                        this.leftController = new Left(source, this.scene, Rigplatform.xr, this.diagramManager, this.controllers);
                     }
 
                     break;

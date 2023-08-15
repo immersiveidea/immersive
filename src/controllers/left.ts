@@ -7,7 +7,6 @@ import {DiagramManager} from "../diagram/diagramManager";
 
 
 export class Left extends Base {
-    public static instance: Left;
     public configMenu: ConfigMenu;
 
     constructor(controller:
@@ -15,7 +14,6 @@ export class Left extends Base {
 
         super(controller, scene, xr, controllers, diagramManager);
         this.configMenu = new ConfigMenu(this.scene, xr.baseExperience, this.controllers);
-        Left.instance = this;
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
