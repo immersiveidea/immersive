@@ -7,7 +7,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
             case 'POST':
                 const apiKey = event.headers['api-key'];
                 const query = event.body;
-                const response = await axios.post('https://api.newrelic.com/graphql', // use account token to get a temp user token
+                const response = await axios.post('https://api.newrelic.com/graphql',
                     query,
                     {headers: {'Api-Key': apiKey, 'Content-Type': 'application/json'}});
                 const data = await response.data;
@@ -20,7 +20,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
             case 'OPTIONS':
                 const headers = {
                     'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Headers': 'Content-Type, Api-Key',
                     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE'
                 };
                 return {
