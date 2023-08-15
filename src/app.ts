@@ -25,7 +25,7 @@ export class App {
     constructor() {
         const config = AppConfig.config;
         const logger = log.getLogger('App');
-        log.enableAll(true);
+        //log.enableAll(true);
         log.setDefaultLevel('info');
 
         //log.getLogger('App').setLevel('info');

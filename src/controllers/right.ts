@@ -3,6 +3,7 @@ import {Scene, Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRI
 import {Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
+import {NewRelicData} from "../integration/newRelic/newRelicData";
 
 export class Right extends Base {
     constructor(controller:
@@ -21,6 +22,8 @@ export class Right extends Base {
         if (bbutton) {
             bbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
+                    const newRelic = new NewRelicData();
+                    newRelic.getNewRelicData();
                     this.controllers.controllerObserver.notifyObservers({type: 'b-button', value: button.value});
                 }
             });
