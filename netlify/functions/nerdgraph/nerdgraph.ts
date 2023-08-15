@@ -20,6 +20,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
             case 'OPTIONS':
                 const headers = {
                     'Access-Control-Allow-Origin': 'https://cameras.immersiveidea.com',
+                    'Access-Control-Allow-Credentials': 'true',
                     'Access-Control-Allow-Headers': 'content-type, api-key',
                     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE'
                 };
