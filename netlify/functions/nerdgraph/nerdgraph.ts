@@ -12,7 +12,11 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
                     {headers: {'Api-Key': apiKey, 'Content-Type': 'application/json'}});
                 const data = await response.data;
                 return {
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': 'https://cameras.immersiveidea.com',
+                        'Access-Control-Allow-Credentials': 'true'
+                    },
                     statusCode: 200,
                     body: JSON.stringify(data)
                 }
