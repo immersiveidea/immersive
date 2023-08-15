@@ -3,21 +3,37 @@ import axios from 'axios';
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
     try {
-        console.log(JSON.stringify(event.headers));
-        const apiKey = event.headers['api-key'];
-        console.log(apiKey.substring(-5));
-        const query = event.body;
-        console.log(query);
-        const response = await axios.post('https://api.newrelic.com/graphql', // use account token to get a temp user token
-            query,
-            {headers: {'Api-Key': apiKey, 'Content-Type': 'application/json'}});
-
-        const data = await response.data;
-        console.log(data)
-        return {
-            headers: {'Content-Type': 'application/json'},
-            statusCode: 200,
-            body: JSON.stringify(data)
+        switch (event.httpMethod) {
+            case 'POST':
+                const apiKey = event.headers['api-key'];
+                const query = event.body;
+                const response = await axios.post('https://api.newrelic.com/graphql', // use account token to get a temp user token
+                    query,
+                    {headers: {'Api-Key': apiKey, 'Content-Type': 'application/json'}});
+                const data = await response.data;
+                return {
+                    headers: {'Content-Type': 'application/json'},
+                    statusCode: 200,
+                    body: JSON.stringify(data)
+                }
+                break;
+            case 'OPTIONS':
+                const headers = {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE'
+                };
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: 'OK'
+                }
+                break;
+            default:
+                return {
+                    statusCode: 405,
+                    body: 'Method Not Allowed'
+                }
         }
     } catch (error) {
         console.log(error);
