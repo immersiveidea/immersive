@@ -20,7 +20,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
             case 'OPTIONS':
                 const headers = {
                     'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type, Api-Key',
+                    'Access-Control-Allow-Headers': 'content-type, api-key',
                     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE'
                 };
                 return {
