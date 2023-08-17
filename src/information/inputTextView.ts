@@ -64,7 +64,7 @@ export class InputTextView {
         textInput.value = this.text;
         if (this.xr?.baseExperience?.sessionManager?.inXRSession) {
             this.xr.input.controllers.forEach((controller) => {
-                controller.grip.setEnabled(false);
+                controller.motionController.rootMesh.setEnabled(false);
                 controller.pointer.setEnabled(false);
             });
 
@@ -82,7 +82,7 @@ export class InputTextView {
                 this.onTextObservable.notifyObservers({text: textInput.value});
                 if (this.xr?.baseExperience?.sessionManager?.inXRSession) {
                     this.xr.input.controllers.forEach((controller) => {
-                        controller.grip.setEnabled(true);
+                        controller.motionController.rootMesh.setEnabled(true);
                         controller.pointer.setEnabled(true);
                     });
                 }
