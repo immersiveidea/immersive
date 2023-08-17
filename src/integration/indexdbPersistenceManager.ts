@@ -16,10 +16,11 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
 
     constructor(name: string) {
         this.db = new Dexie(name);
-        const version = 3;
+        const version = 5;
         this.db.version(version).stores({config: "id,gridSnap,rotateSnap,createSnap"});
         this.db.version(version).stores({entities: "id,diagramlistingid,position,rotation,last_seen,template,text,scale,color"});
         this.db.version(version).stores({diagramlisting: "id,name,description,sharekey"});
+        this.db.version(version).stores({newRelicData: "id,priority, incidentId"});
         this.logger.debug("IndexdbPersistenceManager constructed");
     }
 
@@ -81,6 +82,17 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
             listing: diagram
         }
         this.diagramListingObserver.notifyObservers(event);
+    }
+
+    public async setNewRelicData(data: any[]) {
+        this.db["newRelicData"].clear();
+        data.forEach((d) => {
+            this.db["newRelicData"].add(d);
+        });
+    }
+
+    public async getNewRelicData(): Promise<any[]> {
+        return this.db["newRelicData"].toArray();
     }
 
     public async initialize() {

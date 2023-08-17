@@ -27,6 +27,10 @@ export interface IPersistenceManager {
 
     addDiagram(diagram: DiagramListing);
 
+    getNewRelicData(): Promise<any[]>;
+
+    setNewRelicData(data: any): Promise<any>;
+
     removeDiagram(diagram: DiagramListing);
 
     add(mesh: AbstractMesh);

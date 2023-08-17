@@ -16,6 +16,12 @@ export class AppConfig {
     private _turnSnap = 0;
     private rotateSnap = 0;
     private createSnap = 0;
+    private _newRelicKey: string = null;
+
+    public get newRelicKey(): string {
+        return this._newRelicKey;
+    }
+
     _physicsEnabled = false;
     private readonly defaultGridSnapIndex = 1;
     private persistenceManager: IPersistenceManager = null;
@@ -44,6 +50,22 @@ export class AppConfig {
 
     public get currentGridSnap(): SnapValue {
         return this.gridSnapArray[this.gridSnap];
+    }
+
+    public set newRelicKey(val: string) {
+        this._newRelicKey = val;
+        this.save();
+    }
+
+    private _newRelicAccount: string = null;
+
+    public get newRelicAccount(): string {
+        return this._newRelicAccount;
+    }
+
+    public set newRelicAccount(val: string) {
+        this._newRelicAccount = val;
+        this.save();
     }
 
     public get physicsEnabled(): boolean {
@@ -173,7 +195,9 @@ export class AppConfig {
                 rotateSnap: this.currentRotateSnap.value,
                 createSnap: this.currentCreateSnap.value,
                 turnSnap: this.currentTurnSnap.value,
-                physicsEnabled: this._physicsEnabled
+                physicsEnabled: this._physicsEnabled,
+                newRelicKey: this._newRelicKey,
+                newRelicAccount: this._newRelicAccount
             });
     }
 

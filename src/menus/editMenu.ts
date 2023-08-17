@@ -11,7 +11,7 @@ import {
     Vector3,
     WebXRDefaultExperience
 } from "@babylonjs/core";
-import {Button3D, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
+import {Button3D, GUI3DManager, PlanePanel, TextBlock} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
 import {EditMenuState} from "./editMenuState";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
@@ -23,6 +23,7 @@ import {CameraHelper} from "../util/cameraHelper";
 import {TextLabel} from "../diagram/textLabel";
 import {DiagramConnection} from "../diagram/diagramConnection";
 import {GLTF2Export} from "@babylonjs/serializers";
+import {AppConfig} from "../util/appConfig";
 
 export class EditMenu {
     private state: EditMenuState = EditMenuState.NONE;
@@ -34,60 +35,8 @@ export class EditMenu {
     private readonly xr: WebXRDefaultExperience;
     private readonly diagramManager: DiagramManager;
     private connection: DiagramConnection = null;
-    private panel: StackPanel3D;
-
-    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
-        this.scene = scene;
-        this.xr = xr;
-        this.diagramManager = diagramManager;
-        this.gizmoManager = new GizmoManager(scene);
-        this.gizmoManager.boundingBoxGizmoEnabled = true;
-        this.gizmoManager.gizmos.boundingBoxGizmo.scaleBoxSize = .020;
-        this.gizmoManager.gizmos.boundingBoxGizmo.rotationSphereSize = .020;
-        this.gizmoManager.gizmos.boundingBoxGizmo.scaleDragSpeed = 2;
-        this.gizmoManager.clearGizmoOnEmptyPointerEvent = true;
-        this.gizmoManager.usePointerToAttachGizmos = false;
-        this.manager = new GUI3DManager(this.scene);
-        const panel = new StackPanel3D();
-
-        this.manager.addControl(panel);
-        panel.addControl(this.makeButton("Modify", "modify"));
-        panel.addControl(this.makeButton("Remove", "remove"));
-        panel.addControl(this.makeButton("Add Label", "label"));
-        panel.addControl(this.makeButton("Copy", "copy"));
-        panel.addControl(this.makeButton("Connect", "connect"));
-        panel.addControl(this.makeButton("Export", "export"));
-        panel.addControl(this.makeButton("Recolor", "recolor"));
-
-        //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
-        this.manager.controlScaling = .1;
-        this.scene.onPointerObservable.add((pointerInfo) => {
-            switch (pointerInfo.type) {
-                case PointerEventTypes.POINTERPICK:
-                    const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-                    if (pickedMesh.metadata?.template &&
-                        pickedMesh?.parent?.parent?.id != "toolbox") {
-                        this.diagramEntityPicked(pointerInfo).then(() => {
-                            this.logger.debug("handled");
-                        }).catch((e) => {
-                            this.logger.error(e);
-                        });
-                        break;
-                    } else {
-                        const tool = pickedMesh?.metadata?.tool;
-                        if (tool) {
-                            this.logger.debug("tool type", tool);
-                            this.paintColor = (pickedMesh.material as StandardMaterial).diffuseColor.toHexString();
-                            this.logger.debug((pickedMesh.material as StandardMaterial).diffuseColor.toHexString());
-                            this.logger.debug(pickedMesh.id);
-                        }
-
-                    }
-            }
-        });
-        this.panel = panel;
-        this.isVisible = false;
-    }
+    private panel: PlanePanel;
+    private buttonMaterial: StandardMaterial;
 
     private get isVisible(): boolean {
         return this.panel.isVisible;
@@ -128,13 +77,70 @@ export class EditMenu {
         });
     }
 
+    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
+        this.scene = scene;
+        this.xr = xr;
+        this.diagramManager = diagramManager;
+        this.gizmoManager = new GizmoManager(scene);
+        this.gizmoManager.boundingBoxGizmoEnabled = true;
+        this.gizmoManager.gizmos.boundingBoxGizmo.scaleBoxSize = .020;
+        this.gizmoManager.gizmos.boundingBoxGizmo.rotationSphereSize = .020;
+        this.gizmoManager.gizmos.boundingBoxGizmo.scaleDragSpeed = 2;
+        this.gizmoManager.clearGizmoOnEmptyPointerEvent = true;
+        this.gizmoManager.usePointerToAttachGizmos = false;
+        this.manager = new GUI3DManager(this.scene);
+        const panel = new PlanePanel();
+        panel.columns = 4;
+        this.manager.addControl(panel);
+        this.buttonMaterial = new StandardMaterial("buttonMaterial", this.scene);
+        this.buttonMaterial.diffuseColor = Color3.FromHexString("#000000");
+        panel.addControl(this.makeButton("Modify", "modify"));
+        panel.addControl(this.makeButton("Remove", "remove"));
+        panel.addControl(this.makeButton("Add Label", "label"));
+        panel.addControl(this.makeButton("Copy", "copy"));
+        panel.addControl(this.makeButton("Connect", "connect"));
+        panel.addControl(this.makeButton("Export", "export"));
+        panel.addControl(this.makeButton("Recolor", "recolor"));
+        panel.addControl(this.makeButton("New Relic", "newrelic"));
+
+        //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
+        this.manager.controlScaling = .1;
+        this.scene.onPointerObservable.add((pointerInfo) => {
+            switch (pointerInfo.type) {
+                case PointerEventTypes.POINTERPICK:
+                    const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
+                    if (pickedMesh.metadata?.template &&
+                        pickedMesh?.parent?.parent?.id != "toolbox") {
+                        this.diagramEntityPicked(pointerInfo).then(() => {
+                            this.logger.debug("handled");
+                        }).catch((e) => {
+                            this.logger.error(e);
+                        });
+                        break;
+                    } else {
+                        const tool = pickedMesh?.metadata?.tool;
+                        if (tool) {
+                            this.logger.debug("tool type", tool);
+                            this.paintColor = (pickedMesh.material as StandardMaterial).diffuseColor.toHexString();
+                            this.logger.debug((pickedMesh.material as StandardMaterial).diffuseColor.toHexString());
+                            this.logger.debug(pickedMesh.id);
+                        }
+
+                    }
+            }
+        });
+        this.panel = panel;
+        this.isVisible = false;
+    }
+
     makeButton(name: string, id: string) {
         const button = new Button3D(name);
         button.scaling = new Vector3(.1, .1, .1);
         button.name = id;
         const text = new TextBlock(name, name);
-        text.fontSize = "24px";
-        text.color = "white";
+        text.fontSize = "48px";
+        text.color = "#ffffff";
+        text.alpha = 1;
         button.content = text;
         button.onPointerClickObservable.add(this.handleClick, -1, false, this);
         return button;
@@ -250,6 +256,22 @@ export class EditMenu {
 
     }
 
+    private showNewRelic() {
+        const inputTextView = new InputTextView({xr: this.xr, scene: this.scene, text: "New Relic"});
+        inputTextView.show();
+        inputTextView.onTextObservable.addOnce((value) => {
+            console.log(value.text);
+            AppConfig.config.newRelicKey = value.text;
+            inputTextView.show();
+            inputTextView.onTextObservable.addOnce((value) => {
+                console.log(value.text);
+                AppConfig.config.newRelicAccount = value.text;
+            });
+        });
+
+
+    }
+
     private handleClick(_info, state) {
         switch (state.currentTarget.name) {
             case "modify":
@@ -269,6 +291,9 @@ export class EditMenu {
                 break;
             case "recolor":
                 this.state = EditMenuState.RECOLORING;
+                break;
+            case "newrelic":
+                this.showNewRelic();
                 break;
             case "export":
                 GLTF2Export.GLTFAsync(this.scene, 'diagram.gltf', {

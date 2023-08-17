@@ -1,0 +1,35 @@
+import {AbstractMesh, MeshBuilder, Scene, WebXRExperienceHelper} from "@babylonjs/core";
+import {Controllers} from "../controllers/controllers";
+import {BaseMenu} from "./baseMenu";
+import {AdvancedDynamicTexture, Grid, TextBlock} from "@babylonjs/gui";
+import {CameraHelper} from "../util/cameraHelper";
+
+export class IntegrationMenu extends BaseMenu {
+    private plane: AbstractMesh = null;
+
+    constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {
+        super(scene, xr, controllers);
+        this.buildMenu();
+    }
+
+    public toggle() {
+        this.plane.isVisible = !this.plane.isVisible;
+    }
+
+    private buildMenu() {
+        this.plane = MeshBuilder.CreatePlane("plane", {size: 1}, this.scene);
+        const advancedTexture2 = AdvancedDynamicTexture.CreateForMesh(this.plane, 1024, 1024, false);
+
+        const grid = new Grid("grid");
+        advancedTexture2.addControl(grid);
+        grid.addColumnDefinition(.25);
+        grid.addColumnDefinition(.75);
+        const labelText1 = new TextBlock("labelText1", "New Relic Key");
+        grid.addControl(labelText1, 0, 0);
+        const labelText2 = new TextBlock("labelText1", "New Relic Account");
+        grid.addControl(labelText2, 1, 0);
+        CameraHelper.setMenuPosition(this.plane, this.scene);
+    }
+
+
+}

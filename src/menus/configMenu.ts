@@ -5,19 +5,15 @@ import log from "loglevel";
 import {AppConfig} from "../util/appConfig";
 import {Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
+import {BaseMenu} from "./baseMenu";
 
-export class ConfigMenu {
-    private readonly scene: Scene;
-    private readonly xr: WebXRExperienceHelper;
+export class ConfigMenu extends BaseMenu {
     private configPlane: AbstractMesh = null;
 
-    private controllers: Controllers;
     private yObserver;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {
-        this.scene = scene;
-        this.xr = xr;
-        this.controllers = controllers;
+        super(scene, xr, controllers);
         if (!this.yObserver) {
             this.controllers.controllerObserver.add((event) => {
                 if (event.type == 'y-button') {

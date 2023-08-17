@@ -96,12 +96,15 @@ export class App {
             const diagramManager = new DiagramManager(scene, xr.baseExperience, controllers);
             const rig = new Rigplatform(scene, xr, diagramManager, controllers);
             const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager, controllers);
+
             //const dioManager = new DrawioManager(scene, diagramManager);
             import ('./integration/indexdbPersistenceManager').then((module) => {
                 const persistenceManager = new module.IndexdbPersistenceManager("diagram");
                 diagramManager.setPersistenceManager(persistenceManager);
                 AppConfig.config.setPersistenceManager(persistenceManager);
                 persistenceManager.initialize();
+                //const newRelicData = new NewRelicData(persistenceManager, scene);
+
             });
         });
 

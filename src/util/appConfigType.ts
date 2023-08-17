@@ -4,5 +4,8 @@ export type AppConfigType = {
     rotateSnap: number,
     createSnap: number,
     turnSnap: number,
-    physicsEnabled: boolean
+    physicsEnabled: boolean,
+    newRelicKey: string,
+    newRelicAccount: string,
+
 }
