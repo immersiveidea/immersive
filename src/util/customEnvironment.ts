@@ -29,7 +29,7 @@ export class CustomEnvironment {
                 this._groundMeshObservable.notifyObservers(ground);
             });
         const photo = new PhotoDome('sky',
-            './outdoor_field2.jpeg', {},
+            '/assets/textures/outdoor_field2.jpeg', {},
             scene);
 
     }
@@ -41,7 +41,7 @@ export class CustomEnvironment {
     private createGround() {
         const scene = this.scene;
         const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", scene);
-        const gText = new Texture("./grass1.jpeg", scene);
+        const gText = new Texture("/assets/textures/grass1.jpeg", scene);
         gText.uScale = 40;
         gText.vScale = 40;
         groundMaterial.baseTexture = gText;

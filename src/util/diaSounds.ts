@@ -5,25 +5,25 @@ export class DiaSounds {
 
     constructor(scene: Scene) {
         this.scene = scene;
-        this._enter = new Sound("enter", "./sounds.mp3", this.scene, null, {
+        this._enter = new Sound("enter", "/assets/sounds/sounds.mp3", this.scene, null, {
             autoplay: false,
             loop: false,
             offset: 0,
             length: 1.0
         });
-        this._exit = new Sound("exit", "./sounds.mp3", this.scene, null, {
+        this._exit = new Sound("exit", "/assets/sounds/sounds.mp3", this.scene, null, {
             autoplay: false,
             loop: false,
             offset: 1,
             length: 1.0
         });
-        this._high = new Sound("high", "./sounds.mp3", this.scene, null, {
+        this._high = new Sound("high", "/assets/sounds/sounds.mp3", this.scene, null, {
             autoplay: false,
             loop: false,
             offset: 2,
             length: 1.0
         });
-        this._low = new Sound("low", "./sounds.mp3", this.scene, null, {
+        this._low = new Sound("low", "/assets/sounds/sounds.mp3", this.scene, null, {
             autoplay: false,
             loop: false,
             offset: 3,
@@ -40,7 +40,7 @@ export class DiaSounds {
     }
 
     public get tick() {
-        return new Sound("tick", './tick.mp3', this.scene);
+        return new Sound("tick", '/assets/sounds/tick.mp3', this.scene);
     }
 
     private readonly _enter: Sound;
