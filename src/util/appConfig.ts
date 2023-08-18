@@ -12,6 +12,7 @@ export type SnapValue = {
 
 export class AppConfig {
     private readonly logger = log.getLogger('AppConfig');
+    private _demoCompleted = false;
     private gridSnap = 1;
     private _turnSnap = 0;
     private rotateSnap = 0;
@@ -50,6 +51,15 @@ export class AppConfig {
 
     public get currentGridSnap(): SnapValue {
         return this.gridSnapArray[this.gridSnap];
+    }
+
+    public get demoCompleted(): boolean {
+        return this._demoCompleted;
+    }
+
+    public set demoCompleted(val: boolean) {
+        this._demoCompleted = val;
+        this.save();
     }
 
     public set newRelicKey(val: string) {
@@ -197,7 +207,8 @@ export class AppConfig {
                 turnSnap: this.currentTurnSnap.value,
                 physicsEnabled: this._physicsEnabled,
                 newRelicKey: this._newRelicKey,
-                newRelicAccount: this._newRelicAccount
+                newRelicAccount: this._newRelicAccount,
+                demoCompleted: this._demoCompleted
             });
     }
 

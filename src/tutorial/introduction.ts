@@ -12,6 +12,7 @@ import {
 } from "@babylonjs/core";
 import {Button3D, GUI3DManager, TextBlock} from "@babylonjs/gui";
 import {DiaSounds} from "../util/diaSounds";
+import {AppConfig} from "../util/appConfig";
 
 
 export class Introduction {
@@ -21,7 +22,7 @@ export class Introduction {
     private current: AbstractMesh[] = [];
     private step: number = 0;
     private items: AbstractMesh[] = [];
-
+    private advance: Button3D;
     constructor(scene: Scene) {
         this.scene = scene;
         this.manager = new GUI3DManager(scene);
@@ -30,25 +31,24 @@ export class Introduction {
 
     public start() {
         this.scene.physicsEnabled = true;
-        const advance = new Button3D("advance");
+        this.advance = new Button3D("advance");
         const text = new TextBlock("advance", "Click Me");
         text.fontSize = "48px";
         text.color = "#ffffff";
         text.alpha = 1;
-        advance.content = text;
+        this.advance.content = text;
 
-        advance.onPointerClickObservable.add(() => {
+        this.advance.onPointerClickObservable.add(() => {
             console.log("click");
             this.takeStep();
         }, -1, false, this, false);
-        this.manager.addControl(advance);
-        advance.isVisible = false;
-        advance.position.y = 0;
-        advance.position.x = 2;
+        this.manager.addControl(this.advance);
+        this.advance.isVisible = false;
+        this.advance.position.y = 0;
+        this.advance.position.x = 2;
         this.scene.onReadyObservable.add(() => {
-            advance.isVisible = true;
+            this.advance.isVisible = true;
         });
-
     }
 
     buildVideo(url: string, size: number, position: Vector3): AbstractMesh {
@@ -64,6 +64,7 @@ export class Introduction {
         const welcome = MeshBuilder.CreateTiledBox(text + "_box", {width: 1, height: 1, depth: 1}, this.scene);
         welcome.position = position;
         welcome.scaling = new Vector3(size, size / 2, size);
+
         const aggregate = new PhysicsAggregate(welcome, PhysicsShapeType.BOX, {
             friction: 1,
             mass: 1,
@@ -75,7 +76,7 @@ export class Introduction {
             }
         });
         aggregate.body.setCollisionCallbackEnabled(true);
-        welcome.isPickable = true;
+
         return welcome;
     }
 
@@ -95,26 +96,39 @@ export class Introduction {
 
     private takeStep() {
         this.current.forEach((mesh) => {
-            const pos = mesh.getAbsolutePosition();
+            const pos = mesh.physicsBody.transformNode.absolutePosition.clone();
             pos.x = pos.x - .1;
-            mesh.physicsBody.applyImpulse(new Vector3(0, 5, 16), pos);
+            mesh.physicsBody.applyImpulse(new Vector3(0, 8, 12), pos);
         });
 
         switch (this.step) {
             case 0:
-                this.items.push(this.buildText("Welcome To", 1.5, 1024, new Vector3(0, 7, 5)));
-                this.items.push(this.buildText("Deep Diagram", 2, 1024, new Vector3(0, 5, 5)));
+                this.items.push(this.buildText("Welcome To", 3, 1024, new Vector3(0, 15, 5)));
+                this.items.push(this.buildText("Deep Diagram", 5, 1024, new Vector3(0, 10, 5)));
                 this.current = this.items.slice(-2);
                 break;
             case 1:
-                this.items.push(this.buildText("Let us show you", 2.3, 1024, new Vector3(0, 8, 5)));
-                this.items.push(this.buildText("what you can build", 3, 1200, new Vector3(0, 5, 5)));
+                this.items.push(this.buildText("Let us show you", 3, 1024, new Vector3(-1.5, 16, 5)));
+                this.items.push(this.buildText("what you can build", 4, 1200, new Vector3(2, 12, 5)));
                 this.current = this.items.slice(-2);
                 break;
             case 2:
-                this.items.push(this.buildText("A quick video", 2, 1024, new Vector3(0, 5, 5)));
+                this.items.push(this.buildText("A quick video", 5, 1024, new Vector3(0, 15, 5)));
+                this.current = this.items.slice(-1);
+                break;
             case 3:
-                this.items.push(this.buildVideo("A quick video", 2, new Vector3(0, 5, 5)));
+                this.items.push(this.buildVideo("A quick video", 5, new Vector3(0, 8, 5)));
+                this.current = this.items.slice(-1);
+                break;
+            case 4:
+                this.items.forEach((mesh) => {
+                    mesh.physicsBody.dispose();
+                    mesh.dispose();
+                });
+                this.advance.dispose();
+                this.manager.dispose();
+                AppConfig.config.demoCompleted = true;
+                this.items = [];
         }
         this.step++;
 

@@ -7,5 +7,6 @@ export type AppConfigType = {
     physicsEnabled: boolean,
     newRelicKey: string,
     newRelicAccount: string,
+    demoCompleted: boolean,
 
 }

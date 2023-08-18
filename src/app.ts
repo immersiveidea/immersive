@@ -15,8 +15,6 @@ import log from "loglevel";
 import {AppConfig} from "./util/appConfig";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
-import {VoiceManager} from "./integration/voiceManager";
-import {TranscriptType} from "./integration/voiceTranscript";
 import {Controllers} from "./controllers/controllers";
 import {Introduction} from "./tutorial/introduction";
 
@@ -113,7 +111,9 @@ export class App {
 
 
         const gamepadManager = new GamepadManager(scene);
+        /*
         const voiceManager = new VoiceManager();
+
         voiceManager.transcriptionObserver.add((text) => {
             logger.info('Transcription', text);
             switch (text.type) {
@@ -137,6 +137,8 @@ export class App {
             }
 
         });
+
+         */
         window.addEventListener("keydown", (ev) => {
             if (ev.key == "z") {
                 voiceManager.startRecording();

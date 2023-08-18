@@ -16,7 +16,7 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
 
     constructor(name: string) {
         this.db = new Dexie(name);
-        const version = 5;
+        const version = 6;
         this.db.version(version).stores({config: "id,gridSnap,rotateSnap,createSnap"});
         this.db.version(version).stores({entities: "id,diagramlistingid,position,rotation,last_seen,template,text,scale,color"});
         this.db.version(version).stores({diagramlisting: "id,name,description,sharekey"});
