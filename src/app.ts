@@ -18,6 +18,7 @@ import {CustomEnvironment} from "./util/customEnvironment";
 import {VoiceManager} from "./integration/voiceManager";
 import {TranscriptType} from "./integration/voiceTranscript";
 import {Controllers} from "./controllers/controllers";
+import {Introduction} from "./tutorial/introduction";
 
 
 export class App {
@@ -59,9 +60,9 @@ export class App {
         const environment = new CustomEnvironment(scene);
 
 
-        const camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2,
+        const camera: ArcRotateCamera = new ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 4,
             new Vector3(0, 1.6, 0), scene);
-        camera.radius = 0;
+
         camera.attachControl(canvas, true);
         new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
 
@@ -103,6 +104,8 @@ export class App {
                 diagramManager.setPersistenceManager(persistenceManager);
                 AppConfig.config.setPersistenceManager(persistenceManager);
                 persistenceManager.initialize();
+                const intro = new Introduction(scene);
+                intro.start();
                 //const newRelicData = new NewRelicData(persistenceManager, scene);
 
             });

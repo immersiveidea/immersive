@@ -20,7 +20,7 @@ export class CustomEnvironment {
     constructor(scene: Scene, name: string = "default") {
         this.scene = scene;
         this.name = name;
-        new DiaSounds(scene);
+
         const physics = new CustomPhysics(this.scene);
         physics
             .initializeAsync()
@@ -31,6 +31,12 @@ export class CustomEnvironment {
         const photo = new PhotoDome('sky',
             '/assets/textures/outdoor_field2.jpeg', {},
             scene);
+        try {
+            new DiaSounds(scene);
+        } catch (error) {
+            console.log(error);
+        }
+
 
     }
 

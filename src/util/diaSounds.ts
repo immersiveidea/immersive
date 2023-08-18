@@ -3,6 +3,18 @@ import {Scene, Sound} from "@babylonjs/core";
 export class DiaSounds {
     private readonly scene: Scene;
 
+    private readonly _birds: Sound;
+
+    private static _instance: DiaSounds;
+
+    public static get instance() {
+        return DiaSounds._instance;
+    }
+
+    public get tick() {
+        return new Sound("tick", '/assets/sounds/tick.mp3', this.scene);
+    }
+
     constructor(scene: Scene) {
         this.scene = scene;
         this._enter = new Sound("enter", "/assets/sounds/sounds.mp3", this.scene, null, {
@@ -29,20 +41,13 @@ export class DiaSounds {
             offset: 3,
             length: 1.0
         });
-        this._enter.autoplay = true;
+        this._birds = new Sound("birds", "/assets/sounds/birds.mp3", this.scene, null, {
+            autoplay: true,
+            loop: true
+        });
+        //this._enter.autoplay = true;
         DiaSounds._instance = this;
     }
-
-    private static _instance: DiaSounds;
-
-    public static get instance() {
-        return DiaSounds._instance;
-    }
-
-    public get tick() {
-        return new Sound("tick", '/assets/sounds/tick.mp3', this.scene);
-    }
-
     private readonly _enter: Sound;
 
     public get enter() {
