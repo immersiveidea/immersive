@@ -50,11 +50,11 @@ export class AppConfig {
             {value: 90, label: "90 Degrees"}];
 
     public get currentGridSnap(): SnapValue {
-        return this.gridSnapArray[this.gridSnap];
+        return this.gridSnapArray[this.gridSnap || 0];
     }
 
     public get demoCompleted(): boolean {
-        return this._demoCompleted;
+        return this._demoCompleted || false;
     }
 
     public set demoCompleted(val: boolean) {
@@ -79,7 +79,7 @@ export class AppConfig {
     }
 
     public get physicsEnabled(): boolean {
-        return this._physicsEnabled;
+        return this._physicsEnabled || false;
     }
 
     public set phsyicsEnabled(val: boolean) {
@@ -97,19 +97,19 @@ export class AppConfig {
     }
 
     public get currentRotateSnap(): SnapValue {
-        return this.rotateSnapArray[this.rotateSnap];
+        return this.rotateSnapArray[this.rotateSnap || 0];
     }
 
     public get currentCreateSnap(): SnapValue {
-        return this.createSnapArray[this.createSnap];
+        return this.createSnapArray[this.createSnap || 0];
     }
 
     public get currentTurnSnap(): SnapValue {
-        return this.turnSnapArray[this._turnSnap];
+        return this.turnSnapArray[this._turnSnap || 0];
     }
 
     public get currentGridSnapIndex(): number {
-        return this.gridSnap;
+        return this.gridSnap || 0;
     }
 
     public set currentTurnSnapIndex(val: number) {
@@ -123,7 +123,7 @@ export class AppConfig {
     }
 
     public get currentCreateSnapIndex(): number {
-        return this.createSnap;
+        return this.createSnap || 0;
     }
 
     public set currentCreateSnapIndex(val: number) {
@@ -136,7 +136,7 @@ export class AppConfig {
     }
 
     public get currentRotateSnapIndex(): number {
-        return this.rotateSnap;
+        return this.rotateSnap || 0;
     }
 
     public set currentRotateSnapIndex(val: number) {
@@ -218,6 +218,9 @@ export class AppConfig {
                 this._physicsEnabled = config.physicsEnabled;
                 this.logger.debug("Physics enabled changed to " + this._physicsEnabled);
             }
+            if (config.demoCompleted) {
+                this._demoCompleted = config.demoCompleted;
+            }
             if (config.createSnap != this.currentCreateSnap.value ||
                 config.gridSnap != this.currentGridSnap.value ||
                 config.rotateSnap != this.currentRotateSnap.value) {
@@ -227,7 +230,13 @@ export class AppConfig {
                     this._turnSnap = 0;
                 }
                 this.rotateSnap = this.rotateSnapArray.findIndex((snap) => snap.value == config.rotateSnap);
+                if (!this.rotateSnap || this.rotateSnap == -1) {
+                    this.rotateSnap = 0;
+                }
                 this.createSnap = this.createSnapArray.findIndex((snap) => snap.value == config.createSnap);
+                if (!this.createSnap || this.createSnap == -1) {
+                    this.createSnap = 0;
+                }
                 const gridSnap = this.gridSnapArray.findIndex((snap) => snap.value == config.gridSnap);
                 if (gridSnap == -1) {
                     this.gridSnap = this.defaultGridSnapIndex;

@@ -51,6 +51,7 @@ export class App {
     }
 
     async initialize(canvas) {
+        const config = AppConfig.config;
 
         const logger = log.getLogger('App');
         const engine = new Engine(canvas, true);
@@ -101,9 +102,14 @@ export class App {
                 const persistenceManager = new module.IndexdbPersistenceManager("diagram");
                 diagramManager.setPersistenceManager(persistenceManager);
                 AppConfig.config.setPersistenceManager(persistenceManager);
-                persistenceManager.initialize();
-                const intro = new Introduction(scene);
-                intro.start();
+                persistenceManager.initialize().then(() => {
+                    if (!AppConfig.config?.demoCompleted) {
+                        const intro = new Introduction(scene);
+                        intro.start();
+                    }
+                });
+
+
                 //const newRelicData = new NewRelicData(persistenceManager, scene);
 
             });
@@ -141,10 +147,10 @@ export class App {
          */
         window.addEventListener("keydown", (ev) => {
             if (ev.key == "z") {
-                voiceManager.startRecording();
+                //voiceManager.startRecording();
             }
             if (ev.key == "x") {
-                voiceManager.stopRecording();
+                //voiceManager.stopRecording();
             }
             if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
                 import("@babylonjs/core/Debug/debugLayer").then(() => {
@@ -161,6 +167,7 @@ export class App {
 
 
         logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
+
 
         engine.runRenderLoop(() => {
             scene.render();

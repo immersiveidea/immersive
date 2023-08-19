@@ -102,6 +102,7 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
         if (config) {
             this.logger.debug('initialize config', config);
             this.configObserver.notifyObservers(config);
+
             if (config.currentDiagramId) {
                 this.logger.debug('initialize currentDiagramId', config.currentDiagramId);
                 const currentDiagram = await this.db['diagramlisting'].get(config.currentDiagramId);
@@ -114,6 +115,19 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
             } else {
                 this.logger.warn('no currentDiagramId, using default');
             }
+        } else {
+
+            this.configObserver.notifyObservers(
+                {
+                    id: 1,
+                    demoCompleted: false,
+                    gridSnap: 1,
+                    rotateSnap: 0,
+                    createSnap: 0,
+                    turnSnap: 0,
+                    currentDiagramId: null
+                }
+            );
         }
         this.getFilteredEntities().each((e) => {
             e.position = this.xyztovec(e.position);

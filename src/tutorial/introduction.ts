@@ -1,5 +1,6 @@
 import {
     AbstractMesh,
+    Color3,
     DynamicTexture,
     MeshBuilder,
     PhysicsAggregate,
@@ -13,6 +14,7 @@ import {
 import {Button3D, GUI3DManager, TextBlock} from "@babylonjs/gui";
 import {DiaSounds} from "../util/diaSounds";
 import {AppConfig} from "../util/appConfig";
+import Hls from "hls.js";
 
 
 export class Introduction {
@@ -51,19 +53,42 @@ export class Introduction {
         });
     }
 
-    buildVideo(url: string, size: number, position: Vector3): AbstractMesh {
-        const texture = new VideoTexture("video", url, this.scene, true);
-        const mesh = this.makeObject("video", position, size);
-        mesh.material = new StandardMaterial("video_material", this.scene);
-        (mesh.material as StandardMaterial).diffuseTexture = texture;
-        texture.update();
+    buildVideo(src: string, size: number, position: Vector3): AbstractMesh {
+        const vid = document.createElement("video");
+        vid.setAttribute('autoplay', 'true');
+        vid.setAttribute('playsinline', 'true');
+
+
+        vid.setAttribute('src', src);
+        const texture = new VideoTexture("video", vid, this.scene, true);
+
+        const mesh = this.makeObject("video", position, size, 16 / 9);
+        const material = new StandardMaterial("video_material", this.scene);
+
+        material.diffuseTexture = texture;
+        material.diffuseColor = new Color3(1, 1, 1);
+        material.emissiveColor = new Color3(1, 1, 1);
+        mesh.material = material;
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(src);
+            hls.attachMedia(vid);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                vid.play();
+            });
+        } else if (vid.canPlayType('application/vnd.apple.mpegurl')) {
+            vid.src = src;
+            vid.addEventListener('loadedmetadata', function () {
+                vid.play();
+            });
+        }
         return mesh;
     }
 
-    makeObject(text: string, position: Vector3, size: number): AbstractMesh {
+    makeObject(text: string, position: Vector3, size: number, ratio: number = 2): AbstractMesh {
         const welcome = MeshBuilder.CreateTiledBox(text + "_box", {width: 1, height: 1, depth: 1}, this.scene);
         welcome.position = position;
-        welcome.scaling = new Vector3(size, size / 2, size);
+        welcome.scaling = new Vector3(size, size / ratio, size);
 
         const aggregate = new PhysicsAggregate(welcome, PhysicsShapeType.BOX, {
             friction: 1,
@@ -88,7 +113,7 @@ export class Introduction {
         }, this.scene, true);
         texture.drawText(text, null, null, "bold 128px Arial", "white", "#00f", true, true);
         mesh.material = new StandardMaterial(text + "_material", this.scene);
-        mesh.material.alpha = .9;
+        mesh.material.alpha = 1;
         (mesh.material as StandardMaterial).diffuseTexture = texture;
         texture.update();
         return mesh;
@@ -117,7 +142,9 @@ export class Introduction {
                 this.current = this.items.slice(-1);
                 break;
             case 3:
-                this.items.push(this.buildVideo("A quick video", 5, new Vector3(0, 8, 5)));
+
+                const src = 'https://customer-l4pyjzbav11fzy04.cloudflarestream.com/8b906146c75bb5d81e03d199707ed0e9/manifest/video.m3u8'
+                this.items.push(this.buildVideo(src, 7, new Vector3(0, 15, 6)));
                 this.current = this.items.slice(-1);
                 break;
             case 4:
