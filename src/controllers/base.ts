@@ -32,6 +32,7 @@ export class Base {
     private logger: log.Logger;
     private lastPosition: Vector3 = null;
     protected controllers: Controllers;
+
     constructor(controller: WebXRInputSource,
                 scene: Scene,
                 xr: WebXRDefaultExperience,
@@ -40,10 +41,7 @@ export class Base {
         this.logger = log.getLogger('Base');
         this.controller = controller;
         this.controllers = controllers;
-
         this.scene = scene;
-
-
         this.scene.onBeforeRenderObservable.add(() => {
             if (this?.grabbedMesh?.physicsBody) {
                 const hk = (this.scene.getPhysicsEngine().getPhysicsPlugin() as HavokPlugin);
@@ -55,7 +53,6 @@ export class Base {
                         hk.sync(this.grabbedMesh.physicsBody);
                     } else {
                         this.logger.error("parent not found for " + this.grabbedMeshParentId);
-
                     }
 
                 } else {
@@ -68,14 +65,6 @@ export class Base {
         this.diagramManager = diagramManager;
 
         this.controller.onMotionControllerInitObservable.add((init) => {
-            if (init.components['xr-standard-trigger']) {
-                init.components['xr-standard-trigger']
-                    .onButtonStateChangedObservable
-                    .add(() => {
-
-                    });
-            }
-
             if (init.components['xr-standard-squeeze']) {
                 this.initGrip(init.components['xr-standard-squeeze'])
             }
@@ -87,7 +76,7 @@ export class Base {
                     this.controller?.motionController?.pulse(.25, 30);
                 }
             }
-        })
+        });
     }
 
     public disable() {
@@ -99,6 +88,7 @@ export class Base {
         this.controller.motionController.rootMesh.setEnabled(true);
         this.controller.pointer.setEnabled(true);
     }
+
     private setupTransformNode(mesh: TransformNode) {
         const transformNode = new TransformNode("grabAnchor, this.scene");
         transformNode.id = "grabAnchor";
@@ -122,10 +112,8 @@ export class Base {
                 mesh && mesh.setParent(this.controller.motionController.rootMesh);
                 this.grabbedMesh = mesh;
             } else {
-
                 return;
             }
-
         } else {
             if (template == '#connection-template') {
                 return;
@@ -216,8 +204,8 @@ export class Base {
 
         this.reparent(mesh);
         if (!mesh.physicsBody) {
-            mesh.position = this.diagramManager.config.snapGridVal(mesh.position);
-            mesh.rotation = this.diagramManager.config.snapRotateVal(mesh.rotation);
+            mesh.position = this.diagramManager.config.snapGridVal(mesh.position, this.diagramManager.config.current.gridSnap);
+            mesh.rotation = this.diagramManager.config.snapRotateVal(mesh.rotation, this.diagramManager.config.current.rotateSnap);
         }
         this.previousParentId = null;
         this.previousScaling = null;
@@ -258,5 +246,4 @@ export class Base {
             }
         });
     }
-
 }
