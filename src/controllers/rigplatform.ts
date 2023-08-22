@@ -107,11 +107,11 @@ export class Rigplatform {
             new PhysicsAggregate(
                 this.rigMesh,
                 PhysicsShapeType.CYLINDER,
-                {friction: 1, center: Vector3.Zero(), radius: .5, mass: 10, restitution: .01},
+                {friction: 0, center: Vector3.Zero(), radius: .5, mass: 10, restitution: .01},
                 scene);
 
         rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
-        rigAggregate.body.setGravityFactor(.001);
+        rigAggregate.body.setGravityFactor(.02);
         this.fixRotation();
         this.body = rigAggregate.body;
 
@@ -191,7 +191,7 @@ export class Rigplatform {
         });
     }
     private fixRotation() {
-        this.scene.registerBeforeRender(() => {
+        this.scene.onAfterPhysicsObservable.add(() => {
             if (AppConfig?.config?.currentTurnSnap?.value > 0) {
                 const q = this.rigMesh.rotationQuaternion;
                 this.body.setAngularVelocity(Vector3.Zero());
@@ -203,7 +203,6 @@ export class Rigplatform {
             } else {
                 this.body.setAngularVelocity(Vector3.Up().scale(this.turnVelocity));
             }
-
-        });
+        }, -1, false, this, false);
     }
 }

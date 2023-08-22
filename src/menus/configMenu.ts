@@ -8,12 +8,14 @@ import {DiaSounds} from "../util/diaSounds";
 import {BaseMenu} from "./baseMenu";
 
 export class ConfigMenu extends BaseMenu {
+    private sounds: DiaSounds;
     private configPlane: AbstractMesh = null;
 
     private yObserver;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {
         super(scene, xr, controllers);
+        this.sounds = new DiaSounds(scene);
         if (!this.yObserver) {
             this.controllers.controllerObserver.add((event) => {
                 if (event.type == 'y-button') {
@@ -26,12 +28,12 @@ export class ConfigMenu extends BaseMenu {
 
     public toggle() {
         if (this.configPlane) {
-            DiaSounds.instance.exit.play();
+            this.sounds.exit.play();
             this.configPlane.dispose();
             this.configPlane = null;
             return;
         }
-        DiaSounds.instance.enter.play();
+        this.sounds.enter.play();
         const width = .25;
         const height = .75;
         const res = 256;

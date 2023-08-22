@@ -28,6 +28,7 @@ export class DiagramManager {
     private persistenceManager: IPersistenceManager = null;
     private readonly scene: Scene;
     private xr: WebXRExperienceHelper;
+    private sounds: DiaSounds;
 
 
     public setPersistenceManager(persistenceManager: IPersistenceManager) {
@@ -48,12 +49,13 @@ export class DiagramManager {
     private controllers: Controllers;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {
+        this.sounds = new DiaSounds(scene);
         this.scene = scene;
         this.xr = xr;
         this.controllers = controllers;
         this.actionManager = new ActionManager(this.scene);
         this.actionManager.registerAction(
-            new PlaySoundAction(ActionManager.OnPointerOverTrigger, DiaSounds.instance.tick));
+            new PlaySoundAction(ActionManager.OnPointerOverTrigger, this.sounds.tick));
         this.actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, (evt) => {
                 this.controllers.controllerObserver.notifyObservers({
@@ -106,7 +108,7 @@ export class DiagramManager {
         newMesh.material = mesh.material;
 
         newMesh.metadata = this.deepCopy(mesh.metadata);
-        DiagramShapePhysics.applyPhysics(newMesh, this.scene);
+        DiagramShapePhysics.applyPhysics(this.sounds, newMesh, this.scene);
         this.persistenceManager.add(newMesh);
         return newMesh;
     }
@@ -143,7 +145,7 @@ export class DiagramManager {
         if (event.parent) {
             mesh.parent = this.scene.getMeshById(event.parent);
         }
-        DiagramShapePhysics.applyPhysics(mesh, this.scene, PhysicsMotionType.DYNAMIC);
+        DiagramShapePhysics.applyPhysics(this.sounds, mesh, this.scene, PhysicsMotionType.DYNAMIC);
     }
 
     private onDiagramEvent(event: DiagramEvent) {
@@ -165,7 +167,7 @@ export class DiagramManager {
             mesh = MeshConverter.fromDiagramEntity(event.entity, this.scene);
             if (mesh) {
                 mesh.actionManager = this.actionManager;
-                DiagramShapePhysics.applyPhysics(mesh, this.scene, PhysicsMotionType.DYNAMIC);
+                DiagramShapePhysics.applyPhysics(this.sounds, mesh, this.scene, PhysicsMotionType.DYNAMIC);
             }
 
         }
@@ -188,12 +190,12 @@ export class DiagramManager {
                     mesh.actionManager = this.actionManager;
                 }
                 DiagramShapePhysics
-                    .applyPhysics(mesh, this.scene);
+                    .applyPhysics(this.sounds, mesh, this.scene);
                 break;
             case DiagramEventType.MODIFY:
                 this.getPersistenceManager()?.modify(mesh);
                 DiagramShapePhysics
-                    .applyPhysics(mesh, this.scene);
+                    .applyPhysics(this.sounds, mesh, this.scene);
                 break;
             case DiagramEventType.CHANGECOLOR:
                 if (!event.oldColor) {
@@ -219,7 +221,7 @@ export class DiagramManager {
                     this.getPersistenceManager()?.remove(mesh)
                     mesh?.physicsBody?.dispose();
                     mesh.dispose();
-                    DiaSounds.instance.exit.play();
+                    this.sounds.exit.play();
 
                 }
                 break;
@@ -231,7 +233,7 @@ export class DiagramManager {
 class DiagramShapePhysics {
     private static logger: log.Logger = log.getLogger('DiagramShapePhysics');
 
-    public static applyPhysics(mesh: AbstractMesh, scene: Scene, motionType?: PhysicsMotionType) {
+    public static applyPhysics(sounds: DiaSounds, mesh: AbstractMesh, scene: Scene, motionType?: PhysicsMotionType) {
         if (!AppConfig.config.physicsEnabled) {
             return;
         }
@@ -285,10 +287,13 @@ class DiagramShapePhysics {
             }
         }
         body.setCollisionCallbackEnabled(true);
-        body.getCollisionObservable().add((event, state) => {
-            if (event.distance > .001 && !DiaSounds.instance.low.isPlaying) {
-                this.logger.debug(event, state);
-                DiaSounds.instance.low.play();
+        body.getCollisionObservable().add((event) => {
+
+            if (event.impulse < 10 && event.impulse > 1) {
+                const sound = sounds.bounce;
+                sound.setVolume(event.impulse / 10);
+                sound.attachToMesh(mesh);
+                sound.play();
             }
         }, -1, false, this);
         //body.setMotionType(PhysicsMotionType.ANIMATED);

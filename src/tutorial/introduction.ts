@@ -25,12 +25,14 @@ export class Introduction {
     private step: number = 0;
     private items: AbstractMesh[] = [];
     private advance: Button3D;
+    private sounds: DiaSounds;
+
     constructor(scene: Scene) {
+        this.sounds = new DiaSounds(scene);
         this.scene = scene;
         this.manager = new GUI3DManager(scene);
         this.physicsHelper = new PhysicsHelper(scene);
     }
-
     public start() {
         this.scene.physicsEnabled = true;
         this.advance = new Button3D("advance");
@@ -96,8 +98,19 @@ export class Introduction {
             restitution: .1
         }, this.scene);
         aggregate.body.getCollisionObservable().add((collider) => {
-            if (collider.impulse > .4) {
-                DiaSounds.instance.low.play();
+            if (collider.impulse < .5) {
+                return;
+            }
+            let volume = 0;
+            const sound = this.sounds.bounce;
+            if (collider.impulse > 1 && collider.impulse < 10) {
+                volume = collider.impulse / 10;
+            }
+            if (volume > 0) {
+                sound.attachToMesh(aggregate.body.transformNode);
+                sound.updateOptions({offset: 0, volume: volume, length: .990});
+                console.log(volume);
+                sound.play();
             }
         });
         aggregate.body.setCollisionCallbackEnabled(true);

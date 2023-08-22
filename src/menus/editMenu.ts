@@ -37,6 +37,7 @@ export class EditMenu {
     private connection: DiagramConnection = null;
     private panel: PlanePanel;
     private buttonMaterial: StandardMaterial;
+    private sounds: DiaSounds;
 
     private get isVisible(): boolean {
         return this.panel.isVisible;
@@ -49,37 +50,10 @@ export class EditMenu {
         });
     }
 
-    toggle() {
-        if (this.isVisible) {
-            DiaSounds.instance.exit.play();
-            this.isVisible = false;
-
-        } else {
-            DiaSounds.instance.enter.play();
-            CameraHelper.setMenuPosition(this.manager.rootContainer.children[0].node, this.scene);
-            this.isVisible = true;
-        }
-    }
-    private getTool(template: string, color: Color3): Mesh {
-        const baseMeshId = 'tool-' + template + '-' + color.toHexString();
-        return (this.scene.getMeshById(baseMeshId) as Mesh);
-    }
-
-    private persist(mesh: AbstractMesh, text: string) {
-        if (mesh.metadata) {
-            mesh.metadata.text = text;
-        } else {
-            this.logger.error("mesh has no metadata");
-        }
-        this.diagramManager.onDiagramEventObservable.notifyObservers({
-            type: DiagramEventType.MODIFY,
-            entity: MeshConverter.toDiagramEntity(mesh),
-        });
-    }
-
     constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
         this.scene = scene;
         this.xr = xr;
+        this.sounds = new DiaSounds(scene);
         this.diagramManager = diagramManager;
         this.gizmoManager = new GizmoManager(scene);
         this.gizmoManager.boundingBoxGizmoEnabled = true;
@@ -131,6 +105,34 @@ export class EditMenu {
         });
         this.panel = panel;
         this.isVisible = false;
+    }
+    private getTool(template: string, color: Color3): Mesh {
+        const baseMeshId = 'tool-' + template + '-' + color.toHexString();
+        return (this.scene.getMeshById(baseMeshId) as Mesh);
+    }
+
+    private persist(mesh: AbstractMesh, text: string) {
+        if (mesh.metadata) {
+            mesh.metadata.text = text;
+        } else {
+            this.logger.error("mesh has no metadata");
+        }
+        this.diagramManager.onDiagramEventObservable.notifyObservers({
+            type: DiagramEventType.MODIFY,
+            entity: MeshConverter.toDiagramEntity(mesh),
+        });
+    }
+
+    toggle() {
+        if (this.isVisible) {
+            this.sounds.exit.play();
+            this.isVisible = false;
+
+        } else {
+            this.sounds.enter.play();
+            CameraHelper.setMenuPosition(this.manager.rootContainer.children[0].node, this.scene);
+            this.isVisible = true;
+        }
     }
 
     makeButton(name: string, id: string) {
@@ -296,7 +298,7 @@ export class EditMenu {
                 this.showNewRelic();
                 break;
             case "export":
-                GLTF2Export.GLTFAsync(this.scene, 'diagram.gltf', {
+                GLTF2Export.GLBAsync(this.scene, 'diagram.glb', {
                     shouldExportNode: function (node) {
                         if (node?.metadata?.template) {
                             return true;
