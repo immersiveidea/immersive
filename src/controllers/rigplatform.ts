@@ -20,7 +20,6 @@ import {EditMenu} from "../menus/editMenu";
 import {Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
-import {AppConfig} from "../util/appConfig";
 
 
 export class Rigplatform {
@@ -62,9 +61,9 @@ export class Rigplatform {
         this.velocity.y = (val * this.velocityArray[this.velocityIndex])*-1;
     }
     public turn(val: number) {
-        const snap = AppConfig.config.currentTurnSnap.value;
+        const snap = this.diagramManager.config.current?.turnSnap;
 
-        if (snap > 0) {
+        if (snap && snap > 0) {
             if (!this.turning) {
                 if (Math.abs(val) > .1) {
                     this.turning = true;
@@ -192,7 +191,9 @@ export class Rigplatform {
     }
     private fixRotation() {
         this.scene.onAfterPhysicsObservable.add(() => {
-            if (AppConfig?.config?.currentTurnSnap?.value > 0) {
+            const turnSnap = this.diagramManager.config.current?.turnSnap;
+
+            if (turnSnap && turnSnap > 0) {
                 const q = this.rigMesh.rotationQuaternion;
                 this.body.setAngularVelocity(Vector3.Zero());
                 if (q) {

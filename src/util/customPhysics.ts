@@ -4,9 +4,11 @@ import {AppConfig} from "./appConfig";
 
 export class CustomPhysics {
     private scene: Scene;
+    private config: AppConfig;
 
-    constructor(scene: Scene) {
+    constructor(scene: Scene, config: AppConfig) {
         this.scene = scene;
+        this.config = config;
     }
 
     public async initializeAsync() {
@@ -24,10 +26,10 @@ export class CustomPhysics {
                         if (true) {
                             body.disablePreStep = false;
                             const pos: Vector3 = body.getObjectCenterWorld();
-                            const val: Vector3 = AppConfig.config.snapGridVal(pos);
+                            const val: Vector3 = this.config.snapGridVal(pos);
                             body.transformNode.position.set(val.x, val.y, val.z);
                             const rot: Quaternion =
-                                Quaternion.FromEulerVector(AppConfig.config.snapRotateVal(body.transformNode.rotationQuaternion.toEulerAngles()))
+                                Quaternion.FromEulerVector(this.config.snapRotateVal(body.transformNode.rotationQuaternion.toEulerAngles()))
 
                             body.transformNode.rotationQuaternion.set(
                                 rot.x, rot.y, rot.z, rot.w

@@ -23,7 +23,6 @@ import {CameraHelper} from "../util/cameraHelper";
 import {TextLabel} from "../diagram/textLabel";
 import {DiagramConnection} from "../diagram/diagramConnection";
 import {GLTF2Export} from "@babylonjs/serializers";
-import {AppConfig} from "../util/appConfig";
 
 export class EditMenu {
     private state: EditMenuState = EditMenuState.NONE;
@@ -263,11 +262,15 @@ export class EditMenu {
         inputTextView.show();
         inputTextView.onTextObservable.addOnce((value) => {
             console.log(value.text);
-            AppConfig.config.newRelicKey = value.text;
+            const config = this.diagramManager.config.current;
+            config.newRelicKey = value.text;
+            this.diagramManager.config.current = config;
             inputTextView.show();
             inputTextView.onTextObservable.addOnce((value) => {
                 console.log(value.text);
-                AppConfig.config.newRelicAccount = value.text;
+                const config = this.diagramManager.config.current;
+                config.newRelicAccount = value.text;
+                this.diagramManager.config.current = config;
             });
         });
 

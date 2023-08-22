@@ -8,30 +8,14 @@ export class DiaSounds {
     public get tick() {
         return new Sound("tick", '/assets/sounds/tick.mp3', this.scene);
     }
+
     private volume: number = 0.8;
-    private readonly _bounce;
+    private readonly _bounce: Sound;
+    private readonly _background: Sound;
     private readonly _enter: Sound;
 
     public get enter() {
         return this._enter;
-    }
-
-    private readonly _exit: Sound;
-
-    public get exit() {
-        return this._exit;
-    }
-
-    private readonly _high: Sound;
-
-    public get high() {
-        return this._high;
-    }
-
-    private readonly _low: Sound;
-
-    public get low() {
-        return this._low;
     }
 
     constructor(scene: Scene) {
@@ -72,13 +56,60 @@ export class DiaSounds {
             offset: 0,
             length: 0.990
         });
-
-
-        this._birds = new Sound("birds", "/assets/sounds/birds.mp3", this.scene, null, {
-            autoplay: true,
+        this._background = new Sound("brown", "/assets/sounds/brown.mp3", this.scene, null, {
+            autoplay: false,
+            volume: 1,
             loop: true
         });
+        this._birds = new Sound("warbler", "/assets/sounds/warbler.mp3", this.scene, null, {
+            spatialSound: true,
+            autoplay: false,
+            volume: .5,
+            loop: false
+        });
+        this.birds.switchPanningModelToHRTF();
+        this.birds.maxDistance = 40;
+        this._dove = new Sound("dove", "/assets/sounds/dove.mp3", this.scene, null, {
+            spatialSound: true,
+            autoplay: false,
+            volume: .5,
+            loop: false
+        });
+        this._dove.switchPanningModelToHRTF();
+        this._dove.maxDistance = 40;
+
         //this._enter.autoplay = true;
+    }
+
+    public get background(): Sound {
+        return this._background;
+    }
+
+    private readonly _exit: Sound;
+
+    public get exit() {
+        return this._exit;
+    }
+
+    private readonly _high: Sound;
+
+    public get high() {
+        return this._high;
+    }
+
+    private readonly _low: Sound;
+
+    public get low() {
+        return this._low;
+    }
+
+    public get birds(): Sound {
+        return this._birds;
+    }
+
+    _dove: Sound;
+    public get dove() {
+        return this._dove;
     }
 
     public get bounce() {

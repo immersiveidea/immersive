@@ -17,24 +17,15 @@ import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {Controllers} from "./controllers/controllers";
 import {Introduction} from "./tutorial/introduction";
+import {IndexdbPersistenceManager} from "./integration/indexdbPersistenceManager";
 
 
 export class App {
     //preTasks = [havokModule];
     constructor() {
-        const config = AppConfig.config;
-        const logger = log.getLogger('App');
-        //log.enableAll(true);
-        log.setDefaultLevel('info');
 
-        //log.getLogger('App').setLevel('info');
-        //log.getLogger('IndexdbPersistenceManager').setLevel('info');
-        //log.getLogger('DiagramManager').setLevel('info');
-        //log.getLogger('DiagramConnection').setLevel('debug');
-        //log.getLogger('DrawioManager').setLevel('warn');
-        //log.getLogger('VoiceManager').setLevel('debug');
-        //log.getLogger('EntityTree').setLevel('warn');
-        //log.getLogger('EditMenu').setLevel('warn');
+        const logger = log.getLogger('App');
+        log.setDefaultLevel('debug');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -51,12 +42,23 @@ export class App {
     }
 
     async initialize(canvas) {
-        const config = AppConfig.config;
-
         const logger = log.getLogger('App');
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
-        const environment = new CustomEnvironment(scene);
+
+        const persistenceManager = new IndexdbPersistenceManager("diagram");
+        const controllers = new Controllers();
+        const toolbox = new Toolbox(scene, controllers);
+        const diagramManager = new DiagramManager(scene, controllers, toolbox);
+        diagramManager.setPersistenceManager(persistenceManager);
+        const config = new AppConfig(persistenceManager);
+        const environment = new CustomEnvironment(scene, "default", config);
+        persistenceManager.initialize().then(() => {
+            if (!config.current?.demoCompleted) {
+                const intro = new Introduction(scene, config);
+                intro.start();
+            }
+        });
 
 
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 4,
@@ -92,27 +94,14 @@ export class App {
 
                 }
             });
-            const controllers = new Controllers();
-            const diagramManager = new DiagramManager(scene, xr.baseExperience, controllers);
+
             const rig = new Rigplatform(scene, xr, diagramManager, controllers);
-            const toolbox = new Toolbox(scene, xr.baseExperience, diagramManager, controllers);
+
 
             //const dioManager = new DrawioManager(scene, diagramManager);
-            import ('./integration/indexdbPersistenceManager').then((module) => {
-                const persistenceManager = new module.IndexdbPersistenceManager("diagram");
-                diagramManager.setPersistenceManager(persistenceManager);
-                AppConfig.config.setPersistenceManager(persistenceManager);
-                persistenceManager.initialize().then(() => {
-                    if (!AppConfig.config?.demoCompleted) {
-                        const intro = new Introduction(scene);
-                        intro.start();
-                    }
-                });
+            //const newRelicData = new NewRelicData(persistenceManager, scene);
 
 
-                //const newRelicData = new NewRelicData(persistenceManager, scene);
-
-            });
         });
 
 

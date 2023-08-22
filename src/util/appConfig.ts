@@ -1,4 +1,4 @@
-import {Angle, Vector3} from "@babylonjs/core";
+import {Angle, Observable, Vector3} from "@babylonjs/core";
 import log from "loglevel";
 import round from "round";
 import {IPersistenceManager} from "../integration/iPersistenceManager";
@@ -9,244 +9,84 @@ export type SnapValue = {
     label: string
 }
 
-
 export class AppConfig {
     private readonly logger = log.getLogger('AppConfig');
-    private _demoCompleted = false;
-    private gridSnap = 1;
-    private _turnSnap = 0;
-    private rotateSnap = 0;
-    private createSnap = 0;
-    private _newRelicKey: string = null;
+    public readonly onConfigChangedObservable = new Observable<AppConfigType>();
+    private _currentConfig: AppConfigType;
+    private persistenceManager: IPersistenceManager;
 
-    public get newRelicKey(): string {
-        return this._newRelicKey;
-    }
-
-    _physicsEnabled = false;
-    private readonly defaultGridSnapIndex = 1;
-    private persistenceManager: IPersistenceManager = null;
-    private gridSnapArray: SnapValue[] =
-        [{value: 0, label: "Off"},
-            {value: 0.05, label: "(Default)"},
-            {value: 0.01, label: "1 cm"},
-            {value: 0.1, label: "10 cm"},
-            {value: 0.25, label: "25 cm"},
-            {value: .5, label: ".5 m"}]
-    private createSnapArray: SnapValue[] =
-        [{value: .1, label: "Default (10 cm)"},
-            {value: 0.2, label: "20 cm"},
-            {value: 0.5, label: ".5 m"},
-            {value: 1, label: "1 m"}];
-    private rotateSnapArray: SnapValue[] =
-        [{value: 0, label: "Off"},
-            {value: 22.5, label: "22.5 Degrees"},
-            {value: 45, label: "45 Degrees"},
-            {value: 90, label: "90 Degrees"}];
-    private turnSnapArray: SnapValue[] =
-        [{value: 0, label: "Off"},
-            {value: 22.5, label: "22.5 Degrees"},
-            {value: 45, label: "45 Degrees"},
-            {value: 90, label: "90 Degrees"}];
-
-    public get currentGridSnap(): SnapValue {
-        return this.gridSnapArray[this.gridSnap || 0];
-    }
-
-    public get demoCompleted(): boolean {
-        return this._demoCompleted || false;
-    }
-
-    public set demoCompleted(val: boolean) {
-        this._demoCompleted = val;
-        this.save();
-    }
-
-    public set newRelicKey(val: string) {
-        this._newRelicKey = val;
-        this.save();
-    }
-
-    private _newRelicAccount: string = null;
-
-    public get newRelicAccount(): string {
-        return this._newRelicAccount;
-    }
-
-    public set newRelicAccount(val: string) {
-        this._newRelicAccount = val;
-        this.save();
-    }
-
-    public get physicsEnabled(): boolean {
-        return this._physicsEnabled || false;
-    }
-
-    public set phsyicsEnabled(val: boolean) {
-        this._physicsEnabled = val;
-        this.save();
-    }
-
-    private static _config: AppConfig;
-
-    public static get config() {
-        if (!AppConfig._config) {
-            AppConfig._config = new AppConfig();
-        }
-        return AppConfig._config;
-    }
-
-    public get currentRotateSnap(): SnapValue {
-        return this.rotateSnapArray[this.rotateSnap || 0];
-    }
-
-    public get currentCreateSnap(): SnapValue {
-        return this.createSnapArray[this.createSnap || 0];
-    }
-
-    public get currentTurnSnap(): SnapValue {
-        return this.turnSnapArray[this._turnSnap || 0];
-    }
-
-    public get currentGridSnapIndex(): number {
-        return this.gridSnap || 0;
-    }
-
-    public set currentTurnSnapIndex(val: number) {
-        this._turnSnap = val;
-        this.save();
-    }
-
-    public set currentGridSnapIndex(val: number) {
-        this.gridSnap = val;
-        this.save();
-    }
-
-    public get currentCreateSnapIndex(): number {
-        return this.createSnap || 0;
-    }
-
-    public set currentCreateSnapIndex(val: number) {
-        this.createSnap = val;
-        if (this.currentGridSnapIndex == this.defaultGridSnapIndex) {
-            this.currentGridSnap.value = this.currentCreateSnap.value / 2;
-            this.logger.debug("Set grid snap to " + this.currentGridSnap.value);
-        }
-        this.save();
-    }
-
-    public get currentRotateSnapIndex(): number {
-        return this.rotateSnap || 0;
-    }
-
-    public set currentRotateSnapIndex(val: number) {
-        this.rotateSnap = val;
-        this.save();
-    }
-
-    public get createSnapVal(): Vector3 {
-        return new Vector3(this.currentCreateSnap.value, this.currentCreateSnap.value, this.currentCreateSnap.value);
-    }
-
-    public setPersistenceManager(persistenceManager: IPersistenceManager) {
+    constructor(persistenceManager: IPersistenceManager) {
         this.persistenceManager = persistenceManager;
-        this.persistenceManager.configObserver.add(this.configObserver, -1, false, this);
+        this.persistenceManager.configObserver.add(this.load, -1, false, this, false);
     }
 
-    public gridSnaps(): SnapValue[] {
-        return this.gridSnapArray;
+    public get current(): AppConfigType {
+        if (!this._currentConfig) {
+            this.persistenceManager.getConfig().then((config) => {
+                if (!config) {
+                    const newconfig = {
+                        id: 1,
+                        gridSnap: .1,
+                        rotateSnap: 45,
+                        createSnap: .1,
+                        turnSnap: 22.5,
+                        newRelicKey: null,
+                        newRelicAccount: null,
+                        physicsEnabled: false,
+                        demoCompleted: false,
+                    }
+                    this._currentConfig = newconfig;
+                    this.save();
+                } else {
+                    this._currentConfig = config;
+                }
+
+            });
+        }
+        return this._currentConfig;
     }
 
-    public turnSnaps(): SnapValue[] {
-        return this.turnSnapArray;
+    public set current(config: AppConfigType) {
+        this._currentConfig = config;
+        this.save();
     }
 
-    public createSnaps(): SnapValue[] {
-        return this.createSnapArray;
+    public save() {
+        this.persistenceManager.setConfig(this._currentConfig);
     }
 
-    public rotateSnaps(): SnapValue[] {
-        return this.rotateSnapArray;
+    public load(config: AppConfigType) {
+        this._currentConfig = config;
+        this.onConfigChangedObservable.notifyObservers(this._currentConfig);
     }
 
-    public snapGridVal(value: Vector3): Vector3 {
-        if (this.currentGridSnapIndex == 0) {
+    public snapGridVal(value: Vector3, snap: number): Vector3 {
+        if (!snap) {
             return value;
         }
         const position = value.clone();
-        position.x = round(position.x, this.currentGridSnap.value);
-        position.y = round(position.y, this.currentGridSnap.value);
-        position.z = round(position.z, this.currentGridSnap.value);
+        position.x = round(value.x, snap);
+        position.y = round(value.y, snap);
+        position.z = round(value.z, snap);
         return position;
     }
 
-    public snapRotateVal(value: Vector3): Vector3 {
-        if (this.currentRotateSnapIndex == 0) {
+    public snapRotateVal(value: Vector3, snap: number): Vector3 {
+        if (!snap) {
             return value;
         }
         const rotation = new Vector3();
-        rotation.x = this.snapAngle(value.x);
-        rotation.y = this.snapAngle(value.y);
-        rotation.z = this.snapAngle(value.z);
+        rotation.x = this.snapAngle(value.x, snap);
+        rotation.y = this.snapAngle(value.y, snap);
+        rotation.z = this.snapAngle(value.z, snap);
         return rotation;
     }
 
-    private snapAngle(val: number): number {
+    private snapAngle(val: number, snap: number): number {
+        const angle = snap;
         const deg = Angle.FromRadians(val).degrees();
-        const snappedDegrees = round(deg, this.currentRotateSnap.value);
-        this.logger.debug("deg", val, deg, snappedDegrees, this.currentRotateSnap.value);
+        const snappedDegrees = round(deg, angle);
+        this.logger.debug("deg", val, deg, snappedDegrees, angle);
         return Angle.FromDegrees(snappedDegrees).radians();
-    }
-
-    private save() {
-        this.persistenceManager.setConfig(
-            {
-                gridSnap: this.currentGridSnap.value,
-                rotateSnap: this.currentRotateSnap.value,
-                createSnap: this.currentCreateSnap.value,
-                turnSnap: this.currentTurnSnap.value,
-                physicsEnabled: this._physicsEnabled,
-                newRelicKey: this._newRelicKey,
-                newRelicAccount: this._newRelicAccount,
-                demoCompleted: this._demoCompleted
-            });
-    }
-
-    private configObserver(config: AppConfigType) {
-        if (config) {
-            if (config.physicsEnabled && config.physicsEnabled != this._physicsEnabled) {
-                this._physicsEnabled = config.physicsEnabled;
-                this.logger.debug("Physics enabled changed to " + this._physicsEnabled);
-            }
-            if (config.demoCompleted) {
-                this._demoCompleted = config.demoCompleted;
-            }
-            if (config.createSnap != this.currentCreateSnap.value ||
-                config.gridSnap != this.currentGridSnap.value ||
-                config.rotateSnap != this.currentRotateSnap.value) {
-                this.logger.debug("Config changed", config);
-                this._turnSnap = this.turnSnapArray.findIndex((snap) => snap.value == config.turnSnap);
-                if (!this._turnSnap || this._turnSnap == -1) {
-                    this._turnSnap = 0;
-                }
-                this.rotateSnap = this.rotateSnapArray.findIndex((snap) => snap.value == config.rotateSnap);
-                if (!this.rotateSnap || this.rotateSnap == -1) {
-                    this.rotateSnap = 0;
-                }
-                this.createSnap = this.createSnapArray.findIndex((snap) => snap.value == config.createSnap);
-                if (!this.createSnap || this.createSnap == -1) {
-                    this.createSnap = 0;
-                }
-                const gridSnap = this.gridSnapArray.findIndex((snap) => snap.value == config.gridSnap);
-                if (gridSnap == -1) {
-                    this.gridSnap = this.defaultGridSnapIndex;
-                    this.currentGridSnap.value = config.gridSnap;
-                }
-            } else {
-                this.logger.debug("Config unchanged", config);
-            }
-        } else {
-            this.logger.debug("Config not set");
-        }
     }
 }

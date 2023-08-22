@@ -13,7 +13,7 @@ export class Left extends Base {
                     WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
 
         super(controller, scene, xr, controllers, diagramManager);
-        this.configMenu = new ConfigMenu(this.scene, xr.baseExperience, this.controllers);
+        this.configMenu = new ConfigMenu(this.scene, xr.baseExperience, this.controllers, this.diagramManager.config);
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']

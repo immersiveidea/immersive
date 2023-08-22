@@ -26,13 +26,16 @@ export class Introduction {
     private items: AbstractMesh[] = [];
     private advance: Button3D;
     private sounds: DiaSounds;
+    private config: AppConfig;
 
-    constructor(scene: Scene) {
+    constructor(scene: Scene, config: AppConfig) {
         this.sounds = new DiaSounds(scene);
         this.scene = scene;
+        this.config = config;
         this.manager = new GUI3DManager(scene);
         this.physicsHelper = new PhysicsHelper(scene);
     }
+
     public start() {
         this.scene.physicsEnabled = true;
         this.advance = new Button3D("advance");
@@ -167,7 +170,9 @@ export class Introduction {
                 });
                 this.advance.dispose();
                 this.manager.dispose();
-                AppConfig.config.demoCompleted = true;
+                const config = this.config.current;
+                config.demoCompleted = true;
+                this.config.current = config;
                 this.items = [];
         }
         this.step++;

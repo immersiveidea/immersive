@@ -43,6 +43,8 @@ export interface IPersistenceManager {
 
     setConfig(config: AppConfigType);
 
+    getConfig(): Promise<AppConfigType>;
+
     modifyDiagram(diagram: DiagramListing);
 
     updateObserver: Observable<DiagramEntity>;

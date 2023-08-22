@@ -7,21 +7,24 @@ import {
     PhysicsAggregate,
     PhysicsShapeType,
     Scene,
-    Texture
+    Sound,
+    Texture,
+    Vector3
 } from "@babylonjs/core";
 import {CustomPhysics} from "./customPhysics";
 import {DiaSounds} from "./diaSounds";
+import {AppConfig} from "./appConfig";
+
 
 export class CustomEnvironment {
     private readonly scene: Scene;
     private readonly name: string;
     private readonly _groundMeshObservable: Observable<GroundMesh> = new Observable<GroundMesh>();
 
-    constructor(scene: Scene, name: string = "default") {
+    constructor(scene: Scene, name: string = "default", config: AppConfig) {
         this.scene = scene;
         this.name = name;
-
-        const physics = new CustomPhysics(this.scene);
+        const physics = new CustomPhysics(this.scene, config);
         physics
             .initializeAsync()
             .then(() => {
@@ -32,7 +35,29 @@ export class CustomEnvironment {
             '/assets/textures/outdoor_field2.jpeg', {},
             scene);
         try {
-            new DiaSounds(scene);
+            const sounds = new DiaSounds(scene);
+            window.setTimeout((sound) => {
+                sound.play()
+            }, 2000, sounds.background);
+            const birds: Array<Sound> = [sounds.birds, sounds.dove];
+            window.setInterval((sounds: Array<Sound>) => {
+                if (Math.random() < .6) {
+                    return;
+                }
+                const sound = Math.floor(Math.random() * sounds.length);
+                const x = Math.floor(Math.random() * 20);
+                const z = Math.floor(Math.random() * 20);
+
+                const position = new Vector3(x, 0, z);
+                if (sounds[sound].isPlaying) {
+
+                } else {
+                    sounds[sound].setPosition(position);
+                    sounds[sound].setVolume(Math.random() * .5);
+                    sounds[sound].play();
+                }
+
+            }, 2000, birds);
         } catch (error) {
             console.log(error);
         }

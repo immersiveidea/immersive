@@ -12,19 +12,14 @@ export class ConfigMenu extends BaseMenu {
     private configPlane: AbstractMesh = null;
 
     private yObserver;
-
-    constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {
-        super(scene, xr, controllers);
-        this.sounds = new DiaSounds(scene);
-        if (!this.yObserver) {
-            this.controllers.controllerObserver.add((event) => {
-                if (event.type == 'y-button') {
-                    this.toggle();
-                }
-            });
-        }
-
-    }
+    private config: AppConfig;
+    private gridSnaps: Array<{ label: string, value: number }> = [
+        {label: "Off", value: 0},
+        {label: "0.01", value: 0.01},
+        {label: "0.1", value: 0.1},
+        {label: "0.5", value: 0.5},
+        {label: "1", value: 1},
+    ]
 
     public toggle() {
         if (this.configPlane) {
@@ -55,19 +50,35 @@ export class ConfigMenu extends BaseMenu {
 
         CameraHelper.setMenuPosition(this.configPlane, this.scene);
     }
+    private rotationSnaps: Array<{ label: string, value: number }> = [
+        {label: "Off", value: 0},
+        {label: "22.5", value: 22.5},
+        {label: "45", value: 45},
+        {label: "90", value: 90},
 
-    private createVal(value) {
-        AppConfig.config.currentCreateSnapIndex = value;
-        log.debug("configMenu", "create Snap", value);
+    ]
+
+    constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers, config: AppConfig) {
+        super(scene, xr, controllers);
+        this.config = config;
+        this.sounds = new DiaSounds(scene);
+        if (!this.yObserver) {
+            this.controllers.controllerObserver.add((event) => {
+                if (event.type == 'y-button') {
+                    this.toggle();
+                }
+            });
+        }
+
     }
 
     private buildCreateScaleControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Create Scale");
         selectionPanel.addGroup(radio);
 
-        for (const [index, snap] of AppConfig.config.createSnaps().entries()) {
-            const selected = AppConfig.config.currentCreateSnapIndex == index;
-            radio.addRadio(snap.label, this.createVal, selected);
+        for (const [index, snap] of this.gridSnaps.entries()) {
+            const selected = this.config.current.createSnap == snap.value
+            radio.addRadio(snap.label, this.createVal.bind(this), selected);
         }
         return radio;
     }
@@ -75,9 +86,9 @@ export class ConfigMenu extends BaseMenu {
     private buildRotationSnapControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Rotation Snap");
         selectionPanel.addGroup(radio);
-        for (const [index, snap] of AppConfig.config.rotateSnaps().entries()) {
-            const selected = AppConfig.config.currentRotateSnapIndex == index;
-            radio.addRadio(snap.label, this.rotateVal, selected);
+        for (const [index, snap] of this.rotationSnaps.entries()) {
+            const selected = this.config.current.rotateSnap == snap.value
+            radio.addRadio(snap.label, this.rotateVal.bind(this), selected);
         }
         return radio;
     }
@@ -85,9 +96,9 @@ export class ConfigMenu extends BaseMenu {
     private buildGridSizeControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Grid Snap");
         selectionPanel.addGroup(radio);
-        for (const [index, snap] of AppConfig.config.gridSnaps().entries()) {
-            const selected = AppConfig.config.currentGridSnapIndex == index;
-            radio.addRadio(snap.label, this.gridVal, selected);
+        for (const [index, snap] of this.gridSnaps.entries()) {
+            const selected = this.config.current.gridSnap == snap.value;
+            radio.addRadio(snap.label, this.gridVal.bind(this), selected);
         }
         return radio;
     }
@@ -95,25 +106,39 @@ export class ConfigMenu extends BaseMenu {
     private buildTurnSnapControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Turn Snap");
         selectionPanel.addGroup(radio);
-        for (const [index, snap] of AppConfig.config.turnSnaps().entries()) {
-            const selected = AppConfig.config.currentTurnSnapIndex == index;
-            radio.addRadio(snap.label, this.turnVal, selected);
+        for (const [index, snap] of this.rotationSnaps.entries()) {
+            const selected = this.config.current.rotateSnap == snap.value;
+            radio.addRadio(snap.label, this.turnVal.bind(this), selected);
         }
         return radio;
     }
 
+    private createVal(value) {
+        const config = this.config.current;
+        config.createSnap = this.gridSnaps[value].value;
+        this.config.current = config;
+
+        log.debug("configMenu", "create Snap", value);
+    }
+
     private rotateVal(value) {
-        AppConfig.config.currentRotateSnapIndex = value;
+        const config = this.config.current;
+        config.rotateSnap = this.rotationSnaps[value].value;
+        this.config.current = config;
         log.debug("configMenu", "rotate Snap", value);
     }
 
     private turnVal(value) {
-        AppConfig.config.currentTurnSnapIndex = value;
+        const config = this.config.current;
+        config.turnSnap = this.rotationSnaps[value].value;
+        this.config.current = config;
         log.debug("configMenu", "turn Snap", value);
     }
 
     private gridVal(value) {
-        AppConfig.config.currentGridSnapIndex = value;
+        const config = this.config.current;
+        config.gridSnap = this.gridSnaps[value].value;
+        this.config.current = config;
         log.debug("configMenu", "grid Snap", value);
     }
 

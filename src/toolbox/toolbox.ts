@@ -7,14 +7,11 @@ import {
     Scene,
     StandardMaterial,
     TransformNode,
-    Vector3,
-    WebXRExperienceHelper
+    Vector3
 } from "@babylonjs/core";
 
 import {CameraHelper} from "../util/cameraHelper";
 import {AdvancedDynamicTexture, Button3D, ColorPicker, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
-import {DiagramManager} from "../diagram/diagramManager";
-import {DiagramEventType} from "../diagram/diagramEntity";
 import {Controllers} from "../controllers/controllers";
 
 export enum ToolType {
@@ -30,24 +27,16 @@ export class Toolbox {
     private index = 0;
     public static instance: Toolbox;
     private readonly scene: Scene;
-    private readonly xr: WebXRExperienceHelper;
     public readonly node: TransformNode;
-    private readonly diagramManager: DiagramManager;
     private readonly manager: GUI3DManager;
     private readonly gridsize = 5;
     private readonly addPanel: StackPanel3D;
     private readonly controllers: Controllers;
     private xObserver;
 
-    constructor(scene: Scene, xr: WebXRExperienceHelper, diagramManager: DiagramManager, controllers: Controllers) {
+    constructor(scene: Scene, controllers: Controllers) {
         this.scene = scene;
         this.controllers = controllers;
-        this.diagramManager = diagramManager;
-        this.diagramManager.onDiagramEventObservable.add((evt) => {
-            if (evt?.entity?.color && evt.type == DiagramEventType.CHANGECOLOR) {
-                this.updateToolbox(evt.entity.color);
-            }
-        }, -1, true, this);
         this.addPanel = new StackPanel3D();
         this.manager = new GUI3DManager(scene);
         this.manager.addControl(this.addPanel);
@@ -65,12 +54,8 @@ export class Toolbox {
         handle.position = Vector3.Zero();
 
         this.node.parent = handle;
-        this.xr = xr;
-        if (!this.scene.activeCamera) {
-            return;
-        } else {
-            this.buildToolbox();
-        }
+
+        this.buildToolbox();
 
         Toolbox.instance = this;
         if (!this.xObserver) {
@@ -227,13 +212,6 @@ export class Toolbox {
             material.name = "material-" + newColorHex;
             mesh.id = "toolbox-color-" + newColorHex;
             mesh.name = "toolbox-color-" + newColorHex;
-            this.diagramManager.onDiagramEventObservable.notifyObservers(
-                {
-                    type: DiagramEventType.CHANGECOLOR,
-                    oldColor: oldColor,
-                    newColor: newColor
-                }
-            );
         });
 
         colorPickerTexture.addControl(colorPicker);

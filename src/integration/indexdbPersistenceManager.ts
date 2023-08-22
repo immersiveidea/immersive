@@ -95,6 +95,12 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
         return this.db["newRelicData"].toArray();
     }
 
+    public async getConfig(): Promise<AppConfigType> {
+        const configs = await this.db['config'].toArray();
+        const config = configs[0];
+        return config;
+    }
+
     public async initialize() {
         this.logger.info('initialize', this.db['entities'].length);
         const configs = await this.db['config'].toArray();
