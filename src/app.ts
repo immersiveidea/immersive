@@ -25,7 +25,7 @@ export class App {
     constructor() {
 
         const logger = log.getLogger('App');
-        log.setDefaultLevel('debug');
+        log.setDefaultLevel('warn');
         const canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
