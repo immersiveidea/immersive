@@ -3,8 +3,6 @@ import {Scene, Sound} from "@babylonjs/core";
 export class DiaSounds {
     private readonly scene: Scene;
 
-    private readonly _birds: Sound;
-
     public get tick() {
         return new Sound("tick", '/assets/sounds/tick.mp3', this.scene);
     }
@@ -53,8 +51,15 @@ export class DiaSounds {
             volume: .5,
             loop: false
         }
-        this._birds = this.buildSpatialSound("warbler", "/assets/sounds/warbler.mp3");
-        this._dove = this.buildSpatialSound("dove", "/assets/sounds/dove.mp3");
+        this._backgroundEffects.push(this.buildSpatialSound("warbler2", "/assets/sounds/warbler2.mp3"));
+        this._backgroundEffects.push(this.buildSpatialSound("warbler3", "/assets/sounds/warbler3.mp3"));
+        this._backgroundEffects.push(this.buildSpatialSound("crickets", "/assets/sounds/crickets.mp3"));
+        this._backgroundEffects.push(this.buildSpatialSound("dove", "/assets/sounds/dove.mp3"))
+    }
+
+    _backgroundEffects: Array<Sound> = [];
+    public get backgroundEffects(): Array<Sound> {
+        return this._backgroundEffects;
     }
 
     private buildSpatialSound(name: string, url: string) {
@@ -90,15 +95,6 @@ export class DiaSounds {
 
     public get low() {
         return this._low;
-    }
-
-    public get birds(): Sound {
-        return this._birds;
-    }
-
-    _dove: Sound;
-    public get dove() {
-        return this._dove;
     }
 
     public get bounce() {

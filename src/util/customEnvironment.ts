@@ -39,25 +39,25 @@ export class CustomEnvironment {
             window.setTimeout((sound) => {
                 sound.play()
             }, 2000, sounds.background);
-            const birds: Array<Sound> = [sounds.birds, sounds.dove];
+            const effects: Array<Sound> = sounds.backgroundEffects;
             window.setInterval((sounds: Array<Sound>) => {
-                if (Math.random() < .6) {
+                if (Math.random() < .5) {
                     return;
                 }
                 const sound = Math.floor(Math.random() * sounds.length);
-                const x = Math.floor(Math.random() * 20);
-                const z = Math.floor(Math.random() * 20);
+                const x = Math.floor(Math.random() * 20) - 10;
+                const z = Math.floor(Math.random() * 20) - 10;
 
                 const position = new Vector3(x, 0, z);
                 if (sounds[sound].isPlaying) {
 
                 } else {
                     sounds[sound].setPosition(position);
-                    sounds[sound].setVolume(Math.random() * .5);
+                    sounds[sound].setVolume(Math.random() * .3);
                     sounds[sound].play();
                 }
 
-            }, 2000, birds);
+            }, 2000, effects);
         } catch (error) {
             console.log(error);
         }
