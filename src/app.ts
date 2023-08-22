@@ -23,7 +23,6 @@ import {IndexdbPersistenceManager} from "./integration/indexdbPersistenceManager
 export class App {
     //preTasks = [havokModule];
     constructor() {
-
         const logger = log.getLogger('App');
         log.setDefaultLevel('warn');
         const canvas = document.createElement("canvas");
@@ -49,6 +48,7 @@ export class App {
         const persistenceManager = new IndexdbPersistenceManager("diagram");
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
+
         const diagramManager = new DiagramManager(scene, controllers, toolbox);
         diagramManager.setPersistenceManager(persistenceManager);
         const config = new AppConfig(persistenceManager);
@@ -59,7 +59,6 @@ export class App {
                 intro.start();
             }
         });
-
 
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 4,
             new Vector3(0, 1.6, 0), scene);
@@ -103,7 +102,6 @@ export class App {
 
 
         });
-
 
         const gamepadManager = new GamepadManager(scene);
         /*

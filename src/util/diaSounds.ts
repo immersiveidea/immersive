@@ -20,36 +20,22 @@ export class DiaSounds {
 
     constructor(scene: Scene) {
         this.scene = scene;
-        this._enter = new Sound("enter", "/assets/sounds/sounds.mp3", this.scene, null, {
-            autoplay: false,
-            loop: false,
-            volume: this.volume,
-            offset: 0,
-            length: 1.0
-        });
-        this._exit = new Sound("exit", "/assets/sounds/sounds.mp3", this.scene, null, {
-            autoplay: false,
-            loop: false,
-            offset: 1,
-            volume: this.volume,
-            length: 1.0
-        });
-        this._high = new Sound("high", "/assets/sounds/sounds.mp3", this.scene, null, {
-            autoplay: false,
-            loop: false,
-            offset: 2,
-            volume: this.volume,
-            length: 1.0
-        });
-        this._low = new Sound("low", "/assets/sounds/sounds.mp3", this.scene, null, {
-            autoplay: false,
-            loop: false,
-            offset: 3,
-            volume: this.volume,
-            length: 1.0
-        });
+        const soundSprite = [
+            {obj: "_enter", name: "enter", url: "/assets/sounds/sounds.mp3"},
+            {obj: "_exit", name: "exit", url: "/assets/sounds/sounds.mp3"},
+            {obj: "_high", name: "high", url: "/assets/sounds/sounds.mp3"},
+            {obj: "_low", name: "low", url: "/assets/sounds/sounds.mp3"},
+        ];
 
-
+        soundSprite.forEach((item: { obj: any, name: string, url: string }, idx) => {
+            this[item.obj] = new Sound(item.name, item.url, this.scene, null, {
+                autoplay: false,
+                loop: false,
+                volume: this.volume,
+                offset: idx,
+                length: 1.0
+            });
+        });
         this._bounce = new Sound("bounce", "/assets/sounds/drumsprite.mp3", this.scene, null, {
             autoplay: false,
             loop: false,
@@ -61,24 +47,27 @@ export class DiaSounds {
             volume: 1,
             loop: true
         });
-        this._birds = new Sound("warbler", "/assets/sounds/warbler.mp3", this.scene, null, {
+        const spatialOptions = {
             spatialSound: true,
             autoplay: false,
             volume: .5,
             loop: false
-        });
-        this.birds.switchPanningModelToHRTF();
-        this.birds.maxDistance = 40;
-        this._dove = new Sound("dove", "/assets/sounds/dove.mp3", this.scene, null, {
-            spatialSound: true,
-            autoplay: false,
-            volume: .5,
-            loop: false
-        });
-        this._dove.switchPanningModelToHRTF();
-        this._dove.maxDistance = 40;
+        }
+        this._birds = this.buildSpatialSound("warbler", "/assets/sounds/warbler.mp3");
+        this._dove = this.buildSpatialSound("dove", "/assets/sounds/dove.mp3");
+    }
 
-        //this._enter.autoplay = true;
+    private buildSpatialSound(name: string, url: string) {
+        const spatialOptions = {
+            spatialSound: true,
+            autoplay: false,
+            volume: .5,
+            loop: false
+        }
+        const sound = new Sound(name, url, this.scene, null, spatialOptions);
+        sound.switchPanningModelToHRTF();
+        sound.maxDistance = 40;
+        return sound;
     }
 
     public get background(): Sound {
