@@ -51,6 +51,9 @@ export class DiagramManager {
         if (this.onDiagramEventObservable.hasObservers()) {
             this.logger.warn("onDiagramEventObservable already has Observers, you should be careful");
         }
+        this.toolbox.colorChangeObservable.add((evt) => {
+            this.persistenceManager.changeColor(Color3.FromHexString(evt.oldColor), Color3.FromHexString(evt.newColor));
+        }, -1, true, this, false);
         this.onDiagramEventObservable.add(this.onDiagramEvent, -1, true, this);
         this.logger.debug("DiagramManager constructed");
         scene.onMeshRemovedObservable.add((mesh) => {

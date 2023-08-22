@@ -4,6 +4,7 @@ import {
     InstancedMesh,
     Mesh,
     MeshBuilder,
+    Observable,
     Scene,
     StandardMaterial,
     TransformNode,
@@ -33,6 +34,8 @@ export class Toolbox {
     private readonly addPanel: StackPanel3D;
     private readonly controllers: Controllers;
     private xObserver;
+    public readonly colorChangeObservable: Observable<{ oldColor: string, newColor: string }> =
+        new Observable<{ oldColor: string; newColor: string }>()
 
     constructor(scene: Scene, controllers: Controllers) {
         this.scene = scene;
@@ -212,6 +215,10 @@ export class Toolbox {
             material.name = "material-" + newColorHex;
             mesh.id = "toolbox-color-" + newColorHex;
             mesh.name = "toolbox-color-" + newColorHex;
+            this.colorChangeObservable.notifyObservers({
+                oldColor: oldColor.toHexString(),
+                newColor: newColor.toHexString()
+            });
         });
 
         colorPickerTexture.addControl(colorPicker);

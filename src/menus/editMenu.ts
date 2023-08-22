@@ -174,6 +174,9 @@ export class EditMenu {
                     const template = mesh.metadata.template;
                     const newBase = this.getTool(template,
                         Color3.FromHexString(this.paintColor));
+                    if (!newBase) {
+                        return;
+                    }
                     const newMesh = (mesh as InstancedMesh).clone(mesh.name, mesh.parent, false, newBase);
                     newMesh.id = mesh.id;
                     newMesh.physicsBody = mesh.physicsBody;
