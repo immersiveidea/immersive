@@ -8,7 +8,6 @@ import {
     WebXRState
 } from "@babylonjs/core";
 import '@babylonjs/loaders';
-import {Rigplatform} from "./controllers/rigplatform";
 import {DiagramManager} from "./diagram/diagramManager";
 import {Toolbox} from "./toolbox/toolbox";
 import log from "loglevel";
@@ -50,7 +49,6 @@ export class App {
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
         const diagramManager = new DiagramManager(scene, controllers, toolbox);
-
         diagramManager.setPersistenceManager(persistenceManager);
         const config = new AppConfig(persistenceManager);
         const environment = new CustomEnvironment(scene, "default", config);
@@ -102,15 +100,9 @@ export class App {
                 }
 
             });
-
-
-            const rig = new Rigplatform(scene, xr, diagramManager, controllers);
-
-
-            //const dioManager = new DrawioManager(scene, diagramManager);
-            //const newRelicData = new NewRelicData(persistenceManager, scene);
-
-
+            import('./controllers/rigplatform').then((rigmodule) => {
+                const rig = new rigmodule.Rigplatform(scene, xr, diagramManager, controllers);
+            });
         });
 
         const gamepadManager = new GamepadManager(scene);
