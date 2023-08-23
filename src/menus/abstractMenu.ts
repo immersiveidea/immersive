@@ -1,7 +1,7 @@
 import {Scene, WebXRExperienceHelper} from "@babylonjs/core";
 import {Controllers} from "../controllers/controllers";
 
-export class BaseMenu {
+export class AbstractMenu {
     protected scene: Scene;
     protected xr: WebXRExperienceHelper;
     protected controllers: Controllers;
@@ -10,6 +10,10 @@ export class BaseMenu {
         this.scene = scene;
         this.xr = xr;
         this.controllers = controllers;
+    }
+
+    public toggle() {
+        throw new Error("AbstractMenu.toggle() not implemented");
     }
 
 }

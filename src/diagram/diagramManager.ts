@@ -1,16 +1,4 @@
-import {
-    AbstractMesh,
-    ActionManager,
-    Color3,
-    ExecuteCodeAction,
-    InstancedMesh,
-    Mesh,
-    Observable,
-    PhysicsMotionType,
-    PlaySoundAction,
-    Scene,
-    Vector3
-} from "@babylonjs/core";
+import {AbstractMesh, Color3, InstancedMesh, Mesh, Observable, PhysicsMotionType, Scene} from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./diagramEntity";
 import {IPersistenceManager} from "../integration/iPersistenceManager";
 import {MeshConverter} from "./meshConverter";
@@ -18,9 +6,13 @@ import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
 import {AppConfig} from "../util/appConfig";
-import {TextLabel} from "./textLabel";
 import {Toolbox} from "../toolbox/toolbox";
-import {DiagramShapePhysics} from "./diagramShapePhysics";
+import {PresentationManager} from "./presentationManager";
+import {DiagramEntityActionManager} from "./diagramEntityActionManager";
+import {diagramEventHandler} from "./diagramEventHandler";
+import {deepCopy} from "../util/deepCopy";
+import {applyPhysics} from "./functions/diagramShapePhysics";
+import {applyScaling} from "./functions/applyScaling";
 
 
 export class DiagramManager {
@@ -29,25 +21,20 @@ export class DiagramManager {
     private persistenceManager: IPersistenceManager = null;
     private readonly toolbox: Toolbox;
     private readonly scene: Scene;
-    private sounds: DiaSounds;
+    private readonly sounds: DiaSounds;
+    private readonly controllers: Controllers;
+    private readonly diagramEntityActionManager: DiagramEntityActionManager
+    private presentationManager: PresentationManager;
+    private _config: AppConfig;
 
     constructor(scene: Scene, controllers: Controllers, toolbox: Toolbox) {
         this.sounds = new DiaSounds(scene);
         this.scene = scene;
         this.toolbox = toolbox;
         this.controllers = controllers;
-        this.actionManager = new ActionManager(this.scene);
-        this.actionManager.registerAction(
-            new PlaySoundAction(ActionManager.OnPointerOverTrigger, this.sounds.tick));
-        this.actionManager.registerAction(
-            new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, (evt) => {
-                this.controllers.controllerObserver.notifyObservers({
-                    type: 'pulse',
-                    gripId: evt?.additionalData?.pickResult?.gripTransform?.id
-                })
-                this.logger.debug(evt);
-            })
-        );
+        this.presentationManager = new PresentationManager(this.scene);
+        this.diagramEntityActionManager = new DiagramEntityActionManager(this.scene, this.sounds, this.controllers);
+
         if (this.onDiagramEventObservable.hasObservers()) {
             this.logger.warn("onDiagramEventObservable already has Observers, you should be careful");
         }
@@ -56,6 +43,7 @@ export class DiagramManager {
         }, -1, true, this, false);
         this.onDiagramEventObservable.add(this.onDiagramEvent, -1, true, this);
         this.logger.debug("DiagramManager constructed");
+
         scene.onMeshRemovedObservable.add((mesh) => {
             if (mesh?.metadata?.template) {
                 if (mesh.metadata.template != '#connection-template') {
@@ -73,29 +61,14 @@ export class DiagramManager {
         });
     }
 
-    private _config: AppConfig;
-
-    private getPersistenceManager(): IPersistenceManager {
-        if (!this.persistenceManager) {
-            this.logger.warn("persistenceManager not set");
-            return null;
-        }
-        return this.persistenceManager;
-    }
-
-    private readonly actionManager: ActionManager;
-    private controllers: Controllers;
-
     public get config(): AppConfig {
         return this._config;
     }
-
     public setPersistenceManager(persistenceManager: IPersistenceManager) {
         this.persistenceManager = persistenceManager;
         this._config = new AppConfig(persistenceManager);
         this.persistenceManager.updateObserver.add(this.onRemoteEvent, -1, true, this);
     }
-
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
         let newMesh;
         if (!mesh.isAnInstance) {
@@ -103,52 +76,21 @@ export class DiagramManager {
         } else {
             newMesh = new InstancedMesh("new", (mesh as InstancedMesh).sourceMesh);
         }
-        newMesh.actionManager = this.actionManager;
+        newMesh.actionManager = this.diagramEntityActionManager.manager;
         newMesh.position = mesh.absolutePosition.clone();
         if (mesh.absoluteRotationQuaternion) {
             newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
         } else {
             this.logger.error("no rotation quaternion");
         }
-        if (copy) {
-            newMesh.scaling = mesh.scaling.clone();
-        } else {
-            if (this.config.current?.createSnap) {
-                newMesh.scaling.x = this.config.current?.createSnap;
-                newMesh.scaling.y = this.config.current?.createSnap;
-                newMesh.scaling.z = this.config.current?.createSnap;
-            } else {
-                newMesh.scaling = Vector3.One();
-            }
-
-
-        }
+        applyScaling(mesh, newMesh, copy, this.config.current?.createSnap);
         newMesh.material = mesh.material;
-
-        newMesh.metadata = this.deepCopy(mesh.metadata);
+        newMesh.metadata = deepCopy(mesh.metadata);
         if (this.config.current?.physicsEnabled) {
-            DiagramShapePhysics.applyPhysics(this.sounds, newMesh, this.scene);
+            applyPhysics(this.sounds, newMesh, this.scene);
         }
-
         this.persistenceManager.add(newMesh);
         return newMesh;
-    }
-
-    private deepCopy<T, U = T extends Array<infer V> ? V : never>(source: T): T {
-        if (Array.isArray(source)) {
-            return source.map(item => (this.deepCopy(item))) as T & U[]
-        }
-        if (source instanceof Date) {
-            return new Date(source.getTime()) as T & Date
-        }
-        if (source && typeof source === 'object') {
-            return (Object.getOwnPropertyNames(source) as (keyof T)[]).reduce<T>((o, prop) => {
-                Object.defineProperty(o, prop, Object.getOwnPropertyDescriptor(source, prop)!)
-                o[prop] = this.deepCopy(source[prop])
-                return o
-            }, Object.create(Object.getPrototypeOf(source)))
-        }
-        return source
     }
 
     private onRemoteEvent(event: DiagramEntity) {
@@ -156,99 +98,21 @@ export class DiagramManager {
         const toolMesh = this.scene.getMeshById("tool-" + event.template + "-" + event.color);
         if (!toolMesh && (event.template != '#connection-template')) {
             log.debug('no mesh found for ' + event.template + "-" + event.color, 'adding it');
-            //this.getPersistenceManager()?.changeColor(null, Color3.FromHexString(event.color));
             this.toolbox.updateToolbox(event.color);
         }
         const mesh = MeshConverter.fromDiagramEntity(event, this.scene);
-        mesh.actionManager = this.actionManager;
+        mesh.actionManager = this.diagramEntityActionManager.manager;
         if (event.parent) {
             mesh.parent = this.scene.getMeshById(event.parent);
         }
         if (this.config.current?.physicsEnabled) {
-            DiagramShapePhysics.applyPhysics(this.sounds, mesh, this.scene, PhysicsMotionType.DYNAMIC);
+            applyPhysics(this.sounds, mesh, this.scene, PhysicsMotionType.DYNAMIC);
         }
     }
 
     private onDiagramEvent(event: DiagramEvent) {
-        this.logger.debug(event.type);
-        const entity = event.entity;
-        let mesh;
-        if (entity) {
-            mesh = this.scene.getMeshById(entity.id);
-        }
-        if (!mesh && event?.entity?.template) {
-            const toolMesh = this.scene.getMeshById("tool-" + event.entity.template + "-" + event.entity.color);
-            if (!toolMesh && event.type != DiagramEventType.CHANGECOLOR) {
-                log.debug('no mesh found for ' + event.entity.template + "-" + event.entity.color, 'adding it');
-                this.toolbox.updateToolbox(event.entity.color);
-            }
-            mesh = MeshConverter.fromDiagramEntity(event.entity, this.scene);
-            if (mesh) {
-                mesh.actionManager = this.actionManager;
-                if (this.config.current.physicsEnabled) {
-                    DiagramShapePhysics.applyPhysics(this.sounds, mesh, this.scene, PhysicsMotionType.DYNAMIC);
-                }
-            }
-        }
-        switch (event.type) {
-            case DiagramEventType.CLEAR:
-                break;
-            case DiagramEventType.DROPPED:
-                break;
-            case DiagramEventType.DROP:
-                if (mesh.metadata.template.indexOf('#') > -1) {
-                    this.getPersistenceManager()?.modify(mesh);
-                    TextLabel.updateTextNode(mesh, entity.text);
-                }
-
-                break;
-            case DiagramEventType.ADD:
-                this.getPersistenceManager()?.add(mesh);
-                if (!mesh.actionManager) {
-                    mesh.actionManager = this.actionManager;
-                }
-                if (this.config.current.physicsEnabled) {
-                    DiagramShapePhysics
-                        .applyPhysics(this.sounds, mesh, this.scene);
-                }
-
-                break;
-            case DiagramEventType.MODIFY:
-                this.getPersistenceManager()?.modify(mesh);
-                if (this.config.current.physicsEnabled) {
-                    DiagramShapePhysics
-                        .applyPhysics(this.sounds, mesh, this.scene);
-                }
-
-                break;
-            case DiagramEventType.CHANGECOLOR:
-                if (!event.oldColor) {
-                    if (!event.newColor) {
-                        this.getPersistenceManager()?.changeColor(null, Color3.FromHexString(event.entity.color));
-                        this.logger.info("Recieved color change event, sending entity color as new color");
-                    } else {
-                        this.logger.info("Recieved color change event, no old color, sending new color");
-                        this.getPersistenceManager()?.changeColor(null, event.newColor);
-                    }
-                } else {
-                    if (event.newColor) {
-                        this.logger.info("changing color from " + event.oldColor + " to " + event.newColor);
-                        this.getPersistenceManager()?.changeColor(event.oldColor, event.newColor);
-                    } else {
-                        this.logger.error("changing color from " + event.oldColor + ", but no new color found");
-                    }
-                }
-
-                break;
-            case DiagramEventType.REMOVE:
-                if (mesh) {
-                    this.getPersistenceManager()?.remove(mesh)
-                    mesh?.physicsBody?.dispose();
-                    mesh.dispose();
-                    this.sounds.exit.play();
-
-                }
-                break;
-        }
+        diagramEventHandler(
+            event, this.scene, this.toolbox, this.config.current.physicsEnabled,
+            this.diagramEntityActionManager.manager, this.sounds, this.persistenceManager);
     }
 }

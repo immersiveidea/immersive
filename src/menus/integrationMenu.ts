@@ -1,10 +1,10 @@
 import {AbstractMesh, MeshBuilder, Scene, WebXRExperienceHelper} from "@babylonjs/core";
 import {Controllers} from "../controllers/controllers";
-import {BaseMenu} from "./baseMenu";
+import {AbstractMenu} from "./abstractMenu";
 import {AdvancedDynamicTexture, Grid, TextBlock} from "@babylonjs/gui";
 import {CameraHelper} from "../util/cameraHelper";
 
-export class IntegrationMenu extends BaseMenu {
+export class IntegrationMenu extends AbstractMenu {
     private plane: AbstractMesh = null;
 
     constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {

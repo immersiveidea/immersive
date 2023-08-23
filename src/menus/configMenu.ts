@@ -5,9 +5,9 @@ import log from "loglevel";
 import {AppConfig} from "../util/appConfig";
 import {Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
-import {BaseMenu} from "./baseMenu";
+import {AbstractMenu} from "./abstractMenu";
 
-export class ConfigMenu extends BaseMenu {
+export class ConfigMenu extends AbstractMenu {
     private sounds: DiaSounds;
     private configPlane: AbstractMesh = null;
 

@@ -46,10 +46,11 @@ export class App {
         const scene = new Scene(engine);
 
         const persistenceManager = new IndexdbPersistenceManager("diagram");
+
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
-
         const diagramManager = new DiagramManager(scene, controllers, toolbox);
+
         diagramManager.setPersistenceManager(persistenceManager);
         const config = new AppConfig(persistenceManager);
         const environment = new CustomEnvironment(scene, "default", config);

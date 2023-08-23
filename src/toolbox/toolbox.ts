@@ -16,17 +16,16 @@ import {AdvancedDynamicTexture, Button3D, ColorPicker, GUI3DManager, StackPanel3
 import {Controllers} from "../controllers/controllers";
 
 export enum ToolType {
-    BOX ="#box-template",
-    Sphere="#sphere-template",
-    Cylinder="#cylinder-template",
-    Cone  ="#cone-template",
-    PLANE   ="#plane-template",
-    OBJECT  ="#object-template",
+    BOX = "#box-template",
+    SPHERE = "#sphere-template",
+    CYLINDER = "#cylinder-template",
+    CONE = "#cone-template",
+    PLANE = "#plane-template",
+    OBJECT = "#object-template",
 }
 
 export class Toolbox {
     private index = 0;
-    public static instance: Toolbox;
     private readonly scene: Scene;
     public readonly node: TransformNode;
     private readonly manager: GUI3DManager;
@@ -60,7 +59,6 @@ export class Toolbox {
 
         this.buildToolbox();
 
-        Toolbox.instance = this;
         if (!this.xObserver) {
             this.xObserver = this.controllers.controllerObserver.add((evt) => {
                 if (evt.type == 'x-button') {
@@ -75,72 +73,68 @@ export class Toolbox {
     }
 
     public buildTool(tool: ToolType, parent: AbstractMesh) {
-        let newItem: Mesh;
         const id = this.toolId(tool, (parent.material as StandardMaterial).diffuseColor);
-        const material = parent.material;
-        const toolname = "tool-" + id;
-        switch (tool) {
-            case ToolType.BOX:
-                newItem = MeshBuilder.CreateBox(toolname, {width: 1, height: 1, depth: 1}, this.scene);
-                break;
-            case ToolType.Sphere:
-                newItem = MeshBuilder.CreateSphere(toolname, {diameter: 1}, this.scene);
-                break;
-            case ToolType.Cylinder:
-                newItem = MeshBuilder.CreateCylinder(toolname, {height: 1, diameter: 1}, this.scene);
-                break;
-            case ToolType.Cone:
-                newItem = MeshBuilder.CreateCylinder(toolname, {diameterTop: 0, height: 1, diameterBottom: 1}, this.scene);
-                break;
-            case ToolType.PLANE:
-                newItem = MeshBuilder.CreatePlane(toolname, {width: 1, height: 1}, this.scene);
-                break;
-            case ToolType.OBJECT:
-                break;
-        }
-        if (newItem)  {
-            newItem.material = material;
-            newItem.id = toolname
-            if (tool === ToolType.PLANE) {
-                newItem.material.backFaceCulling = false;
-            }
 
-            newItem.scaling = new Vector3(Toolbox.WIDGET_SIZE,
-                Toolbox.WIDGET_SIZE,
-                Toolbox.WIDGET_SIZE);
-            newItem.parent = parent;
-            if (!newItem.material) {
-                newItem.material = parent.material;
-            }
-
-            if (newItem.metadata) {
-                newItem.metadata.template = tool;
-            } else {
-                newItem.metadata = {template: tool};
-            }
-            const instance = new InstancedMesh("instance-" + id, newItem);
-            if (instance.metadata) {
-                instance.metadata.template = tool;
-            } else {
-                instance.metadata = {template: tool};
-            }
-            instance.parent = parent;
-            newItem.setEnabled(false);
-            newItem.onEnabledStateChangedObservable.add(() => {
-                instance.setEnabled(false);
-            });
-            return instance;
-        } else {
+        const newItem = this.buildMesh(tool, `tool-${id}`);
+        if (!newItem) {
             return null;
         }
+        newItem.material = parent.material;
+        if (tool === ToolType.PLANE) {
+            newItem.material.backFaceCulling = false;
+        }
+        newItem.scaling = new Vector3(Toolbox.WIDGET_SIZE,
+            Toolbox.WIDGET_SIZE,
+            Toolbox.WIDGET_SIZE);
+        newItem.parent = parent;
+        newItem.metadata = {template: tool};
+        const instance = new InstancedMesh("instance-" + id, newItem);
+        instance.metadata = {template: tool};
+        instance.parent = parent;
+        newItem.setEnabled(false);
+        newItem.onEnabledStateChangedObservable.add(() => {
+            instance.setEnabled(false);
+        });
+        return instance;
+
+    }
+
+    private buildMesh(type: ToolType, toolname: string): Mesh {
+        switch (type) {
+            case ToolType.BOX:
+                return MeshBuilder.CreateBox(toolname, {width: 1, height: 1, depth: 1}, this.scene);
+                break;
+            case ToolType.SPHERE:
+                return MeshBuilder.CreateSphere(toolname, {diameter: 1}, this.scene);
+                break;
+            case ToolType.CYLINDER:
+                return MeshBuilder.CreateCylinder(toolname, {height: 1, diameter: 1}, this.scene);
+                break;
+            case ToolType.CONE:
+                return MeshBuilder.CreateCylinder(toolname, {
+                    diameterTop: 0,
+                    height: 1,
+                    diameterBottom: 1
+                }, this.scene);
+                break;
+            case ToolType.PLANE:
+                return MeshBuilder.CreatePlane(toolname, {width: 1, height: 1}, this.scene);
+                break;
+            case ToolType.OBJECT:
+                return null;
+                break;
+        }
+        return null;
     }
 
     private toolId(tool: ToolType, color: Color3) {
         return tool + "-" + color.toHexString();
     }
+
     private calculatePosition(i: number) {
-        return (i/this.gridsize)-.5-(1/this.gridsize/2);
+        return (i / this.gridsize) - .5 - (1 / this.gridsize / 2);
     }
+
     private static WIDGET_SIZE = .1;
 
     private buildToolbox() {
@@ -165,6 +159,7 @@ export class Toolbox {
         this.node.parent.setEnabled(false);
 
     }
+
     public updateToolbox(color: string) {
         if (this.scene.getMeshById("toolbox-color-" + color)) {
             return;
@@ -179,9 +174,13 @@ export class Toolbox {
         const depth = .2;
         const material = new StandardMaterial("material-" + color.toHexString(), this.scene);
         material.diffuseColor = color;
-        const mesh = MeshBuilder.CreateBox("toolbox-color-" + color.toHexString(), {width: width, height: .01, depth: depth}, this.scene);
+        const mesh = MeshBuilder.CreateBox("toolbox-color-" + color.toHexString(), {
+            width: width,
+            height: .01,
+            depth: depth
+        }, this.scene);
         mesh.material = material;
-        mesh.position.z = this.index++/4;
+        mesh.position.z = this.index++ / 4;
         mesh.parent = this.node;
         mesh.metadata = {tool: 'color'};
         let i = 0;
