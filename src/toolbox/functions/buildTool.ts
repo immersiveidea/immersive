@@ -5,9 +5,9 @@ import {buildMesh} from "./buildMesh";
 const WIDGET_SIZE = .1;
 
 export function buildTool(tool: ToolType, parent: AbstractMesh) {
-    const id = this.toolId(tool, (parent.material as StandardMaterial).diffuseColor);
+    const id = toolId(tool, (parent.material as StandardMaterial).diffuseColor);
 
-    const newItem = buildMesh(tool, `tool-${id}`);
+    const newItem = buildMesh(tool, `tool-${id}`, parent.getScene());
     if (!newItem) {
         return null;
     }

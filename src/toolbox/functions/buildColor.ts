@@ -14,7 +14,7 @@ export function buildColor(color: Color3, scene: Scene, parent: TransformNode, i
         width: width,
         height: .01,
         depth: depth
-    }, this.scene);
+    }, scene);
     mesh.material = material;
     mesh.position.z = index / 4;
     mesh.parent = parent;
