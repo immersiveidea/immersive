@@ -9,7 +9,7 @@ import {Toolbox} from "../toolbox/toolbox";
 import {PresentationManager} from "./presentationManager";
 import {DiagramEntityActionManager} from "./diagramEntityActionManager";
 import {diagramEventHandler} from "./diagramEventHandler";
-import {deepCopy} from "../util/deepCopy";
+import {deepCopy} from "../util/functions/deepCopy";
 import {applyPhysics} from "./functions/diagramShapePhysics";
 import {applyScaling} from "./functions/applyScaling";
 import {toDiagramEntity} from "./functions/toDiagramEntity";

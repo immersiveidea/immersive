@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -12,16 +15,16 @@
     "havok": "cp ./node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm ./node_modules/.vite/deps"
   },
   "dependencies": {
-    "@babylonjs/core": "^6.15.0",
-    "@babylonjs/gui": "^6.15.0",
-    "@babylonjs/havok": "1.1.1",
-    "@babylonjs/inspector": "^6.15.0",
-    "@babylonjs/loaders": "^6.15.0",
-    "@babylonjs/serializers": "^6.15.0",
-    "@cloudflare/workers-types": "^4.20230807.0",
+    "@babylonjs/core": "^6.17.1",
+    "@babylonjs/gui": "^6.17.1",
+    "@babylonjs/havok": "1.1.4",
+    "@babylonjs/inspector": "^6.17.1",
+    "@babylonjs/loaders": "^6.17.1",
+    "@babylonjs/serializers": "^6.17.1",
+    "@cloudflare/workers-types": "^4.20230821.0",
     "@netlify/functions": "^1.6.0",
     "@typed-mxgraph/typed-mxgraph": "^1.0.8",
-    "@types/node": "^14.18.54",
+    "@types/node": "^18.14.0",
     "dexie": "^3.2.4",
     "dexie-observable": "^4.0.1-beta.13",
     "earcut": "^2.2.4",
@@ -38,7 +41,7 @@
   },
   "devDependencies": {
     "typescript": "^4.9.5",
-    "vite": "^4.3.9",
+    "vite": "^4.4.9",
     "vite-plugin-api": "^0.1.11",
     "vite-plugin-cp": "^1.0.0"
   }

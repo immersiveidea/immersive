@@ -17,7 +17,7 @@ import {
 import {Right} from "./right";
 import {Left} from "./left";
 import {EditMenu} from "../menus/editMenu";
-import {Controllers} from "./controllers";
+import {ControllerEvent, ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 
@@ -90,7 +90,7 @@ export class Rigplatform {
         this.controllers = controllers;
         Rigplatform.xr = xr;
         Rigplatform.instance = this;
-        this.bMenu = new EditMenu(scene, xr, this.diagramManager);
+        this.bMenu = new EditMenu(scene, xr, this.diagramManager, controllers);
         this.camera = scene.activeCamera;
 
         this.rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .02, depth: 2}, scene);
@@ -125,38 +125,35 @@ export class Rigplatform {
     private registerObserver() {
         if (!this.registered) {
             this.registered = true;
-            this.controllers.controllerObserver.add((event: { type: string, value: number }) => {
+            this.controllers.controllerObserver.add((event: ControllerEvent) => {
                 switch (event.type) {
-                    case "increaseVelocity":
+                    case ControllerEventType.INCREASE_VELOCITY:
                         if (this.velocityIndex < this.velocityArray.length - 1) {
                             this.velocityIndex++;
                         } else {
                             this.velocityIndex = 0;
                         }
                         break;
-                    case "decreaseVelocity":
+                    case ControllerEventType.DECREASE_VELOCITY:
                         if (this.velocityIndex > 0) {
                             this.velocityIndex--;
                         } else {
                             this.velocityIndex = this.velocityArray.length - 1;
                         }
                         break;
-                    case "turn":
+                    case ControllerEventType.TURN:
                         this.turn(event.value);
                         break;
-                    case "forwardback":
+                    case ControllerEventType.FORWARD_BACK:
                         this.forwardback(event.value);
                         break;
-                    case "leftright":
+                    case ControllerEventType.LEFT_RIGHT:
                         this.leftright(event.value);
                         break;
-                    case "updown":
+                    case ControllerEventType.UP_DOWN:
                         this.updown(event.value);
                         break;
-                    case "stop":
-                        log.warn("Rigplatform", "stop is no longer implemented");
-                        break;
-                    case "menu":
+                    case ControllerEventType.MENU:
                         this.bMenu.toggle();
                         break;
                 }

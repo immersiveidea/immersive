@@ -1,6 +1,7 @@
 import {Observable, Scene, WebXRDefaultExperience} from "@babylonjs/core";
 import log from "loglevel";
 import {AdvancedDynamicTexture, InputText} from "@babylonjs/gui";
+import {ControllerEventType, Controllers} from "../controllers/controllers";
 
 export type TextEvent = {
     text: string;
@@ -9,12 +10,14 @@ export type InputTextViewOptions = {
     scene?: Scene;
     xr?: WebXRDefaultExperience;
     text?: string;
+    controllers?: Controllers;
 }
 
 export class InputTextView {
     public readonly onTextObservable: Observable<TextEvent> = new Observable<TextEvent>();
     private readonly text: string;
     private readonly scene: Scene;
+    private readonly controllers: Controllers;
     private readonly xr: WebXRDefaultExperience;
 
     constructor(options: InputTextViewOptions) {
@@ -27,10 +30,14 @@ export class InputTextView {
         if (options.scene) {
             this.scene = options.scene;
         }
+        if (options.controllers) {
+            this.controllers = options.controllers;
+        }
     }
 
     public show() {
-        if (this?.xr?.baseExperience?.sessionManager?.inXRSession) {
+
+        if ((this.xr as WebXRDefaultExperience).baseExperience?.sessionManager?.inXRSession) {
             this.showXr();
         } else {
             this.showWeb();
@@ -62,33 +69,31 @@ export class InputTextView {
         textInput.type = "text";
         document.body.appendChild(textInput);
         textInput.value = this.text;
-        if (this.xr?.baseExperience?.sessionManager?.inXRSession) {
+        this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.HIDE});
+
+        /*if (this.xr?.baseExperience?.sessionManager?.inXRSession) {
             this.xr.input.controllers.forEach((controller) => {
                 controller.motionController.rootMesh.setEnabled(false);
                 controller.pointer.setEnabled(false);
             });
 
-        }
+        }*/
+
+        textInput.addEventListener('blur', () => {
+            log.getLogger('bmenu').debug("blur");
+            this.onTextObservable.notifyObservers({text: textInput.value});
+            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.SHOW});
+
+            /*if (this.xr?.baseExperience?.sessionManager?.inXRSession) {
+                this.xr.input.controllers.forEach((controller) => {
+                    controller.motionController.rootMesh.setEnabled(true);
+                    controller.pointer.setEnabled(true);
+                });
+            }*/
+            textInput.blur();
+            textInput.remove();
+        });
 
         textInput.focus();
-        if (navigator.userAgent.indexOf('Macintosh') > -1) {
-            textInput.addEventListener('input', (event) => {
-                log.debug(event);
-            });
-
-        } else {
-            textInput.addEventListener('blur', () => {
-                log.getLogger('bmenu').debug("blur");
-                this.onTextObservable.notifyObservers({text: textInput.value});
-                if (this.xr?.baseExperience?.sessionManager?.inXRSession) {
-                    this.xr.input.controllers.forEach((controller) => {
-                        controller.motionController.rootMesh.setEnabled(true);
-                        controller.pointer.setEnabled(true);
-                    });
-                }
-                textInput.blur();
-                textInput.remove();
-            });
-        }
     }
 }

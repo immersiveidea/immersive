@@ -1,6 +1,6 @@
 import {Scene, Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {Base} from "./base";
-import {Controllers} from "./controllers";
+import {ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {ConfigMenu} from "../menus/configMenu";
 import {DiagramManager} from "../diagram/diagramManager";
@@ -13,7 +13,7 @@ export class Left extends Base {
                     WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
 
         super(controller, scene, xr, controllers, diagramManager);
-        this.configMenu = new ConfigMenu(this.scene, xr.baseExperience, this.controllers, this.diagramManager.config);
+        this.configMenu = new ConfigMenu(this.scene, xr, this.controllers, this.diagramManager.config);
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
@@ -31,7 +31,7 @@ export class Left extends Base {
                     if (value.pressed) {
                         log.trace('Left', 'thumbstick changed');
                         this.controllers.controllerObserver.notifyObservers({
-                            type: 'decreaseVelocity',
+                            type: ControllerEventType.DECREASE_VELOCITY,
                             value: value.value
                         });
                     }
@@ -44,7 +44,10 @@ export class Left extends Base {
         if (xbutton) {
             xbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
-                    this.controllers.controllerObserver.notifyObservers({type: 'x-button', value: button.value});
+                    this.controllers.controllerObserver.notifyObservers({
+                        type: ControllerEventType.X_BUTTON,
+                        value: button.value
+                    });
                 }
             });
         }
@@ -54,7 +57,10 @@ export class Left extends Base {
         if (ybutton) {
             ybutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
-                    this.controllers.controllerObserver.notifyObservers({type: 'y-button', value: button.value});
+                    this.controllers.controllerObserver.notifyObservers({
+                        type: ControllerEventType.Y_BUTTON,
+                        value: button.value
+                    });
                 }
             });
         }
@@ -75,14 +81,17 @@ export class Left extends Base {
 
     private moveRig(value: { x: number, y: number }) {
         if (Math.abs(value.x) > .1) {
-            this.controllers.controllerObserver.notifyObservers({type: 'leftright', value: value.x * this.speedFactor});
+            this.controllers.controllerObserver.notifyObservers({
+                type: ControllerEventType.LEFT_RIGHT,
+                value: value.x * this.speedFactor
+            });
             Base.stickVector.x = 1;
         } else {
             Base.stickVector.x = 0;
         }
         if (Math.abs(value.y) > .1) {
             this.controllers.controllerObserver.notifyObservers({
-                type: 'forwardback',
+                type: ControllerEventType.FORWARD_BACK,
                 value: value.y * this.speedFactor
             });
             Base.stickVector.y = 1;
@@ -91,8 +100,8 @@ export class Left extends Base {
         }
 
         if (Base.stickVector.equals(Vector3.Zero())) {
-            this.controllers.controllerObserver.notifyObservers({type: 'leftright', value: 0});
-            this.controllers.controllerObserver.notifyObservers({type: 'forwardback', value: 0});
+            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.LEFT_RIGHT, value: 0});
+            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.FORWARD_BACK, value: 0});
         } else {
 
         }

@@ -1,11 +1,11 @@
 import {AdvancedDynamicTexture, RadioGroup, SelectionPanel} from "@babylonjs/gui";
-import {AbstractMesh, MeshBuilder, Scene, WebXRExperienceHelper} from "@babylonjs/core";
-import {CameraHelper} from "../util/cameraHelper";
+import {AbstractMesh, MeshBuilder, Scene, WebXRDefaultExperience} from "@babylonjs/core";
 import log from "loglevel";
 import {AppConfig} from "../util/appConfig";
-import {Controllers} from "../controllers/controllers";
+import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
 import {AbstractMenu} from "./abstractMenu";
+import {setMenuPosition} from "../util/functions/setMenuPosition";
 
 export class ConfigMenu extends AbstractMenu {
     private sounds: DiaSounds;
@@ -20,6 +20,28 @@ export class ConfigMenu extends AbstractMenu {
         {label: "0.5", value: 0.5},
         {label: "1", value: 1},
     ]
+
+    private rotationSnaps: Array<{ label: string, value: number }> = [
+        {label: "Off", value: 0},
+        {label: "22.5", value: 22.5},
+        {label: "45", value: 45},
+        {label: "90", value: 90},
+
+    ]
+
+    constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers, config: AppConfig) {
+        super(scene, xr, controllers);
+        this.config = config;
+        this.sounds = new DiaSounds(scene);
+        if (!this.yObserver) {
+            this.controllers.controllerObserver.add((event) => {
+                if (event.type == ControllerEventType.Y_BUTTON) {
+                    this.toggle();
+                }
+            });
+        }
+
+    }
 
     public toggle() {
         if (this.configPlane) {
@@ -48,28 +70,7 @@ export class ConfigMenu extends AbstractMenu {
         this.buildRotationSnapControl(selectionPanel);
         this.buildTurnSnapControl(selectionPanel);
 
-        CameraHelper.setMenuPosition(this.configPlane, this.scene);
-    }
-    private rotationSnaps: Array<{ label: string, value: number }> = [
-        {label: "Off", value: 0},
-        {label: "22.5", value: 22.5},
-        {label: "45", value: 45},
-        {label: "90", value: 90},
-
-    ]
-
-    constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers, config: AppConfig) {
-        super(scene, xr, controllers);
-        this.config = config;
-        this.sounds = new DiaSounds(scene);
-        if (!this.yObserver) {
-            this.controllers.controllerObserver.add((event) => {
-                if (event.type == 'y-button') {
-                    this.toggle();
-                }
-            });
-        }
-
+        setMenuPosition(this.configPlane, this.scene);
     }
 
     private buildCreateScaleControl(selectionPanel: SelectionPanel): RadioGroup {

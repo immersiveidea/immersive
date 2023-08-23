@@ -1,6 +1,6 @@
 import {Base} from "./base";
 import {Scene, Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
-import {Controllers} from "./controllers";
+import {ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 
@@ -21,7 +21,10 @@ export class Right extends Base {
         if (bbutton) {
             bbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
-                    this.controllers.controllerObserver.notifyObservers({type: 'b-button', value: button.value});
+                    this.controllers.controllerObserver.notifyObservers({
+                        type: ControllerEventType.B_BUTTON,
+                        value: button.value
+                    });
                 }
             });
         }
@@ -33,7 +36,10 @@ export class Right extends Base {
                 .onButtonStateChangedObservable
                 .add((button) => {
                     if (button.pressed) {
-                        this.controllers.controllerObserver.notifyObservers({type: 'trigger', value: button.value});
+                        this.controllers.controllerObserver.notifyObservers({
+                            type: ControllerEventType.TRIGGER,
+                            value: button.value
+                        });
                     }
                 });
         }
@@ -44,7 +50,7 @@ export class Right extends Base {
             abutton.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
                     log.getLogger("right").debug("a-button pressed");
-                    this.controllers.controllerObserver.notifyObservers({type: 'menu'});
+                    this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.MENU});
                 }
             });
         }
@@ -59,7 +65,10 @@ export class Right extends Base {
             thumbstick.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
                     log.trace('Right', `thumbstick changed ${value.value}`);
-                    this.controllers.controllerObserver.notifyObservers({type: 'increaseVelocity', value: value.value});
+                    this.controllers.controllerObserver.notifyObservers({
+                        type: ControllerEventType.INCREASE_VELOCITY,
+                        value: value.value
+                    });
                 }
             });
         }
@@ -67,19 +76,22 @@ export class Right extends Base {
 
     private moveRig(value) {
         if (Math.abs(value.x) > .1) {
-            this.controllers.controllerObserver.notifyObservers({type: 'turn', value: value.x});
+            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.TURN, value: value.x});
         } else {
-            this.controllers.controllerObserver.notifyObservers({type: 'turn', value: 0});
+            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.TURN, value: 0});
         }
         if (Math.abs(value.y) > .1) {
-            this.controllers.controllerObserver.notifyObservers({type: 'updown', value: value.y * this.speedFactor});
+            this.controllers.controllerObserver.notifyObservers({
+                type: ControllerEventType.UP_DOWN,
+                value: value.y * this.speedFactor
+            });
             Base.stickVector.z = 1;
         } else {
-            this.controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
+            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
             Base.stickVector.z = 0;
         }
         if (Base.stickVector.equals(Vector3.Zero())) {
-            this.controllers.controllerObserver.notifyObservers({type: 'updown', value: 0});
+            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
         }
     }
 }

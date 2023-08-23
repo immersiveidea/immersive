@@ -82,7 +82,14 @@ export class App {
                 }
 
             });
+            xr.baseExperience.sessionManager.onXRSessionInit.add((session) => {
+                session.addEventListener('visibilitychange', (ev) => {
+                    console.log(ev);
+                });
+            });
+
             xr.baseExperience.onStateChangedObservable.add((state) => {
+                console.log(state);
                 if (state == WebXRState.IN_XR) {
                     scene.audioEnabled = true;
                     xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
@@ -93,7 +100,9 @@ export class App {
                     });
 
                 }
+
             });
+
 
             const rig = new Rigplatform(scene, xr, diagramManager, controllers);
 

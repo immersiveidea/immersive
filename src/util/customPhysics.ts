@@ -1,6 +1,8 @@
 import {HavokPlugin, Quaternion, Scene, Vector3} from "@babylonjs/core";
 import HavokPhysics from "@babylonjs/havok";
 import {AppConfig} from "./appConfig";
+import {snapGridVal} from "./functions/snapGridVal";
+import {snapRotateVal} from "./functions/snapRotateVal";
 
 export class CustomPhysics {
     private readonly scene: Scene;
@@ -27,12 +29,12 @@ export class CustomPhysics {
 
                             body.disablePreStep = false;
                             const pos: Vector3 = body.getObjectCenterWorld();
-                            const val: Vector3 = this.config.snapGridVal(pos,
+                            const val: Vector3 = snapGridVal(pos,
                                 this.config.current.gridSnap);
                             body.transformNode.position.set(val.x, val.y, val.z);
                             const rot: Quaternion =
                                 Quaternion.FromEulerVector(
-                                    this.config.snapRotateVal(body.transformNode.rotationQuaternion.toEulerAngles(),
+                                    snapRotateVal(body.transformNode.rotationQuaternion.toEulerAngles(),
                                         this.config.current.rotateSnap))
 
                             body.transformNode.rotationQuaternion.set(

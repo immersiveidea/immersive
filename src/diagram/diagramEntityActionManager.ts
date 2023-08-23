@@ -1,6 +1,6 @@
 import {ActionManager, ExecuteCodeAction, PlaySoundAction, Scene} from "@babylonjs/core";
 import {DiaSounds} from "../util/diaSounds";
-import {Controllers} from "../controllers/controllers";
+import {ControllerEventType, Controllers} from "../controllers/controllers";
 import log from "loglevel";
 
 export class DiagramEntityActionManager {
@@ -14,7 +14,7 @@ export class DiagramEntityActionManager {
         this._actionManager.registerAction(
             new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, (evt) => {
                 controllers.controllerObserver.notifyObservers({
-                    type: 'pulse',
+                    type: ControllerEventType.PULSE,
                     gripId: evt?.additionalData?.pickResult?.gripTransform?.id
                 })
                 this.logger.debug(evt);

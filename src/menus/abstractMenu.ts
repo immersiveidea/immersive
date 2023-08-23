@@ -1,12 +1,12 @@
-import {Scene, WebXRExperienceHelper} from "@babylonjs/core";
+import {Scene, WebXRDefaultExperience} from "@babylonjs/core";
 import {Controllers} from "../controllers/controllers";
 
 export class AbstractMenu {
     protected scene: Scene;
-    protected xr: WebXRExperienceHelper;
+    protected xr: WebXRDefaultExperience;
     protected controllers: Controllers;
 
-    constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {
+    constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
         this.scene = scene;
         this.xr = xr;
         this.controllers = controllers;

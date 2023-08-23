@@ -12,10 +12,12 @@ import {
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
-import {Controllers} from "./controllers";
+import {ControllerEventType, Controllers} from "./controllers";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {setupTransformNode} from "./functions/setupTransformNode";
 import {reparent} from "./functions/reparent";
+import {snapGridVal} from "../util/functions/snapGridVal";
+import {snapRotateVal} from "../util/functions/snapRotateVal";
 
 export class Base {
     static stickVector = Vector3.Zero();
@@ -72,26 +74,35 @@ export class Base {
             }
         }, -1, false, this);
         this.controllers.controllerObserver.add((event) => {
-            if (event.type == 'pulse') {
-                this.logger.debug(event);
-                if (event.gripId == this?.controller?.grip?.id) {
-                    this.controller?.motionController?.pulse(.25, 30)
-                        .then(() => {
-                            this.logger.debug("pulse done");
-                        });
-                }
+            this.logger.debug(event);
+            switch (event.type) {
+                case ControllerEventType.PULSE:
+                    if (event.gripId == this?.controller?.grip?.id) {
+                        this.controller?.motionController?.pulse(.25, 30)
+                            .then(() => {
+                                this.logger.debug("pulse done");
+                            });
+                    }
+                    ;
+                    break;
+                case ControllerEventType.HIDE:
+                    this.disable();
+                    break;
+                case ControllerEventType.SHOW:
+                    this.enable();
+                    break;
             }
         });
     }
 
     public disable() {
-        this.controller.motionController.rootMesh.setEnabled(false);
+        this.controller.motionController.rootMesh.setEnabled(false)
         this.controller.pointer.setEnabled(false);
     }
 
     public enable() {
         this.controller.motionController.rootMesh.setEnabled(true);
-        this.controller.pointer.setEnabled(true);
+        this.controller.pointer.setEnabled(true)
     }
 
     private grab() {
@@ -174,8 +185,8 @@ export class Base {
         this.grabbedMeshParentId = null;
 
         if (!mesh.physicsBody) {
-            mesh.position = this.diagramManager.config.snapGridVal(mesh.position, this.diagramManager.config.current.gridSnap);
-            mesh.rotation = this.diagramManager.config.snapRotateVal(mesh.rotation, this.diagramManager.config.current.rotateSnap);
+            mesh.position = snapGridVal(mesh.position, this.diagramManager.config.current.gridSnap);
+            mesh.rotation = snapRotateVal(mesh.rotation, this.diagramManager.config.current.rotateSnap);
         }
         this.previousParentId = null;
         this.previousScaling = null;

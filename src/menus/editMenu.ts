@@ -9,7 +9,7 @@ import {
     Scene,
     StandardMaterial,
     Vector3,
-    WebXRDefaultExperience
+    WebXRDefaultExperience,
 } from "@babylonjs/core";
 import {Button3D, GUI3DManager, PlanePanel, TextBlock} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
@@ -18,20 +18,20 @@ import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
 import {InputTextView} from "../information/inputTextView";
 import {DiaSounds} from "../util/diaSounds";
-import {CameraHelper} from "../util/cameraHelper";
 import {TextLabel} from "../diagram/textLabel";
 import {DiagramConnection} from "../diagram/diagramConnection";
 import {GLTF2Export} from "@babylonjs/serializers";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
+import {AbstractMenu} from "./abstractMenu";
+import {Controllers} from "../controllers/controllers";
+import {setMenuPosition} from "../util/functions/setMenuPosition";
 
-export class EditMenu {
+export class EditMenu extends AbstractMenu {
     private state: EditMenuState = EditMenuState.NONE;
     private manager: GUI3DManager;
-    private readonly scene: Scene;
     private paintColor: string = null;
     private readonly logger: log.Logger = log.getLogger('EditMenu');
     private gizmoManager: GizmoManager;
-    private readonly xr: WebXRDefaultExperience;
     private readonly diagramManager: DiagramManager;
     private connection: DiagramConnection = null;
     private panel: PlanePanel;
@@ -49,9 +49,9 @@ export class EditMenu {
         });
     }
 
-    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
+    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
+        super(scene, xr, controllers);
         this.scene = scene;
-        this.xr = xr;
         this.sounds = new DiaSounds(scene);
         this.diagramManager = diagramManager;
         this.gizmoManager = new GizmoManager(scene);
@@ -129,7 +129,7 @@ export class EditMenu {
 
         } else {
             this.sounds.enter.play();
-            CameraHelper.setMenuPosition(this.manager.rootContainer.children[0].node, this.scene);
+            setMenuPosition(this.manager.rootContainer.children[0].node, this.scene);
             this.isVisible = true;
         }
     }
@@ -251,12 +251,14 @@ export class EditMenu {
         if (mesh?.metadata?.text) {
             text = mesh.metadata.text;
         }
-        const textInput = new InputTextView({xr: this.xr, text: text});
+        const textInput = new InputTextView({xr: this.xr, text: text, controllers: this.controllers});
+
         textInput.show();
         textInput.onTextObservable.addOnce((value) => {
             this.persist(mesh, value.text);
             TextLabel.updateTextNode(mesh, value.text);
         });
+
 
     }
 

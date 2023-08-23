@@ -1,35 +1,15 @@
-import {
-    AbstractMesh,
-    Color3,
-    InstancedMesh,
-    Mesh,
-    MeshBuilder,
-    Observable,
-    Scene,
-    StandardMaterial,
-    TransformNode,
-    Vector3
-} from "@babylonjs/core";
+import {Color3, Mesh, MeshBuilder, Observable, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
 
-import {CameraHelper} from "../util/cameraHelper";
-import {AdvancedDynamicTexture, Button3D, ColorPicker, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
-import {Controllers} from "../controllers/controllers";
-
-export enum ToolType {
-    BOX = "#box-template",
-    SPHERE = "#sphere-template",
-    CYLINDER = "#cylinder-template",
-    CONE = "#cone-template",
-    PLANE = "#plane-template",
-    OBJECT = "#object-template",
-}
+import {Button3D, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
+import {ControllerEventType, Controllers} from "../controllers/controllers";
+import {setMenuPosition} from "../util/functions/setMenuPosition";
+import {buildColor} from "./functions/buildColor";
 
 export class Toolbox {
     private index = 0;
     private readonly scene: Scene;
     public readonly node: TransformNode;
     private readonly manager: GUI3DManager;
-    private readonly gridsize = 5;
     private readonly addPanel: StackPanel3D;
     private readonly controllers: Controllers;
     private readonly xObserver;
@@ -51,179 +31,61 @@ export class Toolbox {
         handle.id = "handle";
         const handleMaterial = new StandardMaterial("handle-material", this.scene);
         handleMaterial.diffuseColor = Color3.FromHexString("#EEEEFF");
-        handleMaterial.alpha = .5;
+        handleMaterial.alpha = .8;
         handle.material = handleMaterial;
         handle.position = Vector3.Zero();
 
         this.node.parent = handle;
-
+        this.node.position.y = .1;
+        this.node.scaling = new Vector3(0.6, 0.6, 0.6);
         this.buildToolbox();
 
         if (!this.xObserver) {
             this.xObserver = this.controllers.controllerObserver.add((evt) => {
-                if (evt.type == 'x-button') {
+                if (evt.type == ControllerEventType.X_BUTTON) {
                     if (evt.value == 1) {
                         this.node.parent.setEnabled(!this.node.parent.isEnabled(false));
-                        CameraHelper.setMenuPosition(this.node.parent as Mesh, this.scene,
-                            new Vector3(0, 0, 0));
+                        setMenuPosition(this.node.parent as Mesh, this.scene,
+                            Vector3.Zero());
                     }
                 }
             });
         }
     }
 
-    public buildTool(tool: ToolType, parent: AbstractMesh) {
-        const id = this.toolId(tool, (parent.material as StandardMaterial).diffuseColor);
-
-        const newItem = this.buildMesh(tool, `tool-${id}`);
-        if (!newItem) {
-            return null;
-        }
-        newItem.material = parent.material;
-        if (tool === ToolType.PLANE) {
-            newItem.material.backFaceCulling = false;
-        }
-        newItem.scaling = new Vector3(Toolbox.WIDGET_SIZE,
-            Toolbox.WIDGET_SIZE,
-            Toolbox.WIDGET_SIZE);
-        newItem.parent = parent;
-        newItem.metadata = {template: tool};
-        const instance = new InstancedMesh("instance-" + id, newItem);
-        instance.metadata = {template: tool};
-        instance.parent = parent;
-        newItem.setEnabled(false);
-        newItem.onEnabledStateChangedObservable.add(() => {
-            instance.setEnabled(false);
-        });
-        return instance;
-
-    }
-
-    private buildMesh(type: ToolType, toolname: string): Mesh {
-        switch (type) {
-            case ToolType.BOX:
-                return MeshBuilder.CreateBox(toolname, {width: 1, height: 1, depth: 1}, this.scene);
-
-            case ToolType.SPHERE:
-                return MeshBuilder.CreateSphere(toolname, {diameter: 1}, this.scene);
-
-            case ToolType.CYLINDER:
-                return MeshBuilder.CreateCylinder(toolname, {height: 1, diameter: 1}, this.scene);
-
-            case ToolType.CONE:
-                return MeshBuilder.CreateCylinder(toolname, {
-                    diameterTop: 0,
-                    height: 1,
-                    diameterBottom: 1
-                }, this.scene);
-
-            case ToolType.PLANE:
-                return MeshBuilder.CreatePlane(toolname, {width: 1, height: 1}, this.scene);
-
-            case ToolType.OBJECT:
-                return null;
-
-        }
-    }
-
-    private toolId(tool: ToolType, color: Color3) {
-        return tool + "-" + color.toHexString();
-    }
-
-    private calculatePosition(i: number) {
-        return (i / this.gridsize) - .5 - (1 / this.gridsize / 2);
-    }
-
-    private static WIDGET_SIZE = .1;
-
-    private buildToolbox() {
-        this.node.position.y = .1;
-        this.node.scaling = new Vector3(0.6, 0.6, 0.6);
-        const color = "#7777FF";
-        this.buildColor(Color3.FromHexString(color));
-
-        const addButton = new Button3D("add-button");
-        const text = new TextBlock("add-button-text", "Add Color");
-        text.color = "white";
-        text.fontSize = "48px";
-        text.text = "Add Color";
-        addButton.content = text;
-        this.addPanel.node.parent = this.node.parent;
-        this.addPanel.addControl(addButton);
-        this.addPanel.node.scaling = new Vector3(.1, .1, .1);
-        this.addPanel.position = new Vector3(-.25, 0, 0);
-        addButton.onPointerClickObservable.add(() => {
-            this.buildColor(Color3.Random());
-        });
-        this.node.parent.setEnabled(false);
-
-    }
-
     public updateToolbox(color: string) {
         if (this.scene.getMeshById("toolbox-color-" + color)) {
             return;
         } else {
-            this.buildColor(Color3.FromHexString(color));
+            buildColor(Color3.FromHexString(color), this.scene, this.node, this.index++, this.colorChangeObservable);
         }
     }
 
-    private buildColor(color: Color3) {
+    private buildToolbox() {
 
-        const width = 1;
-        const depth = .2;
-        const material = new StandardMaterial("material-" + color.toHexString(), this.scene);
-        material.diffuseColor = color;
-        const mesh = MeshBuilder.CreateBox("toolbox-color-" + color.toHexString(), {
-            width: width,
-            height: .01,
-            depth: depth
-        }, this.scene);
-        mesh.material = material;
-        mesh.position.z = this.index++ / 4;
-        mesh.parent = this.node;
-        mesh.metadata = {tool: 'color'};
-        let i = 0;
-        for (const tool of enumKeys(ToolType)) {
-            const newItem = this.buildTool(ToolType[tool], mesh);
-            if (newItem) {
-                newItem.position = new Vector3(this.calculatePosition(++i), .1, 0);
-            }
-        }
-        const colorPickerPlane = MeshBuilder
-            .CreatePlane("colorPickerPlane",
-                {
-                    width: Toolbox.WIDGET_SIZE,
-                    height: Toolbox.WIDGET_SIZE
-                }, this.scene);
-        const colorPickerTexture = AdvancedDynamicTexture.CreateForMesh(colorPickerPlane, 1024, 1024);
-        colorPickerPlane.parent = mesh;
-        colorPickerPlane.position = new Vector3(this.calculatePosition(++i), .1, 0);
+        const color = "#7777FF";
+        buildColor(Color3.FromHexString(color), this.scene, this.node, this.index++, this.colorChangeObservable);
+        const addButton = createButton();
 
+        this.addPanel.node.parent = this.node.parent;
+        this.addPanel.addControl(addButton);
+        this.addPanel.node.scaling = new Vector3(.1, .1, .1);
+        this.addPanel.position = new Vector3(-.25, 0, 0);
 
-        const colorPicker = new ColorPicker("color-picker");
-        colorPicker.scaleY = 5;
-        colorPicker.scaleX = 5;
-        colorPicker.value = color;
-        colorPicker.onValueChangedObservable.add((value) => {
-            const oldColor = material.diffuseColor.clone();
-            const newColor = value.clone();
-            material.diffuseColor = newColor;
-            const newColorHex = newColor.toHexString();
-            material.id = "material-" + newColorHex;
-            material.name = "material-" + newColorHex;
-            mesh.id = "toolbox-color-" + newColorHex;
-            mesh.name = "toolbox-color-" + newColorHex;
-            this.colorChangeObservable.notifyObservers({
-                oldColor: oldColor.toHexString(),
-                newColor: newColor.toHexString()
-            });
+        addButton.onPointerClickObservable.add(() => {
+            buildColor(Color3.Random(), this.scene, this.node, this.index++, this.colorChangeObservable);
         });
 
-        colorPickerTexture.addControl(colorPicker);
-
+        this.node.parent.setEnabled(false);
     }
 }
 
-function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
-    return Object.keys(obj).filter(k => Number.isNaN(+k)) as K[];
+function createButton(): Button3D {
+    const addButton = new Button3D("add-button");
+    const text = new TextBlock("add-button-text", "Add Color");
+    text.color = "white";
+    text.fontSize = "48px";
+    text.text = "Add Color";
+    addButton.content = text;
+    return addButton;
 }

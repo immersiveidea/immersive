@@ -1,13 +1,13 @@
-import {AbstractMesh, MeshBuilder, Scene, WebXRExperienceHelper} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, Scene, WebXRDefaultExperience} from "@babylonjs/core";
 import {Controllers} from "../controllers/controllers";
 import {AbstractMenu} from "./abstractMenu";
 import {AdvancedDynamicTexture, Grid, TextBlock} from "@babylonjs/gui";
-import {CameraHelper} from "../util/cameraHelper";
+import {setMenuPosition} from "../util/functions/setMenuPosition";
 
 export class IntegrationMenu extends AbstractMenu {
     private plane: AbstractMesh = null;
 
-    constructor(scene: Scene, xr: WebXRExperienceHelper, controllers: Controllers) {
+    constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
         super(scene, xr, controllers);
         this.buildMenu();
     }
@@ -28,7 +28,7 @@ export class IntegrationMenu extends AbstractMenu {
         grid.addControl(labelText1, 0, 0);
         const labelText2 = new TextBlock("labelText1", "New Relic Account");
         grid.addControl(labelText2, 1, 0);
-        CameraHelper.setMenuPosition(this.plane, this.scene);
+        setMenuPosition(this.plane, this.scene);
     }
 
 
