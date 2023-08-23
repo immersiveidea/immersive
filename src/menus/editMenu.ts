@@ -15,7 +15,6 @@ import {Button3D, GUI3DManager, PlanePanel, TextBlock} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
 import {EditMenuState} from "./editMenuState";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
-import {MeshConverter} from "../diagram/meshConverter";
 import log from "loglevel";
 import {InputTextView} from "../information/inputTextView";
 import {DiaSounds} from "../util/diaSounds";
@@ -23,6 +22,7 @@ import {CameraHelper} from "../util/cameraHelper";
 import {TextLabel} from "../diagram/textLabel";
 import {DiagramConnection} from "../diagram/diagramConnection";
 import {GLTF2Export} from "@babylonjs/serializers";
+import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 
 export class EditMenu {
     private state: EditMenuState = EditMenuState.NONE;
@@ -118,7 +118,7 @@ export class EditMenu {
         }
         this.diagramManager.onDiagramEventObservable.notifyObservers({
             type: DiagramEventType.MODIFY,
-            entity: MeshConverter.toDiagramEntity(mesh),
+            entity: toDiagramEntity(mesh),
         });
     }
 
@@ -185,7 +185,7 @@ export class EditMenu {
                     mesh.dispose();
                     this.diagramManager.onDiagramEventObservable.notifyObservers({
                         type: DiagramEventType.MODIFY,
-                        entity: MeshConverter.toDiagramEntity(newMesh)
+                        entity: toDiagramEntity(newMesh)
                     });
 
                 } else {
@@ -199,7 +199,7 @@ export class EditMenu {
             this.connection.to = mesh.id;
             this.diagramManager.onDiagramEventObservable.notifyObservers({
                 type: DiagramEventType.ADD,
-                entity: MeshConverter.toDiagramEntity(this.connection.mesh)
+                entity: toDiagramEntity(this.connection.mesh)
             });
             this.connection = null;
         } else {
@@ -212,7 +212,7 @@ export class EditMenu {
         const event: DiagramEvent = {
             type: DiagramEventType.REMOVE,
             entity:
-                MeshConverter.toDiagramEntity(mesh)
+                toDiagramEntity(mesh)
         }
         this.diagramManager.onDiagramEventObservable.notifyObservers(event);
     }
@@ -226,8 +226,8 @@ export class EditMenu {
                 this.gizmoManager.attachToMesh(mesh);
                 this.gizmoManager.gizmos.boundingBoxGizmo.onScaleBoxDragObservable.add(() => {
                     this.diagramManager.onDiagramEventObservable.notifyObservers({
-                        type: DiagramEventType.MODIFY,
-                        entity: MeshConverter.toDiagramEntity(mesh),
+                            type: DiagramEventType.MODIFY,
+                            entity: toDiagramEntity(mesh),
                         }
                     )
                     this.logger.debug(mesh.scaling);

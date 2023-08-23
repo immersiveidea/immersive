@@ -3,7 +3,7 @@ import HavokPhysics from "@babylonjs/havok";
 import {AppConfig} from "./appConfig";
 
 export class CustomPhysics {
-    private scene: Scene;
+    private readonly scene: Scene;
     private config: AppConfig;
 
     constructor(scene: Scene, config: AppConfig) {

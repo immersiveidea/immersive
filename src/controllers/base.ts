@@ -9,11 +9,11 @@ import {
     WebXRDefaultExperience,
     WebXRInputSource
 } from "@babylonjs/core";
-import {MeshConverter} from "../diagram/meshConverter";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "./controllers";
+import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 
 export class Base {
     static stickVector = Vector3.Zero();
@@ -73,7 +73,10 @@ export class Base {
             if (event.type == 'pulse') {
                 this.logger.debug(event);
                 if (event.gripId == this?.controller?.grip?.id) {
-                    this.controller?.motionController?.pulse(.25, 30);
+                    this.controller?.motionController?.pulse(.25, 30)
+                        .then(() => {
+                            this.logger.debug("pulse done");
+                        });
                 }
             }
         });
@@ -152,7 +155,7 @@ export class Base {
             this.previousParentId = null;
             const event: DiagramEvent = {
                 type: DiagramEventType.ADD,
-                entity: MeshConverter.toDiagramEntity(newMesh)
+                entity: toDiagramEntity(newMesh)
             }
             this.diagramManager.onDiagramEventObservable.notifyObservers(event);
 
@@ -215,7 +218,7 @@ export class Base {
         if (mesh?.metadata?.template.indexOf('#') == -1) {
             return;
         }
-        const entity = MeshConverter.toDiagramEntity(mesh);
+        const entity = toDiagramEntity(mesh);
         const event: DiagramEvent = {
             type: DiagramEventType.DROP,
             entity: entity

@@ -32,7 +32,7 @@ export class Toolbox {
     private readonly gridsize = 5;
     private readonly addPanel: StackPanel3D;
     private readonly controllers: Controllers;
-    private xObserver;
+    private readonly xObserver;
     public readonly colorChangeObservable: Observable<{ oldColor: string, newColor: string }> =
         new Observable<{ oldColor: string; newColor: string }>()
 
@@ -103,28 +103,27 @@ export class Toolbox {
         switch (type) {
             case ToolType.BOX:
                 return MeshBuilder.CreateBox(toolname, {width: 1, height: 1, depth: 1}, this.scene);
-                break;
+
             case ToolType.SPHERE:
                 return MeshBuilder.CreateSphere(toolname, {diameter: 1}, this.scene);
-                break;
+
             case ToolType.CYLINDER:
                 return MeshBuilder.CreateCylinder(toolname, {height: 1, diameter: 1}, this.scene);
-                break;
+
             case ToolType.CONE:
                 return MeshBuilder.CreateCylinder(toolname, {
                     diameterTop: 0,
                     height: 1,
                     diameterBottom: 1
                 }, this.scene);
-                break;
+
             case ToolType.PLANE:
                 return MeshBuilder.CreatePlane(toolname, {width: 1, height: 1}, this.scene);
-                break;
+
             case ToolType.OBJECT:
                 return null;
-                break;
+
         }
-        return null;
     }
 
     private toolId(tool: ToolType, color: Color3) {

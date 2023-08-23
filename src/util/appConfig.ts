@@ -4,11 +4,6 @@ import round from "round";
 import {IPersistenceManager} from "../integration/iPersistenceManager";
 import {AppConfigType} from "./appConfigType";
 
-export type SnapValue = {
-    value: number,
-    label: string
-}
-
 export class AppConfig {
     private readonly logger = log.getLogger('AppConfig');
     public readonly onConfigChangedObservable = new Observable<AppConfigType>();
@@ -24,7 +19,7 @@ export class AppConfig {
         if (!this._currentConfig) {
             this.persistenceManager.getConfig().then((config) => {
                 if (!config) {
-                    const newconfig = {
+                    this._currentConfig = {
                         id: 1,
                         gridSnap: .1,
                         rotateSnap: 45,
@@ -35,7 +30,6 @@ export class AppConfig {
                         physicsEnabled: false,
                         demoCompleted: false,
                     }
-                    this._currentConfig = newconfig;
                     this.save();
                 } else {
                     this._currentConfig = config;

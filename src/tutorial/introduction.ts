@@ -18,7 +18,7 @@ import Hls from "hls.js";
 
 
 export class Introduction {
-    private scene: Scene;
+    private readonly scene: Scene;
     private manager: GUI3DManager;
     private physicsHelper: PhysicsHelper;
     private current: AbstractMesh[] = [];

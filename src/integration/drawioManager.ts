@@ -186,7 +186,7 @@ export class DrawioManager {
             } else {
 
                 const geo = cell.querySelector('[id="' + id + '"] > mxGeometry');
-                let geometry = null;
+                let geometry;
                 if (geo) {
                     geometry = {
                         x: Number.parseFloat(geo.getAttribute('x')),

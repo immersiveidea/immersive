@@ -14,7 +14,7 @@ export class NewRelicData {
     private key: string;
     private account: string;
     private data: any[];
-    private scene: Scene;
+    private readonly scene: Scene;
     private persistenceManager: IPersistenceManager;
     private policyLabels: AbstractMesh[] = [];
 
@@ -101,7 +101,7 @@ export class NewRelicData {
         const policies: Map<String, { x: number, y: number }> = new Map<string, { x: number, y: number }>();
         this.data.forEach((item) => {
             const policy = item.policyName ? item.policyName : "No Policy";
-            let x = 0;
+            let x;
             let y: number = 0;
             if (policies.has(policy)) {
                 const value = policies.get(policy);

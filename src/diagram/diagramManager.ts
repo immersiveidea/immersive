@@ -1,7 +1,6 @@
 import {AbstractMesh, Color3, InstancedMesh, Mesh, Observable, PhysicsMotionType, Scene} from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./diagramEntity";
 import {IPersistenceManager} from "../integration/iPersistenceManager";
-import {MeshConverter} from "./meshConverter";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
@@ -13,6 +12,8 @@ import {diagramEventHandler} from "./diagramEventHandler";
 import {deepCopy} from "../util/deepCopy";
 import {applyPhysics} from "./functions/diagramShapePhysics";
 import {applyScaling} from "./functions/applyScaling";
+import {toDiagramEntity} from "./functions/toDiagramEntity";
+import {fromDiagramEntity} from "./functions/fromDiagramEntity";
 
 
 export class DiagramManager {
@@ -52,7 +53,7 @@ export class DiagramManager {
                             this.logger.debug("removing connection", m.id);
                             this.onDiagramEventObservable.notifyObservers({
                                 type: DiagramEventType.REMOVE,
-                                entity: MeshConverter.toDiagramEntity(m)
+                                entity: toDiagramEntity(m)
                             });
                         }
                     });
@@ -100,7 +101,7 @@ export class DiagramManager {
             log.debug('no mesh found for ' + event.template + "-" + event.color, 'adding it');
             this.toolbox.updateToolbox(event.color);
         }
-        const mesh = MeshConverter.fromDiagramEntity(event, this.scene);
+        const mesh = fromDiagramEntity(event, this.scene);
         mesh.actionManager = this.diagramEntityActionManager.manager;
         if (event.parent) {
             mesh.parent = this.scene.getMeshById(event.parent);

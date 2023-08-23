@@ -1,12 +1,12 @@
 import {DiagramEvent, DiagramEventType} from "./diagramEntity";
 import log from "loglevel";
-import {MeshConverter} from "./meshConverter";
 import {applyPhysics} from "./functions/diagramShapePhysics";
 import {ActionManager, Color3, PhysicsMotionType, Scene} from "@babylonjs/core";
 import {TextLabel} from "./textLabel";
 import {Toolbox} from "../toolbox/toolbox";
 import {DiaSounds} from "../util/diaSounds";
 import {IPersistenceManager} from "../integration/iPersistenceManager";
+import {fromDiagramEntity} from "./functions/fromDiagramEntity";
 
 
 export function diagramEventHandler(event: DiagramEvent,
@@ -27,7 +27,7 @@ export function diagramEventHandler(event: DiagramEvent,
             log.debug('no mesh found for ' + event.entity.template + "-" + event.entity.color, 'adding it');
             toolbox.updateToolbox(event.entity.color);
         }
-        mesh = MeshConverter.fromDiagramEntity(event.entity, scene);
+        mesh = fromDiagramEntity(event.entity, scene);
         if (mesh) {
             mesh.actionManager = actionManager;
             if (physicsEnabled) {

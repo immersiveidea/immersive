@@ -2,9 +2,10 @@ import {DiagramListing, DiagramListingEvent, DiagramListingEventType, IPersisten
 import {AbstractMesh, Observable, Vector3} from "@babylonjs/core";
 import {DiagramEntity} from "../diagram/diagramEntity";
 import Dexie from "dexie";
-import {MeshConverter} from "../diagram/meshConverter";
+
 import log from "loglevel";
 import {AppConfigType} from "../util/appConfigType";
+import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 
 export class IndexdbPersistenceManager implements IPersistenceManager {
     private readonly logger = log.getLogger('IndexdbPersistenceManager');
@@ -33,7 +34,7 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
             this.logger.error("Adding null mesh, early return");
             return;
         }
-        const entity = <any>MeshConverter.toDiagramEntity(mesh);
+        const entity = <any>toDiagramEntity(mesh);
         entity.position = this.vectoxys(mesh.position);
         entity.rotation = this.vectoxys(mesh.rotation);
         entity.scale = this.vectoxys(mesh.scaling);
@@ -97,8 +98,7 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
 
     public async getConfig(): Promise<AppConfigType> {
         const configs = await this.db['config'].toArray();
-        const config = configs[0];
-        return config;
+        return configs[0];
     }
 
     public async initialize() {
@@ -151,7 +151,7 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
             this.logger.error("Modifying null mesh, early return");
             return;
         }
-        const entity = <any>MeshConverter.toDiagramEntity(mesh);
+        const entity = <any>toDiagramEntity(mesh);
         if (!entity) {
             this.logger.error("Modifying null mesh, early return");
             return;
