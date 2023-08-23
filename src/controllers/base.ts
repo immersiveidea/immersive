@@ -14,6 +14,8 @@ import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "./controllers";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
+import {setupTransformNode} from "./functions/setupTransformNode";
+import {reparent} from "./functions/reparent";
 
 export class Base {
     static stickVector = Vector3.Zero();
@@ -92,20 +94,8 @@ export class Base {
         this.controller.pointer.setEnabled(true);
     }
 
-    private setupTransformNode(mesh: TransformNode) {
-        const transformNode = new TransformNode("grabAnchor, this.scene");
-        transformNode.id = "grabAnchor";
-        transformNode.position = mesh.position.clone();
-        transformNode.rotationQuaternion = mesh.rotationQuaternion.clone();
-        transformNode.setParent(this.controller.motionController.rootMesh);
-        return transformNode;
-    }
-
-    private grab(mesh: AbstractMesh) {
-
-        if (this.xr.pointerSelection.getMeshUnderPointer) {
-            mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
-        }
+    private grab() {
+        const mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
         if (!mesh) {
             return;
         }
@@ -123,18 +113,20 @@ export class Base {
             }
         }
         this.previousParentId = mesh?.parent?.id;
+        this.logger.warn("grabbed " + mesh?.id + " parent " + this.previousParentId);
         this.previousRotation = mesh?.rotation.clone();
         this.previousScaling = mesh?.scaling.clone();
         this.previousPosition = mesh?.position.clone();
 
         if ("toolbox" != mesh?.parent?.parent?.id) {
             if (mesh.physicsBody) {
-                const transformNode = this.setupTransformNode(mesh);
+                const transformNode = setupTransformNode(mesh, this.controller.motionController.rootMesh);
                 mesh.physicsBody.setMotionType(PhysicsMotionType.ANIMATED);
                 this.grabbedMeshParentId = transformNode.id;
             } else {
                 mesh.setParent(this.controller.motionController.rootMesh);
             }
+
             this.grabbedMesh = mesh;
         } else {
             const newMesh = this.diagramManager.createCopy(mesh);
@@ -148,9 +140,6 @@ export class Base {
             }
             transformNode.setParent(this.controller.motionController.rootMesh);
             this.grabbedMeshParentId = transformNode.id;
-
-
-            //newMesh && newMesh.setParent(this.controller.motionController.rootMesh);
             this.grabbedMesh = newMesh;
             this.previousParentId = null;
             const event: DiagramEvent = {
@@ -158,14 +147,12 @@ export class Base {
                 entity: toDiagramEntity(newMesh)
             }
             this.diagramManager.onDiagramEventObservable.notifyObservers(event);
-
         }
     }
 
-    private handleGrabbed(mesh: AbstractMesh): boolean {
+    private toolboxHandleWasGrabbed(mesh: AbstractMesh): boolean {
         if (!mesh?.metadata?.template
             && mesh?.id == "handle") {
-            //mesh && mesh.setParent(null);
             this.grabbedMesh = null;
             this.previousParentId = null;
             mesh.setParent(null);
@@ -174,38 +161,18 @@ export class Base {
             return false;
         }
     }
-
-    private reparent(mesh: AbstractMesh) {
-        if (this.previousParentId) {
-            const parent = this.scene.getMeshById(this.previousParentId);
-            if (parent) {
-                //mesh && mesh.setParent(this.scene.getMeshById(this.previousParentId));
-                log.getLogger("Base").warn("Base", "Have not implemented snapping to parent yet");
-                //@note: this is not implemented yet
-            } else {
-                mesh.setParent(null);
-            }
-        } else {
-            const parent = this.scene.getTransformNodeById(this.grabbedMeshParentId);
-            if (parent) {
-                this.grabbedMeshParentId = null;
-                parent.dispose();
-            } else {
-                mesh.setParent(null);
-            }
-        }
-    }
-
     private drop() {
         const mesh = this.grabbedMesh;
         if (!mesh) {
             return;
         }
-        if (this.handleGrabbed(mesh)) {
+        if (this.toolboxHandleWasGrabbed(mesh)) {
             return;
         }
 
-        this.reparent(mesh);
+        reparent(mesh, this.previousParentId, this.grabbedMeshParentId);
+        this.grabbedMeshParentId = null;
+
         if (!mesh.physicsBody) {
             mesh.position = this.diagramManager.config.snapGridVal(mesh.position, this.diagramManager.config.current.gridSnap);
             mesh.rotation = this.diagramManager.config.snapRotateVal(mesh.rotation, this.diagramManager.config.current.rotateSnap);
@@ -242,7 +209,7 @@ export class Base {
         grip.onButtonStateChangedObservable.add(() => {
             if (grip.changes.pressed) {
                 if (grip.pressed) {
-                    this.grab(this.scene.meshUnderPointer);
+                    this.grab();
                 } else {
                     this.drop();
                 }

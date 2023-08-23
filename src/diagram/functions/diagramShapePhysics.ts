@@ -1,9 +1,14 @@
 import {DiaSounds} from "../../util/diaSounds";
-import {AbstractMesh, PhysicsAggregate, PhysicsMotionType, PhysicsShapeType, Scene} from "@babylonjs/core";
+import {AbstractMesh, PhysicsAggregate, PhysicsBody, PhysicsMotionType, PhysicsShapeType, Scene} from "@babylonjs/core";
 import log from "loglevel";
 
-export function applyPhysics(sounds: DiaSounds, mesh: AbstractMesh, scene: Scene, motionType?: PhysicsMotionType) {
-    const logger = log.getLogger('DiagramShapePhysics');
+const logger = log.getLogger('DiagramShapePhysics');
+const MASS_FACTOR = 10;
+
+export function applyPhysics(sounds: DiaSounds,
+                             mesh: AbstractMesh,
+                             scene: Scene,
+                             motionType?: PhysicsMotionType) {
     if (!mesh?.metadata?.template) {
         logger.error("applyPhysics: mesh.metadata.template is null", mesh);
         return;
@@ -15,11 +20,9 @@ export function applyPhysics(sounds: DiaSounds, mesh: AbstractMesh, scene: Scene
         logger.error("applyPhysics: mesh or scene is null");
         return;
     }
-
     if (mesh.physicsBody) {
         mesh.physicsBody.dispose();
     }
-
     let shapeType = PhysicsShapeType.BOX;
     switch (mesh.metadata.template) {
         case "#sphere-template":
@@ -31,16 +34,32 @@ export function applyPhysics(sounds: DiaSounds, mesh: AbstractMesh, scene: Scene
         case "#cone-template":
             shapeType = PhysicsShapeType.CONVEX_HULL;
             break;
-
     }
-    let mass = mesh.scaling.x * mesh.scaling.y * mesh.scaling.z * 10;
-
+    const mass = mesh.scaling.x * mesh.scaling.y * mesh.scaling.z * MASS_FACTOR;
     const aggregate = new PhysicsAggregate(mesh,
         shapeType, {mass: mass, restitution: .02, friction: .9}, scene);
     const body = aggregate.body;
-    body.setLinearDamping(1.95);
-    body.setAngularDamping(1.99);
+    applyMotionType(motionType, body, mesh);
 
+    body.setCollisionCallbackEnabled(true);
+    body.getCollisionObservable().add((event) => {
+        if (event.impulse < 10 && event.impulse > 1) {
+            const sound = sounds.bounce;
+            sound.setVolume(event.impulse / 10);
+            sound.attachToMesh(mesh);
+            sound.play();
+        }
+    }, -1, false);
+    applyPhysicsDefaults(body);
+}
+
+function applyPhysicsDefaults(body: PhysicsBody) {
+    body.setLinearDamping(.95);
+    body.setAngularDamping(.99);
+    body.setGravityFactor(0);
+}
+
+function applyMotionType(motionType: PhysicsMotionType, body: PhysicsBody, mesh: AbstractMesh) {
     if (motionType) {
         body
             .setMotionType(motionType);
@@ -53,18 +72,4 @@ export function applyPhysics(sounds: DiaSounds, mesh: AbstractMesh, scene: Scene
                 .setMotionType(PhysicsMotionType.DYNAMIC);
         }
     }
-    body.setCollisionCallbackEnabled(true);
-    body.getCollisionObservable().add((event) => {
-
-        if (event.impulse < 10 && event.impulse > 1) {
-            const sound = sounds.bounce;
-            sound.setVolume(event.impulse / 10);
-            sound.attachToMesh(mesh);
-            sound.play();
-        }
-    }, -1, false, this);
-    //body.setMotionType(PhysicsMotionType.ANIMATED);
-    body.setLinearDamping(.95);
-    body.setAngularDamping(.99);
-    body.setGravityFactor(0);
 }
