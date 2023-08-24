@@ -157,7 +157,7 @@ export class Base {
                 type: DiagramEventType.ADD,
                 entity: toDiagramEntity(newMesh)
             }
-            this.diagramManager.onDiagramEventObservable.notifyObservers(event);
+            this.diagramManager.onDiagramEventObservable.notifyObservers(event, 2);
         }
     }
 
@@ -202,7 +202,7 @@ export class Base {
             entity: entity
         }
 
-        this.diagramManager.onDiagramEventObservable.notifyObservers(event);
+        this.diagramManager.onDiagramEventObservable.notifyObservers(event, 2);
         const body = mesh?.physicsBody;
         if (body) {
             body.setMotionType(PhysicsMotionType.DYNAMIC);

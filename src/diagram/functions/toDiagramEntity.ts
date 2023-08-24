@@ -1,4 +1,4 @@
-import {AbstractMesh} from "@babylonjs/core";
+import {AbstractMesh, Vector3} from "@babylonjs/core";
 import {DiagramEntity} from "../diagramEntity";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
@@ -16,18 +16,22 @@ export function toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
         mesh.id = "id" + uuidv4();
     }
     entity.id = mesh.id;
-    entity.position = mesh.position;
-    entity.rotation = mesh.rotation;
+    entity.position = vectoxys(mesh.position);
+    entity.rotation = vectoxys(mesh.rotation);
     entity.last_seen = new Date();
     entity.template = mesh?.metadata?.template;
     entity.text = mesh?.metadata?.text;
     entity.from = mesh?.metadata?.from;
     entity.to = mesh?.metadata?.to;
-    entity.scale = mesh.scaling;
+    entity.scale = vectoxys(mesh.scaling);
     if (mesh.material) {
         entity.color = (mesh.material as any).diffuseColor.toHexString();
     } else {
         logger.error("toDiagramEntity: mesh.material is null");
     }
     return entity;
+}
+
+function vectoxys(v: Vector3): { x, y, z } {
+    return {x: v.x, y: v.y, z: v.z};
 }

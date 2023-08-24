@@ -1,11 +1,11 @@
 import {DiagramEvent, DiagramEventType} from "./diagramEntity";
 import log from "loglevel";
 import {applyPhysics} from "./functions/diagramShapePhysics";
-import {ActionManager, Color3, PhysicsMotionType, Scene} from "@babylonjs/core";
+import {ActionManager, PhysicsMotionType, Scene} from "@babylonjs/core";
 import {TextLabel} from "./textLabel";
 import {Toolbox} from "../toolbox/toolbox";
 import {DiaSounds} from "../util/diaSounds";
-import {IPersistenceManager} from "../integration/iPersistenceManager";
+
 import {fromDiagramEntity} from "./functions/fromDiagramEntity";
 
 
@@ -14,8 +14,7 @@ export function diagramEventHandler(event: DiagramEvent,
                                     toolbox: Toolbox,
                                     physicsEnabled: boolean,
                                     actionManager: ActionManager,
-                                    sounds: DiaSounds,
-                                    persistenceManager: IPersistenceManager) {
+                                    sounds: DiaSounds) {
     const entity = event.entity;
     let mesh;
     if (entity) {
@@ -42,13 +41,15 @@ export function diagramEventHandler(event: DiagramEvent,
             break;
         case DiagramEventType.DROP:
             if (mesh.metadata.template.indexOf('#') > -1) {
-                persistenceManager.modify(mesh);
+                //@TODO refactor
+                // persistenceManager.modify(entity);
                 TextLabel.updateTextNode(mesh, entity.text);
             }
 
             break;
         case DiagramEventType.ADD:
-            persistenceManager.add(mesh);
+            //@TODO refactor
+            //persistenceManager.add(event.entity);
             if (!mesh.actionManager) {
                 mesh.actionManager = actionManager;
             }
@@ -58,7 +59,8 @@ export function diagramEventHandler(event: DiagramEvent,
 
             break;
         case DiagramEventType.MODIFY:
-            persistenceManager.modify(mesh);
+            //@TODO refactor
+            //persistenceManager.modify(mesh);
             if (physicsEnabled) {
                 applyPhysics(sounds, mesh, scene);
             }
@@ -67,16 +69,19 @@ export function diagramEventHandler(event: DiagramEvent,
         case DiagramEventType.CHANGECOLOR:
             if (!event.oldColor) {
                 if (!event.newColor) {
-                    persistenceManager.changeColor(null, Color3.FromHexString(event.entity.color));
+                    //@TODO refactor
+                    //persistenceManager.changeColor(null, Color3.FromHexString(event.entity.color));
                     this.logger.info("Received color change event, sending entity color as new color");
                 } else {
                     this.logger.info("Received color change event, no old color, sending new color");
-                    persistenceManager.changeColor(null, event.newColor);
+                    //@TODO refactor
+                    //persistenceManager.changeColor(null, event.newColor);
                 }
             } else {
                 if (event.newColor) {
                     this.logger.info("changing color from " + event.oldColor + " to " + event.newColor);
-                    persistenceManager.changeColor(event.oldColor, event.newColor);
+                    //@TODO refactor
+                    //persistenceManager.changeColor(event.oldColor, event.newColor);
                 } else {
                     this.logger.error("changing color from " + event.oldColor + ", but no new color found");
                 }
@@ -85,7 +90,8 @@ export function diagramEventHandler(event: DiagramEvent,
             break;
         case DiagramEventType.REMOVE:
             if (mesh) {
-                persistenceManager.remove(mesh)
+                //@TODO refactor
+                //persistenceManager.remove(mesh.id)
                 mesh?.physicsBody?.dispose();
                 mesh.dispose();
                 sounds.exit.play();

@@ -20,7 +20,7 @@ import {InputTextView} from "../information/inputTextView";
 import {DiaSounds} from "../util/diaSounds";
 import {TextLabel} from "../diagram/textLabel";
 import {DiagramConnection} from "../diagram/diagramConnection";
-import {GLTF2Export} from "@babylonjs/serializers";
+
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {AbstractMenu} from "./abstractMenu";
 import {Controllers} from "../controllers/controllers";
@@ -119,7 +119,7 @@ export class EditMenu extends AbstractMenu {
         this.diagramManager.onDiagramEventObservable.notifyObservers({
             type: DiagramEventType.MODIFY,
             entity: toDiagramEntity(mesh),
-        });
+        }, -1);
     }
 
     toggle() {
@@ -186,7 +186,7 @@ export class EditMenu extends AbstractMenu {
                     this.diagramManager.onDiagramEventObservable.notifyObservers({
                         type: DiagramEventType.MODIFY,
                         entity: toDiagramEntity(newMesh)
-                    });
+                    }, 2);
 
                 } else {
                     this.logger.error("no paint color selectced");
@@ -200,7 +200,7 @@ export class EditMenu extends AbstractMenu {
             this.diagramManager.onDiagramEventObservable.notifyObservers({
                 type: DiagramEventType.ADD,
                 entity: toDiagramEntity(this.connection.mesh)
-            });
+            }, -1);
             this.connection = null;
         } else {
             this.connection = new DiagramConnection(mesh.id, null, this.scene, pointerInfo);
@@ -214,7 +214,8 @@ export class EditMenu extends AbstractMenu {
             entity:
                 toDiagramEntity(mesh)
         }
-        this.diagramManager.onDiagramEventObservable.notifyObservers(event);
+
+        this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
     }
 
     private modifyMesh(mesh: AbstractMesh) {
@@ -228,7 +229,7 @@ export class EditMenu extends AbstractMenu {
                     this.diagramManager.onDiagramEventObservable.notifyObservers({
                             type: DiagramEventType.MODIFY,
                             entity: toDiagramEntity(mesh),
-                        }
+                        }, -1
                     )
                     this.logger.debug(mesh.scaling);
                 });
@@ -306,18 +307,24 @@ export class EditMenu extends AbstractMenu {
                 this.showNewRelic();
                 break;
             case "export":
-                GLTF2Export.GLBAsync(this.scene, 'diagram.glb', {
-                    shouldExportNode: function (node) {
-                        if (node?.metadata?.template) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                import("@babylonjs/serializers").then((serializers) => {
 
-                    }
-                }).then((gltf) => {
-                    gltf.downloadFiles();
+                    serializers.GLTF2Export.GLBAsync(this.scene, 'diagram.glb', {
+                        shouldExportNode: function (node) {
+                            if (node?.metadata?.template) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+
+                        }
+                    }).then((gltf) => {
+                        gltf.downloadFiles();
+                    });
+
                 });
+
+
                 break;
             default:
                 this.logger.error("Unknown button");

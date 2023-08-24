@@ -1,4 +1,4 @@
-import {Color3, Vector3} from "@babylonjs/core";
+import {Color3} from "@babylonjs/core";
 import {EditMenuState} from "../menus/editMenuState";
 
 export enum DiagramEventType {
@@ -28,12 +28,13 @@ export type DiagramEntity = {
     from?: string;
     to?: string;
     last_seen?: Date;
-    position?: Vector3;
-    rotation?: Vector3;
+    position?: { x: number, y: number, z: number };
+    rotation?: { x: number, y: number, z: number };
     template?: string;
     text?: string;
-    scale?: Vector3;
+    scale?: { x: number, y: number, z: number };
     parent?: string;
+    diagramlistingid?: string;
 }
 
 

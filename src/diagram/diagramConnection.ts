@@ -30,12 +30,15 @@ export class DiagramConnection {
             this.toAnchor = toMesh;
         } else {
             if (fromMesh) {
-                this.toAnchor = new TransformNode(this.id + "_to", this.scene);
-                this.toAnchor.id = this.id + "_to";
-                this.toAnchor.position = fromMesh.absolutePosition.clone();
+                const to = new TransformNode(this.id + "_to", this.scene);
+                to.ignoreNonUniformScaling = true;
+                to.id = this.id + "_to";
+                to.position = fromMesh.absolutePosition.clone();
                 if (pointerInfo) {
-                    this.toAnchor.setParent(pointerInfo.pickInfo.gripTransform);
+                    to.setParent(pointerInfo.pickInfo.gripTransform);
                 }
+
+                this.toAnchor = to;
             }
         }
         this.buildConnection();

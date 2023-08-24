@@ -32,7 +32,7 @@ export class CustomEnvironment {
                 this._groundMeshObservable.notifyObservers(ground);
             });
         const photo = new PhotoDome('sky',
-            '/assets/textures/outdoor_field2.jpeg', {},
+            '/assets/textures/outdoor_field4.jpeg', {},
             scene);
         try {
             const sounds = new DiaSounds(scene);

@@ -1,4 +1,4 @@
-import {AbstractMesh, Color3, Observable} from "@babylonjs/core";
+import {Color3, Observable} from "@babylonjs/core";
 import {DiagramEntity} from "../diagram/diagramEntity";
 import {AppConfigType} from "../util/appConfigType";
 
@@ -33,11 +33,11 @@ export interface IPersistenceManager {
 
     removeDiagram(diagram: DiagramListing);
 
-    add(mesh: AbstractMesh);
+    add(mesh: DiagramEntity);
 
-    remove(mesh: AbstractMesh);
+    remove(id: string);
 
-    modify(mesh: AbstractMesh);
+    modify(mesh: DiagramEntity);
 
     initialize();
 

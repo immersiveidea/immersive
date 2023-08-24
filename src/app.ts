@@ -15,9 +15,8 @@ import {AppConfig} from "./util/appConfig";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {Controllers} from "./controllers/controllers";
-import {Introduction} from "./tutorial/introduction";
-import {IndexdbPersistenceManager} from "./integration/indexdbPersistenceManager";
-
+import workerUrl from "./worker?worker&url";
+import {DiagramEventType} from "./diagram/diagramEntity";
 
 export class App {
     //preTasks = [havokModule];
@@ -43,22 +42,44 @@ export class App {
         const logger = log.getLogger('App');
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
-
-        const persistenceManager = new IndexdbPersistenceManager("diagram");
+        const config = new AppConfig();
+        //const persistenceManager = new IndexdbPersistenceManager("diagram");
+        const worker = new Worker(workerUrl, {type: 'module'});
 
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
-        const diagramManager = new DiagramManager(scene, controllers, toolbox);
-        diagramManager.setPersistenceManager(persistenceManager);
-        const config = new AppConfig(persistenceManager);
+
+
+        const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
+        diagramManager.onDiagramEventObservable.add((evt) => {
+            worker.postMessage(evt);
+        }, 2);
+        worker.onmessage = (evt) => {
+            if (evt.data.entity) {
+                console.log(evt.data.entity);
+                diagramManager.onDiagramEventObservable.notifyObservers({
+                    type: DiagramEventType.ADD,
+                    entity: evt.data.entity
+                }, 1);
+            }
+            if (evt.data.config) {
+                console.log(evt.data.config);
+                config.onConfigChangedObservable.notifyObservers(evt.data.config, 1);
+            }
+        }
+
+        worker.postMessage({type: 'init'});
+
+        //diagramManager.setPersistenceManager(persistenceManager);
+
         const environment = new CustomEnvironment(scene, "default", config);
-        persistenceManager.initialize().then(() => {
+        /*persistenceManager.initialize().then(() => {
             if (!config.current?.demoCompleted) {
                 const intro = new Introduction(scene, config);
                 intro.start();
             }
         });
-
+*/
         const camera: ArcRotateCamera = new ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 4,
             new Vector3(0, 1.6, 0), scene);
 

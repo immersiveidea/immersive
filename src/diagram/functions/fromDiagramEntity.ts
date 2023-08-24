@@ -1,5 +1,5 @@
 import {DiagramEntity} from "../diagramEntity";
-import {AbstractMesh, Color3, InstancedMesh, Mesh, Quaternion, Scene, StandardMaterial} from "@babylonjs/core";
+import {AbstractMesh, Color3, InstancedMesh, Mesh, Quaternion, Scene, StandardMaterial, Vector3} from "@babylonjs/core";
 import {DiagramConnection} from "../diagramConnection";
 import {TextLabel} from "../textLabel";
 import log from "loglevel";
@@ -40,20 +40,20 @@ export function fromDiagramEntity(entity: DiagramEntity, scene: Scene): Abstract
     if (mesh) {
         mesh.metadata = {template: entity.template};
         if (entity.position) {
-            mesh.position = entity.position;
+            mesh.position = xyztovec(entity.position);
         }
         if (entity.rotation) {
             if (mesh.rotationQuaternion) {
                 mesh.rotationQuaternion = Quaternion.FromEulerAngles(entity.rotation.x, entity.rotation.y, entity.rotation.z);
             } else {
-                mesh.rotation = entity.rotation;
+                mesh.rotation = xyztovec(entity.rotation);
             }
         }
         if (entity.parent) {
             mesh.parent = scene.getNodeById(entity.parent);
         }
         if (entity.scale) {
-            mesh.scaling = entity.scale;
+            mesh.scaling = xyztovec(entity.scale);
         }
         if (!mesh.material) {
             const material = new StandardMaterial("material-" + entity.id, scene);
@@ -74,4 +74,9 @@ export function fromDiagramEntity(entity: DiagramEntity, scene: Scene): Abstract
         logger.error("fromDiagramEntity: mesh is null after it should have been created");
     }
     return mesh;
+}
+
+
+function xyztovec(xyz: { x, y, z }): Vector3 {
+    return new Vector3(xyz.x, xyz.y, xyz.z);
 }
