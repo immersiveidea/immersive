@@ -1,21 +1,15 @@
 import {Observable} from "@babylonjs/core";
-
-//import {IPersistenceManager} from "../integration/iPersistenceManager";
 import {AppConfigType} from "./appConfigType";
 
 export class AppConfig {
     public readonly onConfigChangedObservable = new Observable<AppConfigType>();
     private _currentConfig: AppConfigType;
 
-    //  private persistenceManager: IPersistenceManager;
-
     constructor() {
         this.onConfigChangedObservable.add((config, state) => {
             console.log(state);
             this._currentConfig = config;
-        }, 2);
-        //this.persistenceManager = persistenceManager;
-        //this.persistenceManager.configObserver.add(this.load, -1, false, this, false);
+        }, -1);
     }
 
     public get current(): AppConfigType {
@@ -38,12 +32,8 @@ export class AppConfig {
     }
 
     public set current(config: AppConfigType) {
+        this._currentConfig = config;
         this.onConfigChangedObservable.notifyObservers(config, 2);
-        this.save();
-    }
-
-    public save() {
-        //this.persistenceManager.setConfig(this._currentConfig);
     }
 
     public load(config: AppConfigType) {

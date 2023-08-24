@@ -52,7 +52,10 @@ export class App {
 
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
         diagramManager.onDiagramEventObservable.add((evt) => {
-            worker.postMessage(evt);
+            worker.postMessage({entity: evt});
+        }, 2);
+        config.onConfigChangedObservable.add((config) => {
+            worker.postMessage({config: config});
         }, 2);
         worker.onmessage = (evt) => {
             if (evt.data.entity) {

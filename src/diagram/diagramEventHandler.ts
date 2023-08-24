@@ -41,57 +41,24 @@ export function diagramEventHandler(event: DiagramEvent,
             break;
         case DiagramEventType.DROP:
             if (mesh.metadata.template.indexOf('#') > -1) {
-                //@TODO refactor
-                // persistenceManager.modify(entity);
                 TextLabel.updateTextNode(mesh, entity.text);
             }
-
             break;
         case DiagramEventType.ADD:
-            //@TODO refactor
-            //persistenceManager.add(event.entity);
             if (!mesh.actionManager) {
                 mesh.actionManager = actionManager;
             }
             if (physicsEnabled) {
                 applyPhysics(sounds, mesh, scene);
             }
-
             break;
         case DiagramEventType.MODIFY:
-            //@TODO refactor
-            //persistenceManager.modify(mesh);
             if (physicsEnabled) {
                 applyPhysics(sounds, mesh, scene);
             }
-
-            break;
-        case DiagramEventType.CHANGECOLOR:
-            if (!event.oldColor) {
-                if (!event.newColor) {
-                    //@TODO refactor
-                    //persistenceManager.changeColor(null, Color3.FromHexString(event.entity.color));
-                    this.logger.info("Received color change event, sending entity color as new color");
-                } else {
-                    this.logger.info("Received color change event, no old color, sending new color");
-                    //@TODO refactor
-                    //persistenceManager.changeColor(null, event.newColor);
-                }
-            } else {
-                if (event.newColor) {
-                    this.logger.info("changing color from " + event.oldColor + " to " + event.newColor);
-                    //@TODO refactor
-                    //persistenceManager.changeColor(event.oldColor, event.newColor);
-                } else {
-                    this.logger.error("changing color from " + event.oldColor + ", but no new color found");
-                }
-            }
-
             break;
         case DiagramEventType.REMOVE:
             if (mesh) {
-                //@TODO refactor
-                //persistenceManager.remove(mesh.id)
                 mesh?.physicsBody?.dispose();
                 mesh.dispose();
                 sounds.exit.play();

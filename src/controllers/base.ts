@@ -157,7 +157,7 @@ export class Base {
                 type: DiagramEventType.ADD,
                 entity: toDiagramEntity(newMesh)
             }
-            this.diagramManager.onDiagramEventObservable.notifyObservers(event, 2);
+            this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
         }
     }
 
@@ -202,7 +202,7 @@ export class Base {
             entity: entity
         }
 
-        this.diagramManager.onDiagramEventObservable.notifyObservers(event, 2);
+
         const body = mesh?.physicsBody;
         if (body) {
             body.setMotionType(PhysicsMotionType.DYNAMIC);
@@ -214,6 +214,7 @@ export class Base {
                 this.logger.debug(this.lastPosition.subtract(body.transformNode.absolutePosition).scale(20));
             }
         }
+        this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
     }
 
     private initGrip(grip: WebXRControllerComponent) {

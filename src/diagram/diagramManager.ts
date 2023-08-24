@@ -23,12 +23,12 @@ export class DiagramManager {
     private readonly controllers: Controllers;
     private readonly diagramEntityActionManager: DiagramEntityActionManager
     private presentationManager: PresentationManager;
-    private _config: AppConfig;
+    public readonly config: AppConfig;
 
     constructor(scene: Scene, controllers: Controllers, toolbox: Toolbox, config: AppConfig) {
         this.sounds = new DiaSounds(scene);
         this.scene = scene;
-        this._config = config;
+        this.config = config;
         this.toolbox = toolbox;
         this.controllers = controllers;
         this.presentationManager = new PresentationManager(this.scene);
@@ -61,10 +61,6 @@ export class DiagramManager {
                 }
             }
         });
-    }
-
-    public get config(): AppConfig {
-        return this._config;
     }
 
     //@TODO Refactor

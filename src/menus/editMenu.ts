@@ -186,7 +186,7 @@ export class EditMenu extends AbstractMenu {
                     this.diagramManager.onDiagramEventObservable.notifyObservers({
                         type: DiagramEventType.MODIFY,
                         entity: toDiagramEntity(newMesh)
-                    }, 2);
+                    }, -1);
 
                 } else {
                     this.logger.error("no paint color selectced");

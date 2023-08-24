@@ -96,9 +96,12 @@ export class ConfigMenu extends AbstractMenu {
 
     private buildGridSizeControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Grid Snap");
+
         selectionPanel.addGroup(radio);
+
         for (const [index, snap] of this.gridSnaps.entries()) {
             const selected = this.config.current.gridSnap == snap.value;
+
             radio.addRadio(snap.label, this.gridVal.bind(this), selected);
         }
         return radio;
@@ -116,17 +119,24 @@ export class ConfigMenu extends AbstractMenu {
 
     private createVal(value) {
         const config = this.config.current;
-        config.createSnap = this.gridSnaps[value].value;
-        this.config.current = config;
+        if (config.createSnap != this.gridSnaps[value].value) {
+            config.createSnap = this.gridSnaps[value].value;
+            this.config.current = config;
 
-        log.debug("configMenu", "create Snap", value);
+            log.debug("configMenu", "create Snap", value);
+        }
+
     }
 
     private rotateVal(value) {
         const config = this.config.current;
-        config.rotateSnap = this.rotationSnaps[value].value;
-        this.config.current = config;
-        log.debug("configMenu", "rotate Snap", value);
+        if (config.rotateSnap != this.rotationSnaps[value].value) {
+            config.rotateSnap = this.rotationSnaps[value].value;
+            this.config.current = config;
+            log.debug("configMenu", "rotate Snap", value);
+        }
+
+
     }
 
     private turnVal(value) {

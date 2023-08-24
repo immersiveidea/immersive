@@ -19,18 +19,27 @@ ctx.onmessage = (event) => {
             console.log('initialized');
         });
     } else {
-        const data = (event.data as DiagramEvent);
-        switch (data.type) {
-            case DiagramEventType.ADD:
-                persistenceManager.add(data.entity);
-                break;
-            case DiagramEventType.MODIFY:
-                persistenceManager.modify(data.entity);
-                break;
-            case DiagramEventType.REMOVE:
-                persistenceManager.remove(data.entity.id);
-                break;
+        if (event.data.entity) {
+            const data = (event.data.entity as DiagramEvent);
+            console.log(data);
+            switch (data.type) {
+                case DiagramEventType.ADD:
+                    persistenceManager.add(data.entity);
+                    break;
+                case DiagramEventType.DROP:
+                case DiagramEventType.MODIFY:
+                    persistenceManager.modify(data.entity);
+                    break;
+                case DiagramEventType.REMOVE:
+                    persistenceManager.remove(data.entity.id);
+                    break;
 
+            }
         }
+        if (event.data.config) {
+            persistenceManager.setConfig(event.data.config);
+        }
+
+
     }
 };
