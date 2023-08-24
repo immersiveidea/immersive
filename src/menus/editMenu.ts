@@ -267,13 +267,11 @@ export class EditMenu extends AbstractMenu {
         const inputTextView = new InputTextView({xr: this.xr, scene: this.scene, text: "New Relic"});
         inputTextView.show();
         inputTextView.onTextObservable.addOnce((value) => {
-            console.log(value.text);
             const config = this.diagramManager.config.current;
             config.newRelicKey = value.text;
             this.diagramManager.config.current = config;
             inputTextView.show();
             inputTextView.onTextObservable.addOnce((value) => {
-                console.log(value.text);
                 const config = this.diagramManager.config.current;
                 config.newRelicAccount = value.text;
                 this.diagramManager.config.current = config;

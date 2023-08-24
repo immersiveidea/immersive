@@ -46,7 +46,6 @@ export class Introduction {
         this.advance.content = text;
 
         this.advance.onPointerClickObservable.add(() => {
-            console.log("click");
             this.takeStep();
         }, -1, false, this, false);
         this.manager.addControl(this.advance);
@@ -112,7 +111,7 @@ export class Introduction {
             if (volume > 0) {
                 sound.attachToMesh(aggregate.body.transformNode);
                 sound.updateOptions({offset: 0, volume: volume, length: .990});
-                console.log(volume);
+
                 sound.play();
             }
         });

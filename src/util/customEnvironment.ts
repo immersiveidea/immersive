@@ -59,7 +59,7 @@ export class CustomEnvironment {
 
             }, 2000, effects);
         } catch (error) {
-            console.log(error);
+
         }
 
 

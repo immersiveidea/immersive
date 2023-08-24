@@ -63,9 +63,9 @@ export class NewRelicData {
                 await this.persistenceManager.setNewRelicData(newdata);
                 this.data = newdata;
             }
-            console.log(JSON.stringify(data, null, 2));
+
         } catch (err) {
-            console.log(err);
+
         }
 
     }
@@ -76,7 +76,6 @@ export class NewRelicData {
         });
 
         const duration = this.data[this.data.length - 1].openTime - this.data[0].openTime;
-        console.log(duration);
         const interval = 10 / duration;
         const first = parseInt(this.data[0].openTime);
         const material = new StandardMaterial("material", this.scene);

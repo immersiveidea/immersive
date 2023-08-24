@@ -17,8 +17,7 @@ export class AppConfig {
             physicsEnabled: false,
             demoCompleted: false,
         };
-        this.onConfigChangedObservable.add((config, state) => {
-            console.log(state);
+        this.onConfigChangedObservable.add((config) => {
             this._currentConfig = config;
         }, -1);
     }

@@ -59,14 +59,12 @@ export class App {
         }, 2);
         worker.onmessage = (evt) => {
             if (evt.data.entity) {
-                console.log(evt.data.entity);
                 diagramManager.onDiagramEventObservable.notifyObservers({
                     type: DiagramEventType.ADD,
                     entity: evt.data.entity
                 }, 1);
             }
             if (evt.data.config) {
-                console.log(evt.data.config);
                 config.onConfigChangedObservable.notifyObservers(evt.data.config, 1);
             }
         }
@@ -106,12 +104,12 @@ export class App {
             });
             xr.baseExperience.sessionManager.onXRSessionInit.add((session) => {
                 session.addEventListener('visibilitychange', (ev) => {
-                    console.log(ev);
+
                 });
             });
 
             xr.baseExperience.onStateChangedObservable.add((state) => {
-                console.log(state);
+
                 if (state == WebXRState.IN_XR) {
                     scene.audioEnabled = true;
                     xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
