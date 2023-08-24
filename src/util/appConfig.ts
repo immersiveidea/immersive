@@ -6,6 +6,17 @@ export class AppConfig {
     private _currentConfig: AppConfigType;
 
     constructor() {
+        this._currentConfig = {
+            id: 1,
+            gridSnap: .1,
+            rotateSnap: 45,
+            createSnap: .1,
+            turnSnap: 22.5,
+            newRelicKey: null,
+            newRelicAccount: null,
+            physicsEnabled: false,
+            demoCompleted: false,
+        };
         this.onConfigChangedObservable.add((config, state) => {
             console.log(state);
             this._currentConfig = config;
@@ -13,22 +24,27 @@ export class AppConfig {
     }
 
     public get current(): AppConfigType {
-        if (!this._currentConfig) {
-
-            this._currentConfig = {
-                id: 1,
-                gridSnap: .1,
-                rotateSnap: 45,
-                createSnap: .1,
-                turnSnap: 22.5,
-                newRelicKey: null,
-                newRelicAccount: null,
-                physicsEnabled: false,
-                demoCompleted: false,
-            }
-
-        }
         return this._currentConfig;
+    }
+
+    public setRotateSnap(value: number) {
+        this._currentConfig.rotateSnap = value;
+        this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
+    }
+
+    public setCreateSnap(value: number) {
+        this._currentConfig.createSnap = value;
+        this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
+    }
+
+    public setTurnSnap(value: number) {
+        this._currentConfig.turnSnap = value;
+        this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
+    }
+
+    public setGridSnap(value: number) {
+        this._currentConfig.gridSnap = value;
+        this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
     }
 
     public set current(config: AppConfigType) {

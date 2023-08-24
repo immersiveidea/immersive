@@ -37,6 +37,8 @@ ctx.onmessage = (event) => {
             }
         }
         if (event.data.config) {
+            console.log('updateing config');
+            console.log(event.data.config);
             persistenceManager.setConfig(event.data.config);
         }
 

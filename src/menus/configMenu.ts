@@ -1,6 +1,5 @@
 import {AdvancedDynamicTexture, RadioGroup, SelectionPanel} from "@babylonjs/gui";
 import {AbstractMesh, MeshBuilder, Scene, WebXRDefaultExperience} from "@babylonjs/core";
-import log from "loglevel";
 import {AppConfig} from "../util/appConfig";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
@@ -78,7 +77,7 @@ export class ConfigMenu extends AbstractMenu {
         selectionPanel.addGroup(radio);
 
         for (const [index, snap] of this.gridSnaps.entries()) {
-            const selected = this.config.current.createSnap == snap.value
+            const selected = (this.config.current.createSnap == snap.value);
             radio.addRadio(snap.label, this.createVal.bind(this), selected);
         }
         return radio;
@@ -88,7 +87,7 @@ export class ConfigMenu extends AbstractMenu {
         const radio = new RadioGroup("Rotation Snap");
         selectionPanel.addGroup(radio);
         for (const [index, snap] of this.rotationSnaps.entries()) {
-            const selected = this.config.current.rotateSnap == snap.value
+            const selected = (this.config.current.rotateSnap == snap.value);
             radio.addRadio(snap.label, this.rotateVal.bind(this), selected);
         }
         return radio;
@@ -100,7 +99,7 @@ export class ConfigMenu extends AbstractMenu {
         selectionPanel.addGroup(radio);
 
         for (const [index, snap] of this.gridSnaps.entries()) {
-            const selected = this.config.current.gridSnap == snap.value;
+            const selected = (this.config.current.gridSnap == snap.value);
 
             radio.addRadio(snap.label, this.gridVal.bind(this), selected);
         }
@@ -111,46 +110,26 @@ export class ConfigMenu extends AbstractMenu {
         const radio = new RadioGroup("Turn Snap");
         selectionPanel.addGroup(radio);
         for (const [index, snap] of this.rotationSnaps.entries()) {
-            const selected = this.config.current.rotateSnap == snap.value;
+            const selected = (this.config.current.turnSnap == snap.value);
             radio.addRadio(snap.label, this.turnVal.bind(this), selected);
         }
         return radio;
     }
 
     private createVal(value) {
-        const config = this.config.current;
-        if (config.createSnap != this.gridSnaps[value].value) {
-            config.createSnap = this.gridSnaps[value].value;
-            this.config.current = config;
-
-            log.debug("configMenu", "create Snap", value);
-        }
-
+        this.config.setCreateSnap(this.gridSnaps[value].value);
     }
 
     private rotateVal(value) {
-        const config = this.config.current;
-        if (config.rotateSnap != this.rotationSnaps[value].value) {
-            config.rotateSnap = this.rotationSnaps[value].value;
-            this.config.current = config;
-            log.debug("configMenu", "rotate Snap", value);
-        }
-
-
+        this.config.setRotateSnap(this.rotationSnaps[value].value);
     }
 
     private turnVal(value) {
-        const config = this.config.current;
-        config.turnSnap = this.rotationSnaps[value].value;
-        this.config.current = config;
-        log.debug("configMenu", "turn Snap", value);
+        this.config.setTurnSnap(this.rotationSnaps[value].value);
     }
 
     private gridVal(value) {
-        const config = this.config.current;
-        config.gridSnap = this.gridSnaps[value].value;
-        this.config.current = config;
-        log.debug("configMenu", "grid Snap", value);
+        this.config.setGridSnap(this.gridSnaps[value].value);
     }
 
 }
