@@ -1,7 +1,8 @@
-import {Observable, Scene, WebXRDefaultExperience} from "@babylonjs/core";
+import {MeshBuilder, Observable, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import log from "loglevel";
-import {AdvancedDynamicTexture, InputText} from "@babylonjs/gui";
+import {AdvancedDynamicTexture, Control, InputText, VirtualKeyboard} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
+import {setMenuPosition} from "../util/functions/setMenuPosition";
 
 export type TextEvent = {
     text: string;
@@ -15,33 +16,71 @@ export type InputTextViewOptions = {
 
 export class InputTextView {
     public readonly onTextObservable: Observable<TextEvent> = new Observable<TextEvent>();
-    private readonly text: string;
+    private readonly text: string = "";
     private readonly scene: Scene;
     private readonly controllers: Controllers;
     private readonly xr: WebXRDefaultExperience;
 
-    constructor(options: InputTextViewOptions) {
-        if (options.text) {
-            this.text = options.text;
-        }
-        if (options.xr) {
-            this.xr = options.xr;
-        }
-        if (options.scene) {
-            this.scene = options.scene;
-        }
-        if (options.controllers) {
-            this.controllers = options.controllers;
-        }
+    constructor(text: string, xr: WebXRDefaultExperience, scene: Scene) {
+        this.text = text ? text : "";
+        this.xr = xr;
+        this.scene = scene;
     }
 
     public show() {
-
-        if ((this.xr as WebXRDefaultExperience).baseExperience?.sessionManager?.inXRSession) {
+        this.showVirtualKeyboard();
+        /*if ((this.xr as WebXRDefaultExperience).baseExperience?.sessionManager?.inXRSession) {
             this.showXr();
         } else {
             this.showWeb();
-        }
+        }*/
+    }
+
+    public showVirtualKeyboard() {
+
+
+        const inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
+        const advancedTexture = AdvancedDynamicTexture.CreateForMesh(inputMesh, 2048, 1024, false);
+
+        const input = new InputText();
+
+        input.width = 0.5;
+        input.maxWidth = 0.5;
+        input.height = "64px";
+        input.text = this.text;
+
+        input.fontSize = "32px";
+        input.color = "white";
+        input.background = "black";
+        input.thickness = 3;
+        input.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+        advancedTexture.addControl(input);
+
+        const keyboard = VirtualKeyboard.CreateDefaultLayout();
+        keyboard.scaleY = 2;
+        keyboard.scaleX = 2;
+        keyboard.transformCenterY = 0;
+        keyboard.transformCenterX = .5;
+        keyboard.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+        keyboard.paddingTop = "70px"
+        keyboard.height = "768px";
+        keyboard.fontSizeInPixels = 24;
+        advancedTexture.addControl(keyboard);
+        keyboard.connect(input);
+        keyboard.isVisible = true;
+        keyboard.isEnabled = true;
+
+
+        keyboard.onKeyPressObservable.add((key) => {
+            if (key === '↵') {
+                this.onTextObservable.notifyObservers({text: input.text});
+                input.dispose();
+                keyboard.dispose();
+                advancedTexture.dispose();
+                inputMesh.dispose();
+            }
+        });
+        setMenuPosition(inputMesh, this.scene, new Vector3(0, .4, 0));
     }
 
     public showWeb() {
@@ -59,6 +98,7 @@ export class InputTextView {
                 this.onTextObservable.notifyObservers({text: textInput.text});
                 textInput.dispose();
                 advancedTexture.dispose();
+
             }
 
         });

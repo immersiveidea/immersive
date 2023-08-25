@@ -1,9 +1,10 @@
-import {Color3, Mesh, MeshBuilder, Observable, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
+import {Color3, Mesh, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
 
 import {Button3D, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {buildColor} from "./functions/buildColor";
+import {MenuHandle} from "../menus/menuHandle";
 
 export class Toolbox {
     private index = 0;
@@ -15,7 +16,7 @@ export class Toolbox {
     private readonly xObserver;
     public readonly colorChangeObservable: Observable<{ oldColor: string, newColor: string }> =
         new Observable<{ oldColor: string; newColor: string }>()
-
+    private handle: MenuHandle;
     constructor(scene: Scene, controllers: Controllers) {
         this.scene = scene;
         this.controllers = controllers;
@@ -23,20 +24,9 @@ export class Toolbox {
         this.manager = new GUI3DManager(scene);
         this.manager.addControl(this.addPanel);
         this.node = new TransformNode("toolbox", this.scene);
-        const handle = MeshBuilder.CreateCapsule("handle", {
-            radius: .05,
-            orientation: Vector3.Right(),
-            height: .4
-        }, this.scene);
-        handle.id = "handle";
-        const handleMaterial = new StandardMaterial("handle-material", this.scene);
-        handleMaterial.diffuseColor = Color3.FromHexString("#EEEEFF");
-        handleMaterial.alpha = .8;
-        handle.material = handleMaterial;
-        handle.position = Vector3.Zero();
-
-        this.node.parent = handle;
+        this.handle = new MenuHandle(this.node);
         this.node.position.y = .1;
+        this.node.position.z = .2;
         this.node.scaling = new Vector3(0.6, 0.6, 0.6);
         this.buildToolbox();
 

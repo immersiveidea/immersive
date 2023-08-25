@@ -96,11 +96,13 @@ export class Base {
     }
 
     public disable() {
+        this.scene.preventDefaultOnPointerDown = true;
         this.controller.motionController.rootMesh.setEnabled(false)
         this.controller.pointer.setEnabled(false);
     }
 
     public enable() {
+        this.scene.preventDefaultOnPointerDown = false;
         this.controller.motionController.rootMesh.setEnabled(true);
         this.controller.pointer.setEnabled(true)
     }
@@ -112,7 +114,7 @@ export class Base {
         }
         const template = mesh?.metadata?.template;
         if (!template) {
-            if (mesh?.id == "handle") {
+            if (mesh?.metadata?.handle == true) {
                 mesh && mesh.setParent(this.controller.motionController.rootMesh);
                 this.grabbedMesh = mesh;
             } else {
@@ -163,7 +165,7 @@ export class Base {
 
     private toolboxHandleWasGrabbed(mesh: AbstractMesh): boolean {
         if (!mesh?.metadata?.template
-            && mesh?.id == "handle") {
+            && mesh?.metadata?.handle == true) {
             this.grabbedMesh = null;
             this.previousParentId = null;
             mesh.setParent(null);

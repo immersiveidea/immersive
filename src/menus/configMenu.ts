@@ -1,14 +1,14 @@
-import {AdvancedDynamicTexture, RadioGroup, SelectionPanel} from "@babylonjs/gui";
-import {AbstractMesh, MeshBuilder, Scene, WebXRDefaultExperience} from "@babylonjs/core";
+import {AdvancedDynamicTexture, RadioGroup, SelectionPanel, StackPanel} from "@babylonjs/gui";
+import {MeshBuilder, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {AppConfig} from "../util/appConfig";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
 import {AbstractMenu} from "./abstractMenu";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
+import {MenuHandle} from "./menuHandle";
 
 export class ConfigMenu extends AbstractMenu {
     private sounds: DiaSounds;
-    private configPlane: AbstractMesh = null;
 
     private yObserver;
     private config: AppConfig;
@@ -42,44 +42,68 @@ export class ConfigMenu extends AbstractMenu {
 
     }
 
+    private handle: MenuHandle;
+
     public toggle() {
-        if (this.configPlane) {
+        if (this.handle) {
+            this.handle.mesh.dispose(false, true);
             this.sounds.exit.play();
-            this.configPlane.dispose();
-            this.configPlane = null;
+            this.handle = null;
             return;
         }
         this.sounds.enter.play();
-        const width = .25;
-        const height = .75;
-        const res = 256;
-        const heightPixels = Math.round((height / width) * res);
-        this.configPlane = MeshBuilder
+        const configPlane = MeshBuilder
             .CreatePlane("gridSizePlane",
                 {
-                    width: .25,
-                    height: .75
+                    width: .6,
+                    height: .3
                 }, this.scene);
-        const configTexture = AdvancedDynamicTexture.CreateForMesh(this.configPlane, res, heightPixels);
-        configTexture.background = "white";
-        const selectionPanel = new SelectionPanel("selectionPanel");
-        configTexture.addControl(selectionPanel)
-        this.buildGridSizeControl(selectionPanel);
-        this.buildCreateScaleControl(selectionPanel);
-        this.buildRotationSnapControl(selectionPanel);
-        this.buildTurnSnapControl(selectionPanel);
+        this.handle = new MenuHandle(configPlane);
+        const configTexture = AdvancedDynamicTexture.CreateForMesh(configPlane, 2048, 1024);
 
-        setMenuPosition(this.configPlane, this.scene);
+        configTexture.background = "white";
+        const columnPanel = new StackPanel('columns');
+        columnPanel.fontSize = "48px";
+        columnPanel.isVertical = false;
+        configTexture.addControl(columnPanel);
+        const selectionPanel1 = new SelectionPanel("selectionPanel1");
+        selectionPanel1.width = .5;
+        columnPanel.addControl(selectionPanel1);
+        this.buildGridSizeControl(selectionPanel1);
+        this.buildCreateScaleControl(selectionPanel1);
+        const selectionPanel2 = new SelectionPanel("selectionPanel2");
+        selectionPanel2.width = .5;
+        columnPanel.addControl(selectionPanel2);
+        this.buildRotationSnapControl(selectionPanel2);
+        this.buildTurnSnapControl(selectionPanel2);
+        configPlane.position.set(0, .2, 0);
+        setMenuPosition(this.handle.mesh, this.scene, new Vector3(0, .4, 0));
+    }
+
+    private adjustRadio(radio: RadioGroup) {
+        radio.groupPanel.height = "512px";
+        radio.groupPanel.fontSize = "64px";
+        radio.groupPanel.children[0].height = "70px";
+        radio.groupPanel.paddingLeft = "16px";
+        radio.selectors.forEach((panel) => {
+            panel.children[0].height = "64px";
+            panel.children[0].width = "64px";
+            panel.children[1].paddingLeft = "32px";
+            panel.paddingTop = "16px";
+            panel.fontSize = "60px";
+            panel.adaptHeightToChildren = true;
+        });
     }
 
     private buildCreateScaleControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Create Scale");
-        selectionPanel.addGroup(radio);
 
+        selectionPanel.addGroup(radio);
         for (const [index, snap] of this.gridSnaps.entries()) {
             const selected = (this.config.current.createSnap == snap.value);
             radio.addRadio(snap.label, this.createVal.bind(this), selected);
         }
+        this.adjustRadio(radio);
         return radio;
     }
 
@@ -90,6 +114,7 @@ export class ConfigMenu extends AbstractMenu {
             const selected = (this.config.current.rotateSnap == snap.value);
             radio.addRadio(snap.label, this.rotateVal.bind(this), selected);
         }
+        this.adjustRadio(radio);
         return radio;
     }
 
@@ -103,6 +128,7 @@ export class ConfigMenu extends AbstractMenu {
 
             radio.addRadio(snap.label, this.gridVal.bind(this), selected);
         }
+        this.adjustRadio(radio);
         return radio;
     }
 
@@ -113,6 +139,7 @@ export class ConfigMenu extends AbstractMenu {
             const selected = (this.config.current.turnSnap == snap.value);
             radio.addRadio(snap.label, this.turnVal.bind(this), selected);
         }
+        this.adjustRadio(radio);
         return radio;
     }
 

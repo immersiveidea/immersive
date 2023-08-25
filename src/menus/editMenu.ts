@@ -129,7 +129,7 @@ export class EditMenu extends AbstractMenu {
 
         } else {
             this.sounds.enter.play();
-            setMenuPosition(this.manager.rootContainer.children[0].node, this.scene);
+            setMenuPosition(this.manager.rootContainer.children[0].node, this.scene, new Vector3(0, .4, 0));
             this.isVisible = true;
         }
     }
@@ -252,7 +252,7 @@ export class EditMenu extends AbstractMenu {
         if (mesh?.metadata?.text) {
             text = mesh.metadata.text;
         }
-        const textInput = new InputTextView({xr: this.xr, text: text, controllers: this.controllers});
+        const textInput = new InputTextView(text, this.xr, this.scene);
 
         textInput.show();
         textInput.onTextObservable.addOnce((value) => {
@@ -264,7 +264,7 @@ export class EditMenu extends AbstractMenu {
     }
 
     private showNewRelic() {
-        const inputTextView = new InputTextView({xr: this.xr, scene: this.scene, text: "New Relic"});
+        const inputTextView = new InputTextView('test', this.xr, this.scene);
         inputTextView.show();
         inputTextView.onTextObservable.addOnce((value) => {
             const config = this.diagramManager.config.current;
