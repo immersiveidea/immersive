@@ -252,7 +252,7 @@ export class EditMenu extends AbstractMenu {
         if (mesh?.metadata?.text) {
             text = mesh.metadata.text;
         }
-        const textInput = new InputTextView(text, this.xr, this.scene);
+        const textInput = new InputTextView(text, this.xr, this.scene, this.controllers);
 
         textInput.show();
         textInput.onTextObservable.addOnce((value) => {
@@ -264,7 +264,7 @@ export class EditMenu extends AbstractMenu {
     }
 
     private showNewRelic() {
-        const inputTextView = new InputTextView('test', this.xr, this.scene);
+        const inputTextView = new InputTextView('test', this.xr, this.scene, this.controllers);
         inputTextView.show();
         inputTextView.onTextObservable.addOnce((value) => {
             const config = this.diagramManager.config.current;

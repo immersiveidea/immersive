@@ -3,28 +3,27 @@ import log from "loglevel";
 import {AdvancedDynamicTexture, Control, InputText, VirtualKeyboard} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
+import {DiaSounds} from "../util/diaSounds";
 
 export type TextEvent = {
     text: string;
-}
-export type InputTextViewOptions = {
-    scene?: Scene;
-    xr?: WebXRDefaultExperience;
-    text?: string;
-    controllers?: Controllers;
 }
 
 export class InputTextView {
     public readonly onTextObservable: Observable<TextEvent> = new Observable<TextEvent>();
     private readonly text: string = "";
     private readonly scene: Scene;
+    private sounds: DiaSounds;
     private readonly controllers: Controllers;
     private readonly xr: WebXRDefaultExperience;
 
-    constructor(text: string, xr: WebXRDefaultExperience, scene: Scene) {
+
+    constructor(text: string, xr: WebXRDefaultExperience, scene: Scene, controllers: Controllers) {
         this.text = text ? text : "";
         this.xr = xr;
+        this.controllers = controllers;
         this.scene = scene;
+        this.sounds = new DiaSounds(scene);
     }
 
     public show() {
@@ -69,8 +68,23 @@ export class InputTextView {
         keyboard.connect(input);
         keyboard.isVisible = true;
         keyboard.isEnabled = true;
+        keyboard.children.forEach((key) => {
+            key.onPointerEnterObservable.add((eventData, eventState) => {
+                const gripId = eventState?.userInfo?.pickInfo?.gripTransform?.id;
+                if (gripId) {
+                    this.controllers.controllerObserver.notifyObservers({
+                        type: ControllerEventType.PULSE,
+                        gripId: gripId
+                    });
+                }
+
+            }, -1, false, this, false);
+        });
 
 
+        keyboard.onPointerDownObservable.add(() => {
+            this.sounds.tick.play();
+        });
         keyboard.onKeyPressObservable.add((key) => {
             if (key === '↵') {
                 this.onTextObservable.notifyObservers({text: input.text});
@@ -78,9 +92,11 @@ export class InputTextView {
                 keyboard.dispose();
                 advancedTexture.dispose();
                 inputMesh.dispose();
+                this.sounds.exit.play();
             }
         });
         setMenuPosition(inputMesh, this.scene, new Vector3(0, .4, 0));
+        this.sounds.enter.play();
     }
 
     public showWeb() {

@@ -2,19 +2,7 @@ import {Scene, Sound} from "@babylonjs/core";
 
 export class DiaSounds {
     private readonly scene: Scene;
-
-    public get tick() {
-        return new Sound("tick", '/assets/sounds/tick.mp3', this.scene);
-    }
-
-    private volume: number = 0.8;
-    private readonly _bounce: Sound;
-    private readonly _background: Sound;
-    private readonly _enter: Sound;
-
-    public get enter() {
-        return this._enter;
-    }
+    private readonly _tick: Sound;
 
     constructor(scene: Scene) {
         this.scene = scene;
@@ -34,6 +22,7 @@ export class DiaSounds {
                 length: 1.0
             });
         });
+        this._tick = new Sound("tick", '/assets/sounds/tick.mp3', this.scene);
         this._bounce = new Sound("bounce", "/assets/sounds/drumsprite.mp3", this.scene, null, {
             autoplay: false,
             loop: false,
@@ -55,6 +44,20 @@ export class DiaSounds {
         this._backgroundEffects.push(this.buildSpatialSound("warbler3", "/assets/sounds/warbler3.mp3"));
         this._backgroundEffects.push(this.buildSpatialSound("crickets", "/assets/sounds/crickets.mp3"));
         this._backgroundEffects.push(this.buildSpatialSound("dove", "/assets/sounds/dove.mp3"))
+    }
+
+    private volume: number = 0.8;
+    private readonly _bounce: Sound;
+    private readonly _background: Sound;
+    private readonly _enter: Sound;
+
+    public get enter() {
+        return this._enter;
+    }
+
+    public get tick() {
+        return this._tick;
+
     }
 
     _backgroundEffects: Array<Sound> = [];
