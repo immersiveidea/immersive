@@ -5,17 +5,21 @@ import Dexie from "dexie";
 import log from "loglevel";
 import {AppConfigType} from "../util/appConfigType";
 
+
 export class IndexdbPersistenceManager implements IPersistenceManager {
     private readonly logger = log.getLogger('IndexdbPersistenceManager');
     public readonly diagramListingObserver: Observable<DiagramListingEvent> = new Observable<DiagramListingEvent>();
     public readonly updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
     public readonly configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
     private db: Dexie;
+
     private currentDiagramId: string;
 
     constructor(name: string) {
         this.db = new Dexie(name);
-        const version = 6;
+        const version = 7;
+
+
         this.db.version(version).stores({config: "id,gridSnap,rotateSnap,createSnap"});
         this.db.version(version).stores({entities: "id,diagramlistingid,position,rotation,last_seen,template,text,scale,color"});
         this.db.version(version).stores({diagramlisting: "id,name,description,sharekey"});
@@ -135,6 +139,13 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
         });
         this.listDiagrams();
         this.logger.info("initialize finished");
+    }
+
+    public sync() {
+        this.getFilteredEntities().each((e) => {
+            this.logger.debug('adding', e);
+            this.updateObserver.notifyObservers(e);
+        });
     }
 
     public modify(entity: DiagramEntity) {

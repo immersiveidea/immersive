@@ -9,5 +9,6 @@ export type AppConfigType = {
     newRelicKey?: string,
     newRelicAccount?: string,
     demoCompleted?: boolean,
+    passphrase?: string,
 
 }

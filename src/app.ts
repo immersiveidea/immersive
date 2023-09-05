@@ -23,9 +23,12 @@ export class App {
     constructor() {
         const logger = log.getLogger('App');
         log.setDefaultLevel('warn');
+        //log.getLogger('PeerjsNetworkConnection').setLevel('debug');
+        log.getLogger('DiagramManager').setLevel('debug');
+        log.getLogger('PeerjsNetworkConnection').setLevel('debug');
         const canvas = document.createElement("canvas");
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
+        canvas.style.width = "100vw";
+        canvas.style.height = "100vh";
         canvas.id = "gameCanvas";
         document.body.appendChild(canvas);
         log.debug('App', 'gameCanvas created');

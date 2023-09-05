@@ -55,4 +55,10 @@ export class AppConfig {
         this._currentConfig = config;
         this.onConfigChangedObservable.notifyObservers(this._currentConfig, 1);
     }
+
+    public setPassphrase(passphrase: string) {
+        this._currentConfig.passphrase = passphrase;
+        this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
+
+    }
 }

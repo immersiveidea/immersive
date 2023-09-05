@@ -25,6 +25,8 @@ export type DiagramListing = {
 export interface IPersistenceManager {
     diagramListingObserver: Observable<DiagramListingEvent>;
 
+    sync();
+
     addDiagram(diagram: DiagramListing);
 
     getNewRelicData(): Promise<any[]>;
