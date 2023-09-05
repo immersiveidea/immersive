@@ -10,20 +10,25 @@ import {
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
 import {Toolbox} from "./toolbox/toolbox";
-import log from "loglevel";
+import log, {Logger} from "loglevel";
 import {AppConfig} from "./util/appConfig";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {Controllers} from "./controllers/controllers";
 import workerUrl from "./worker?worker&url";
 import {DiagramEventType} from "./diagram/diagramEntity";
+import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
+
 
 export class App {
     //preTasks = [havokModule];
+    private logger: Logger = log.getLogger('App');
+
     constructor() {
-        const logger = log.getLogger('App');
+
         log.setDefaultLevel('warn');
         //log.getLogger('PeerjsNetworkConnection').setLevel('debug');
+        log.getLogger('App').setLevel('debug');
         log.getLogger('DiagramManager').setLevel('debug');
         log.getLogger('PeerjsNetworkConnection').setLevel('debug');
         const canvas = document.createElement("canvas");
@@ -31,9 +36,9 @@ export class App {
         canvas.style.height = "100vh";
         canvas.id = "gameCanvas";
         document.body.appendChild(canvas);
-        log.debug('App', 'gameCanvas created');
+        this.logger.debug('App', 'gameCanvas created');
         this.initialize(canvas).then(() => {
-            logger.debug('App', 'Scene Initialized');
+            this.logger.debug('App', 'Scene Initialized');
             const loader = document.querySelector('#loader');
             if (loader) {
                 loader.remove();
@@ -42,7 +47,7 @@ export class App {
     }
 
     async initialize(canvas) {
-        const logger = log.getLogger('App');
+
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
         const config = new AppConfig();
@@ -54,20 +59,28 @@ export class App {
 
 
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
+
         diagramManager.onDiagramEventObservable.add((evt) => {
+            this.logger.debug('App', 'diagram event', evt);
             worker.postMessage({entity: evt});
         }, 2);
         config.onConfigChangedObservable.add((config) => {
+            this.logger.debug('App', 'config changed', config);
             worker.postMessage({config: config});
         }, 2);
         worker.onmessage = (evt) => {
+            this.logger.debug(evt);
+
             if (evt.data.entity) {
+                this.logger.debug('App', 'worker message', evt.data.entity);
                 diagramManager.onDiagramEventObservable.notifyObservers({
                     type: DiagramEventType.ADD,
                     entity: evt.data.entity
                 }, 1);
             }
+
             if (evt.data.config) {
+
                 config.onConfigChangedObservable.notifyObservers(evt.data.config, 1);
             }
         }
@@ -180,13 +193,13 @@ export class App {
         });
 
 
-        logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
+        this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
 
 
         engine.runRenderLoop(() => {
             scene.render();
         });
-        logger.info('Render loop started');
+        this.logger.info('Render loop started');
     }
 }
 

@@ -7,11 +7,15 @@ const ctx: Worker = self as any;
 
 
 ctx.onmessage = (event) => {
+    console.log(event);
+
     if (event.data.type == 'init') {
         persistenceManager.updateObserver.add((event) => {
+            console.log(event);
             ctx.postMessage({entity: event});
         });
         persistenceManager.configObserver.add((event) => {
+            console.log(event);
             ctx.postMessage({config: event});
         });
         persistenceManager.initialize().then(() => {
@@ -19,8 +23,8 @@ ctx.onmessage = (event) => {
         });
     } else {
         if (event.data.entity) {
+            console.log(event.data);
             const data = (event.data.entity as DiagramEvent);
-
             switch (data.type) {
                 case DiagramEventType.ADD:
                     persistenceManager.add(data.entity);
