@@ -1,7 +1,9 @@
-import {Scene, WebXRDefaultExperience} from "@babylonjs/core";
+import {Scene, TransformNode, WebXRDefaultExperience} from "@babylonjs/core";
 import {Controllers} from "../controllers/controllers";
+import {MenuHandle} from "./menuHandle";
 
 export class AbstractMenu {
+    protected handle: MenuHandle;
     protected scene: Scene;
     protected xr: WebXRDefaultExperience;
     protected controllers: Controllers;
@@ -10,6 +12,10 @@ export class AbstractMenu {
         this.scene = scene;
         this.xr = xr;
         this.controllers = controllers;
+    }
+
+    protected createHandle(mesh: TransformNode) {
+        this.handle = new MenuHandle(mesh);
     }
 
     public toggle() {

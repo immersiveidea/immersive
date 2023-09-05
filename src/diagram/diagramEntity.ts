@@ -9,7 +9,12 @@ export enum DiagramEventType {
     DROPPED,
     CLEAR,
     CHANGECOLOR,
-    COPY
+    SYNC
+}
+
+export enum DiagramEventMask {
+    LOCAL = 1,
+    REMOTE = 2,
 }
 
 
@@ -36,5 +41,3 @@ export type DiagramEntity = {
     parent?: string;
     diagramlistingid?: string;
 }
-
-

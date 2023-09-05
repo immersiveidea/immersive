@@ -1,4 +1,4 @@
-import {AbstractMesh, DynamicTexture, Mesh, MeshBuilder, StandardMaterial} from "@babylonjs/core";
+import {AbstractMesh, Color3, DynamicTexture, Mesh, MeshBuilder, StandardMaterial} from "@babylonjs/core";
 import log from "loglevel";
 
 export class TextLabel {
@@ -44,10 +44,11 @@ export class TextLabel {
         }, mesh.getScene(), false);
         const mat = new StandardMaterial("mat", mesh.getScene());
         mat.diffuseTexture = dynamicTexture;
+        mat.emissiveColor = Color3.White();
         dynamicTexture.drawText(text, null, null, font, "#000000", "#ffffff", true);
 
         //Create plane and set dynamic texture as material
-        const plane = MeshBuilder.CreatePlane("text", {width: planeWidth, height: height}, mesh.getScene());
+        const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
         plane.material = mat;
         plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
 

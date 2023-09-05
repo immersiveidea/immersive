@@ -3,12 +3,16 @@ import {Scene, Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRI
 import {ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
+import {DiagramListingMenu} from "../menus/diagramListingMenu";
 
 export class Right extends Base {
+    private listingMenu: DiagramListingMenu;
+
     constructor(controller:
                     WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers,
     ) {
         super(controller, scene, xr, controllers, diagramManager);
+        this.listingMenu = new DiagramListingMenu(this.scene, xr, this.controllers);
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
             this.initBButton(init.components['b-button']);

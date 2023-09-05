@@ -85,13 +85,16 @@ export class DiagramConnection {
     public get id(): string {
         return "connection_" + this?.fromAnchor?.id + "_" + this?.toAnchor?.id;
     }
-
+    private tick: number = 0;
     private recalculate() {
+
+
         if (this.fromAnchor && this.toAnchor) {
             this.points = [this.fromAnchor.absolutePosition, this.toAnchor.absolutePosition];
         } else {
             this.points = [Vector3.Zero(), Vector3.Zero()];
         }
+
     }
 
     private setPoints() {
@@ -132,8 +135,11 @@ export class DiagramConnection {
     }
 
     private beforeRender = () => {
-        this.recalculate();
-        this.setPoints();
+        this.tick++;
+        if (this.tick % 10 == 0) {
+            this.recalculate();
+            this.setPoints();
+        }
     }
     private removeConnection = () => {
         this.logger.debug("removeConnection");

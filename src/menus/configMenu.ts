@@ -5,7 +5,6 @@ import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
 import {AbstractMenu} from "./abstractMenu";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
-import {MenuHandle} from "./menuHandle";
 
 export class ConfigMenu extends AbstractMenu {
     private sounds: DiaSounds;
@@ -42,7 +41,7 @@ export class ConfigMenu extends AbstractMenu {
 
     }
 
-    private handle: MenuHandle;
+
 
     public toggle() {
         if (this.handle) {
@@ -58,7 +57,7 @@ export class ConfigMenu extends AbstractMenu {
                     width: .6,
                     height: .3
                 }, this.scene);
-        this.handle = new MenuHandle(configPlane);
+        this.createHandle(configPlane);
         const configTexture = AdvancedDynamicTexture.CreateForMesh(configPlane, 2048, 1024);
 
         configTexture.background = "white";

@@ -42,13 +42,6 @@ export class EditMenu extends AbstractMenu {
         return this.panel.isVisible;
     }
 
-    private set isVisible(visible: boolean) {
-        this.panel.isVisible = visible;
-        this.panel.children.forEach((child) => {
-            child.isVisible = visible;
-        });
-    }
-
     constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
         super(scene, xr, controllers);
         this.scene = scene;
@@ -63,6 +56,7 @@ export class EditMenu extends AbstractMenu {
         this.gizmoManager.usePointerToAttachGizmos = false;
         this.manager = new GUI3DManager(this.scene);
         const panel = new PlanePanel();
+
         panel.columns = 4;
         this.manager.addControl(panel);
         this.buttonMaterial = new StandardMaterial("buttonMaterial", this.scene);
@@ -103,7 +97,18 @@ export class EditMenu extends AbstractMenu {
             }
         });
         this.panel = panel;
+        this.createHandle(this.manager.rootContainer.children[0].node);
+        this.manager.rootContainer.children[0].node.position.y = .2;
         this.isVisible = false;
+
+    }
+
+    private set isVisible(visible: boolean) {
+        this.panel.isVisible = visible;
+        this.panel.children.forEach((child) => {
+            child.isVisible = visible;
+        });
+        this.handle.mesh.isVisible = visible;
     }
     private getTool(template: string, color: Color3): Mesh {
         const baseMeshId = 'tool-' + template + '-' + color.toHexString();
@@ -129,7 +134,7 @@ export class EditMenu extends AbstractMenu {
 
         } else {
             this.sounds.enter.play();
-            setMenuPosition(this.manager.rootContainer.children[0].node, this.scene, new Vector3(0, .4, 0));
+            setMenuPosition(this.handle.mesh, this.scene, new Vector3(0, .4, 0));
             this.isVisible = true;
         }
     }
