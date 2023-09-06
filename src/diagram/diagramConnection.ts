@@ -70,6 +70,7 @@ export class DiagramConnection {
             this.toAnchor.dispose();
             this.toAnchor = toAnchor;
             this._mesh.metadata.to = this.to;
+            this._mesh.metadata.exportable = true;
             this._mesh.id = this.id;
             this.recalculate();
             this.setPoints();

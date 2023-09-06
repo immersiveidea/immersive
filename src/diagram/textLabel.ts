@@ -51,7 +51,7 @@ export class TextLabel {
         const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
         plane.material = mat;
         plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
-
+        plane.metadata = {exportable: true};
 
         const yOffset = mesh.getBoundingInfo().boundingSphere.radius;
         plane.parent = mesh;

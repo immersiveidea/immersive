@@ -25,6 +25,7 @@ import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {AbstractMenu} from "./abstractMenu";
 import {Controllers} from "../controllers/controllers";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
+import {DiagramExporter} from "../util/diagramExporter";
 
 export class EditMenu extends AbstractMenu {
     private state: EditMenuState = EditMenuState.NONE;
@@ -310,24 +311,7 @@ export class EditMenu extends AbstractMenu {
                 this.showNewRelic();
                 break;
             case "export":
-                import("@babylonjs/serializers").then((serializers) => {
-
-                    serializers.GLTF2Export.GLBAsync(this.scene, 'diagram.glb', {
-                        shouldExportNode: function (node) {
-                            if (node?.metadata?.template) {
-                                return true;
-                            } else {
-                                return false;
-                            }
-
-                        }
-                    }).then((gltf) => {
-                        gltf.downloadFiles();
-                    });
-
-                });
-
-
+                this.download();
                 break;
             default:
                 this.logger.error("Unknown button");
@@ -336,5 +320,10 @@ export class EditMenu extends AbstractMenu {
         }
 
         this.isVisible = false;
+    }
+
+    private download() {
+        const exporter = new DiagramExporter(this.scene);
+        exporter.export();
     }
 }

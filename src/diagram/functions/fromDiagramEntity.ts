@@ -15,65 +15,63 @@ export function fromDiagramEntity(entity: DiagramEntity, scene: Scene): Abstract
     if (!entity.id) {
         entity.id = "id" + uuidv4();
     }
-    let mesh: AbstractMesh = scene.getMeshById(entity.id);
-    if (mesh) {
-        logger.debug(`mesh ${mesh.id} already exists`);
+    const oldMesh: AbstractMesh = scene.getMeshById(entity.id);
+    let newMesh: AbstractMesh;
+    if (oldMesh) {
+        logger.debug(`mesh ${oldMesh.id} already exists`);
+        newMesh = oldMesh;
     } else {
         if (entity.template == "#connection-template") {
             const connection: DiagramConnection = new DiagramConnection(entity.from, entity.to, scene);
             logger.debug(`connection.mesh = ${connection.mesh.id}`);
-            mesh = connection.mesh;
+            newMesh = connection.mesh;
         } else {
-            mesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
-            if (mesh) {
-                if (mesh.isAnInstance) {
-                    logger.error(`mesh ${mesh.id} is an instance`);
-                } else {
-                    mesh = new InstancedMesh(entity.id, (mesh as Mesh));
-                }
+            const toolMesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
+            if (toolMesh && !oldMesh) {
+                newMesh = new InstancedMesh(entity.id, (toolMesh as Mesh));
+                newMesh.metadata = {template: entity.template, exportable: true};
             } else {
-                logger.warn('no mesh found for ' + entity.template + "-" + entity.color);
+                logger.warn('no tool mesh found for ' + entity.template + "-" + entity.color);
             }
         }
-
     }
-    if (mesh) {
-        mesh.metadata = {template: entity.template};
+
+    if (newMesh) {
         if (entity.position) {
-            mesh.position = xyztovec(entity.position);
+            newMesh.position = xyztovec(entity.position);
         }
         if (entity.rotation) {
-            if (mesh.rotationQuaternion) {
-                mesh.rotationQuaternion = Quaternion.FromEulerAngles(entity.rotation.x, entity.rotation.y, entity.rotation.z);
+            if (newMesh.rotationQuaternion) {
+                newMesh.rotationQuaternion = Quaternion.FromEulerAngles(entity.rotation.x, entity.rotation.y, entity.rotation.z);
             } else {
-                mesh.rotation = xyztovec(entity.rotation);
+                newMesh.rotation = xyztovec(entity.rotation);
             }
         }
         if (entity.parent) {
-            mesh.parent = scene.getNodeById(entity.parent);
+            newMesh.parent = scene.getNodeById(entity.parent);
         }
         if (entity.scale) {
-            mesh.scaling = xyztovec(entity.scale);
+            newMesh.scaling = xyztovec(entity.scale);
         }
-        if (!mesh.material) {
+        if (!newMesh.material) {
             const material = new StandardMaterial("material-" + entity.id, scene);
             material.diffuseColor = Color3.FromHexString(entity.color);
-            mesh.material = material;
+            newMesh.material = material;
         }
         if (entity.text) {
-            mesh.metadata.text = entity.text;
-            TextLabel.updateTextNode(mesh, entity.text);
+            newMesh.metadata.text = entity.text;
+            TextLabel.updateTextNode(newMesh, entity.text);
         }
         if (entity.from) {
-            mesh.metadata.from = entity.from;
+            newMesh.metadata.from = entity.from;
         }
         if (entity.to) {
-            mesh.metadata.to = entity.to;
+            newMesh.metadata.to = entity.to;
         }
     } else {
         logger.error("fromDiagramEntity: mesh is null after it should have been created");
     }
-    return mesh;
+    return newMesh;
 }
 
 

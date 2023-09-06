@@ -8,7 +8,9 @@ const ctx: Worker = self as any;
 
 ctx.onmessage = (event) => {
     console.log(event);
-
+    if (event.data.type == 'sync') {
+        persistenceManager.sync();
+    }
     if (event.data.type == 'init') {
         persistenceManager.updateObserver.add((event) => {
             console.log(event);

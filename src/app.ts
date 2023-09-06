@@ -18,6 +18,7 @@ import {Controllers} from "./controllers/controllers";
 import workerUrl from "./worker?worker&url";
 import {DiagramEventType} from "./diagram/diagramEntity";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
+import {DiagramExporter} from "./util/diagramExporter";
 
 
 export class App {
@@ -51,17 +52,24 @@ export class App {
         const engine = new Engine(canvas, true);
         const scene = new Scene(engine);
         const config = new AppConfig();
+        const peerjsNetworkConnection = new PeerjsNetworkConnection();
+
         //const persistenceManager = new IndexdbPersistenceManager("diagram");
         const worker = new Worker(workerUrl, {type: 'module'});
-
+        peerjsNetworkConnection.connectionObservable.add((peerId) => {
+            worker.postMessage({type: 'sync'});
+        });
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
 
-
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
-
+        peerjsNetworkConnection.diagramEventObservable.add((evt) => {
+            this.logger.debug('App', 'peerjs network event', evt);
+            diagramManager.onDiagramEventObservable.notifyObservers(evt, 1);
+        });
         diagramManager.onDiagramEventObservable.add((evt) => {
             this.logger.debug('App', 'diagram event', evt);
+            peerjsNetworkConnection.dataReplicationObservable.notifyObservers(evt);
             worker.postMessage({entity: evt});
         }, 2);
         config.onConfigChangedObservable.add((config) => {
@@ -73,6 +81,10 @@ export class App {
 
             if (evt.data.entity) {
                 this.logger.debug('App', 'worker message', evt.data.entity);
+                peerjsNetworkConnection.dataReplicationObservable.notifyObservers({
+                    type: DiagramEventType.ADD,
+                    entity: evt.data.entity
+                });
                 diagramManager.onDiagramEventObservable.notifyObservers({
                     type: DiagramEventType.ADD,
                     entity: evt.data.entity
@@ -80,7 +92,6 @@ export class App {
             }
 
             if (evt.data.config) {
-
                 config.onConfigChangedObservable.notifyObservers(evt.data.config, 1);
             }
         }
@@ -191,6 +202,14 @@ export class App {
                 });
             }
         });
+        const exportLink = document.querySelector('#downloadLink');
+        if (exportLink) {
+            exportLink.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                const exporter = new DiagramExporter(scene);
+                exporter.export();
+            });
+        }
 
 
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');

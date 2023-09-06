@@ -1,15 +1,17 @@
 import P2PDataChannel from 'p2p-data-channel';
 import log from "loglevel";
 import {Observable} from "@babylonjs/core";
-import {DiagramEvent, DiagramEventMask} from "../diagram/diagramEntity";
+import {DiagramEvent} from "../diagram/diagramEntity";
+
 
 export class PeerjsNetworkConnection {
     private logger: log.Logger = log.getLogger('PeerjsNetworkConnection');
     private dataChannel: P2PDataChannel<any>;
+    public readonly connectionObservable: Observable<any> = new Observable<any>;
+    public readonly dataReplicationObservable: Observable<any> = new Observable<any>;
+    public readonly diagramEventObservable: Observable<DiagramEvent> = new Observable<DiagramEvent>;
 
-    private readonly onDiagramEventObservable: Observable<DiagramEvent>;
-
-    constructor(onDiagramEventObservable: Observable<DiagramEvent>) {
+    constructor() {
         const config = {
             debug: false,
             dataChannel: 'deepSharedDiagram',
@@ -22,11 +24,10 @@ export class PeerjsNetworkConnection {
         // @ts-ignore
         const passphrase = window.niceware.generatePassphrase(6).join('-');
         this.logger.debug('Local Passphrase: ', passphrase);
-        this.onDiagramEventObservable = onDiagramEventObservable;
         this.dataChannel = new P2PDataChannel(passphrase, config);
-
         this.dataChannel.onConnected((peerId) => {
             this.logger.debug('Connected to ', peerId);
+            this.connectionObservable.notifyObservers(peerId);
         });
         this.dataChannel.onMessage((message) => {
             this.logger.debug(message);
@@ -38,8 +39,7 @@ export class PeerjsNetworkConnection {
                 }
                 if (message.payload.diagramEvent) {
                     this.logger.debug('Received diagram event from ', message.sender, message.payload.diagramEvent);
-                    const event = message.payload.diagramEvent;
-                    this.onDiagramEventObservable.notifyObservers(event, DiagramEventMask.REMOTE);
+                    this.diagramEventObservable.notifyObservers(message.payload.diagramEvent);
                 }
             }
         });
@@ -52,6 +52,10 @@ export class PeerjsNetworkConnection {
             const linkEl = document.querySelector('#questLaunch a');
             linkEl.setAttribute('href', link + passphrase);
         }
+        this.dataReplicationObservable.add((evt) => {
+            this.logger.debug(evt);
+            this.dataChannel.broadcast({diagramEvent: evt});
+        });
     }
 
     public connectToRemote(host: string) {
