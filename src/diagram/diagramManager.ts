@@ -38,7 +38,7 @@ export class DiagramManager {
             this.logger.warn("onDiagramEventObservable already has Observers, you should be careful");
         }
         this.toolbox.colorChangeObservable.add((evt) => {
-
+            this.logger.debug(evt);
             this.onDiagramEventObservable.notifyObservers({type: DiagramEventType.CHANGECOLOR}, 2);
         }, -1, true, this, false);
         this.onDiagramEventObservable.add(this.onDiagramEvent, 1, true, this);

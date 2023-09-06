@@ -1,5 +1,5 @@
 import {MeshBuilder, Observable, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
-import log from "loglevel";
+import log, {Logger} from "loglevel";
 import {AdvancedDynamicTexture, Control, InputText, VirtualKeyboard} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
@@ -16,7 +16,7 @@ export class InputTextView {
     private sounds: DiaSounds;
     private readonly controllers: Controllers;
     private readonly xr: WebXRDefaultExperience;
-
+    private readonly logger: Logger = log.getLogger('InputTextView');
 
     constructor(text: string, xr: WebXRDefaultExperience, scene: Scene, controllers: Controllers) {
         this.text = text ? text : "";
@@ -70,6 +70,7 @@ export class InputTextView {
         keyboard.isEnabled = true;
         keyboard.children.forEach((key) => {
             key.onPointerEnterObservable.add((eventData, eventState) => {
+                this.logger.debug(eventData);
                 const gripId = eventState?.userInfo?.pickInfo?.gripTransform?.id;
                 if (gripId) {
                     this.controllers.controllerObserver.notifyObservers({

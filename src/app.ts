@@ -15,6 +15,7 @@ import {AppConfig} from "./util/appConfig";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {Controllers} from "./controllers/controllers";
+// @ts-ignore
 import workerUrl from "./worker?worker&url";
 import {DiagramEventType} from "./diagram/diagramEntity";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
@@ -57,6 +58,7 @@ export class App {
         //const persistenceManager = new IndexdbPersistenceManager("diagram");
         const worker = new Worker(workerUrl, {type: 'module'});
         peerjsNetworkConnection.connectionObservable.add((peerId) => {
+            this.logger.debug('App', 'peerjs network connected', peerId);
             worker.postMessage({type: 'sync'});
         });
         const controllers = new Controllers();
@@ -131,7 +133,7 @@ export class App {
             });
             xr.baseExperience.sessionManager.onXRSessionInit.add((session) => {
                 session.addEventListener('visibilitychange', (ev) => {
-
+                    this.logger.debug(ev);
                 });
             });
 
