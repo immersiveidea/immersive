@@ -12,6 +12,7 @@ import {deepCopy} from "../util/functions/deepCopy";
 import {applyPhysics} from "./functions/diagramShapePhysics";
 import {applyScaling} from "./functions/applyScaling";
 import {toDiagramEntity} from "./functions/toDiagramEntity";
+import {v4 as uuidv4} from 'uuid';
 
 
 export class DiagramManager {
@@ -70,12 +71,15 @@ export class DiagramManager {
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
         let newMesh;
         if (!mesh.isAnInstance) {
-            newMesh = new InstancedMesh("new", (mesh as Mesh));
+            newMesh = new InstancedMesh('id' + uuidv4(), (mesh as Mesh));
         } else {
-            newMesh = new InstancedMesh("new", (mesh as InstancedMesh).sourceMesh);
+            newMesh = new InstancedMesh('id' + uuidv4(), (mesh as InstancedMesh).sourceMesh);
         }
+        newMesh.id = 'id' + uuidv4();
+
         newMesh.actionManager = this.diagramEntityActionManager.manager;
         newMesh.position = mesh.absolutePosition.clone();
+
         if (mesh.absoluteRotationQuaternion) {
             newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
         } else {
@@ -88,11 +92,12 @@ export class DiagramManager {
             applyPhysics(this.sounds, newMesh, this.scene);
         }
         //@TODO Refactor
-        this.onDiagramEventObservable.notifyObservers({
+        /*this.onDiagramEventObservable.notifyObservers({
             type: DiagramEventType.ADD,
             entity: toDiagramEntity(newMesh)
-        }, 2);
+        }, 2);*/
         //this.persistenceManager.add(toDiagramEntity(newMesh));
+
         return newMesh;
     }
 

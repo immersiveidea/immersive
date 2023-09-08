@@ -18,6 +18,7 @@ export function reparent(mesh: AbstractMesh, previousParentId: string, grabbedMe
         if (parent) {
             logger.warn('setting parent to null', grabbedMeshParentId, parent)
             //this.grabbedMeshParentId = null;
+            mesh.setParent(null);
             parent.dispose();
         } else {
             mesh.setParent(null);

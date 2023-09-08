@@ -1,20 +1,23 @@
-import {AbstractMesh, Color3, DynamicTexture, Mesh, MeshBuilder, StandardMaterial} from "@babylonjs/core";
+import {AbstractMesh, DynamicTexture, Material, MeshBuilder, StandardMaterial} from "@babylonjs/core";
 import log from "loglevel";
 
 export class TextLabel {
     private static logger: log.Logger = log.getLogger('TextLabel');
 
-    public static updateTextNode(mesh: AbstractMesh, text: string): AbstractMesh {
+    public static updateTextNode(mesh: AbstractMesh, text: string) {
         if (!mesh) {
             this.logger.error("updateTextNode: mesh is null");
             return null;
         }
-        let textNode = (mesh.getChildren((node) => {
-            return node.name == 'text'
-        })[0] as Mesh);
-        if (textNode) {
-            textNode.dispose(false, true);
+        const textNodes = mesh.getChildren((node) => {
+            return node.metadata?.label == true;
+        });
+        if (textNodes && textNodes.length > 0) {
+            textNodes.forEach((node) => {
+                node.dispose(false, true);
+            });
         }
+
         if (!text) {
             return null;
         }
@@ -44,18 +47,30 @@ export class TextLabel {
         }, mesh.getScene(), false);
         const mat = new StandardMaterial("mat", mesh.getScene());
         mat.diffuseTexture = dynamicTexture;
-        mat.emissiveColor = Color3.White();
+        //mat.emissiveColor = Color3.White();
         dynamicTexture.drawText(text, null, null, font, "#000000", "#ffffff", true);
 
         //Create plane and set dynamic texture as material
+        //const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
+
+
+        const plane1 = this.createPlane(mat, mesh, text, planeWidth, height);
+        const plane2 = this.createPlane(mat, mesh, text, planeWidth, height);
+        plane2.rotation.y = Math.PI;
+
+
+    }
+
+    private static createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth: number, height: number): AbstractMesh {
         const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
+
         plane.material = mat;
-        plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
-        plane.metadata = {exportable: true};
+        //plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+        plane.metadata = {exportable: true, label: true};
 
         const yOffset = mesh.getBoundingInfo().boundingSphere.radius;
         plane.parent = mesh;
-        plane.position.y = yOffset;
+        plane.position.y = yOffset + height / 2;
         plane.scaling.y = 1 / mesh.scaling.y;
         plane.scaling.x = 1 / mesh.scaling.x;
         plane.scaling.z = 1 / mesh.scaling.z;

@@ -1,10 +1,11 @@
-import {MeshBuilder, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {AbstractMenu} from "./abstractMenu";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {AdvancedDynamicTexture, Button, Control, ScrollViewer, StackPanel, TextBlock} from "@babylonjs/gui";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
 
 export class DiagramListingMenu extends AbstractMenu {
+    private mesh: AbstractMesh;
     constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
         super(scene, xr, controllers);
         this.buildMenu();
@@ -17,6 +18,8 @@ export class DiagramListingMenu extends AbstractMenu {
 
     public toggle() {
         setMenuPosition(this.handle.mesh, this.scene, new Vector3(0, .4, 0));
+        this.mesh.isVisible = !this.mesh.isVisible;
+        (this.mesh.parent as AbstractMesh).isVisible = this.mesh.isVisible;
     }
 
     private buildMenu() {
@@ -26,6 +29,7 @@ export class DiagramListingMenu extends AbstractMenu {
                     width: 1,
                     height: .5
                 }, this.scene);
+        this.mesh = configPlane;
         const configTexture = AdvancedDynamicTexture.CreateForMesh(configPlane, 2048, 1024);
 
         configTexture.background = "white";
@@ -61,6 +65,7 @@ export class DiagramListingMenu extends AbstractMenu {
         this.createHandle(configPlane);
         configPlane.position.y = .5;
         setMenuPosition(this.handle.mesh, this.scene, new Vector3(0, .4, 0));
-
+        this.mesh.isVisible = false;
+        (this.mesh.parent as AbstractMesh).isVisible = false;
     }
 }

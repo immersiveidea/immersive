@@ -152,6 +152,7 @@ export class Base {
                 transformNode.rotation = newMesh.rotation.clone();
             }
             transformNode.setParent(this.controller.motionController.rootMesh);
+            newMesh.setParent(transformNode);
             this.grabbedMeshParentId = transformNode.id;
             this.grabbedMesh = newMesh;
             this.previousParentId = null;
