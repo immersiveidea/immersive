@@ -5,8 +5,10 @@ import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {buildColor} from "./functions/buildColor";
 import {MenuHandle} from "../menus/menuHandle";
+import log from "loglevel";
 
 export class Toolbox {
+    private readonly logger = log.getLogger('Toolbox');
     private index = 0;
     private readonly scene: Scene;
     public readonly node: TransformNode;
@@ -44,11 +46,16 @@ export class Toolbox {
     }
 
     public updateToolbox(color: string) {
-        if (this.scene.getMeshById("toolbox-color-" + color)) {
-            return;
+        if (color) {
+            if (this.scene.getMeshById("toolbox-color-" + color)) {
+                return;
+            } else {
+                buildColor(Color3.FromHexString(color), this.scene, this.node, this.index++, this.colorChangeObservable);
+            }
         } else {
-            buildColor(Color3.FromHexString(color), this.scene, this.node, this.index++, this.colorChangeObservable);
+            this.logger.warn("updateToolbox called with no color");
         }
+
     }
 
     private buildToolbox() {

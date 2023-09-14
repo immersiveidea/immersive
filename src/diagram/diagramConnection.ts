@@ -1,11 +1,10 @@
 import {
     AbstractMesh,
     Color3,
-    CreateGreasedLine,
-    GreasedLineMesh,
-    GreasedLineTools,
+    MeshBuilder,
     PointerInfo,
     Scene,
+    StandardMaterial,
     TransformNode,
     Vector3
 } from "@babylonjs/core";
@@ -47,11 +46,12 @@ export class DiagramConnection {
     private scene: Scene;
     private toAnchor: TransformNode;
     private fromAnchor: TransformNode;
+    private transformNode: TransformNode;
     private points: Vector3[] = [];
 
-    private _mesh: GreasedLineMesh;
+    private _mesh: AbstractMesh;
 
-    public get mesh(): GreasedLineMesh {
+    public get mesh(): AbstractMesh {
         return this._mesh;
     }
 
@@ -84,40 +84,43 @@ export class DiagramConnection {
     }
 
     public get id(): string {
-        return "connection_" + this?.fromAnchor?.id + "_" + this?.toAnchor?.id;
+        return "connection_" + this._from + "_" + this._to;
     }
     private tick: number = 0;
     private recalculate() {
+        const start = this.fromAnchor?.absolutePosition;
+        const end = this.toAnchor?.absolutePosition;
+        if (start && end) {
+            this.transformNode.position = start.add(end).scale(.5);
+            this.transformNode.lookAt(end);
+            this._mesh.rotation.x = Math.PI / 2;
+            this._mesh.scaling.y = Math.abs(start.subtract(end).length());
+        }
 
-
-        if (this.fromAnchor && this.toAnchor) {
+        /*if (this.fromAnchor && this.toAnchor) {
             this.points = [this.fromAnchor.absolutePosition, this.toAnchor.absolutePosition];
         } else {
             this.points = [Vector3.Zero(), Vector3.Zero()];
-        }
+        }*/
 
     }
 
     private setPoints() {
         if (this.points.length > 1) {
-            this._mesh.setPoints([GreasedLineTools.ToNumberArray(this.points)]);
+            //this._mesh.setPoints([GreasedLineTools.ToNumberArray(this.points)]);
         }
 
     }
 
     private buildConnection() {
         this.logger.debug(`buildConnection from ${this._from} to ${this._to}`);
-
+        this._mesh = MeshBuilder.CreateCylinder(this.id + "_cylinder", {diameter: .02, height: 1}, this.scene);
+        const material = new StandardMaterial(this.id + "_material", this.scene);
+        material.diffuseColor = new Color3(0, 0, 0);
+        this._mesh.material = material;
+        this.transformNode = new TransformNode(this.id + "_transform", this.scene);
+        this._mesh.setParent(this.transformNode);
         this.recalculate();
-        this._mesh = CreateGreasedLine(this.id,
-            {
-                points: (GreasedLineTools.ToNumberArray(this.points) as number[]),
-                updatable: true
-            }, {color: Color3.Black()}, this.scene);
-        this._mesh.intersectionThreshold = 10;
-        this.logger.debug(this._mesh.widths);
-        this._mesh.widths = [0.1, 0.1, .1, .1];
-
         this._mesh.id = this.id;
         if (!this._mesh.metadata) {
             this._mesh.metadata = {template: "#connection-template", from: this._from};
