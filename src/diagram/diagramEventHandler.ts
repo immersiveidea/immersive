@@ -57,7 +57,16 @@ export function diagramEventHandler(event: DiagramEvent,
         case DiagramEventType.REMOVE:
             if (mesh) {
                 mesh?.physicsBody?.dispose();
-                mesh.dispose();
+                if (mesh?.metadata?.template == '#connection-template') {
+                    if (mesh.parent) {
+                        mesh.parent.dispose();
+                    } else {
+                        mesh.dispose();
+                    }
+                } else {
+                    mesh.dispose();
+                }
+
                 sounds.exit.play();
             }
             break;

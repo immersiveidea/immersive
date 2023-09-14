@@ -209,7 +209,7 @@ export class EditMenu extends AbstractMenu {
             }, -1);
             this.connection = null;
         } else {
-            this.connection = new DiagramConnection(mesh.id, null, this.scene, pointerInfo);
+            this.connection = new DiagramConnection(mesh.id, null, null, this.scene, pointerInfo);
         }
     }
 

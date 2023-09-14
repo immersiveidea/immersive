@@ -22,7 +22,7 @@ export function fromDiagramEntity(entity: DiagramEntity, scene: Scene): Abstract
         newMesh = oldMesh;
     } else {
         if (entity.template == "#connection-template") {
-            const connection: DiagramConnection = new DiagramConnection(entity.from, entity.to, scene);
+            const connection: DiagramConnection = new DiagramConnection(entity.from, entity.to, entity.id, scene);
             logger.debug(`connection.mesh = ${connection.mesh.id}`);
             newMesh = connection.mesh;
         } else {

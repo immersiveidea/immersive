@@ -8,17 +8,26 @@ import {
     TransformNode,
     Vector3
 } from "@babylonjs/core";
+import {v4 as uuidv4} from 'uuid';
 import log, {Logger} from "loglevel";
 
 
 export class DiagramConnection {
     private logger: Logger = log.getLogger('DiagramConnection');
+    private readonly id: string;
 
-    constructor(from: string, to: string, scene?: Scene, pointerInfo?: PointerInfo) {
+    constructor(from: string, to: string, id: string, scene?: Scene, pointerInfo?: PointerInfo) {
         this.logger.debug('buildConnection constructor');
+        if (id) {
+            this.id = id;
+        } else {
+            this.id = "connection_" + uuidv4();
+        }
+
         this.scene = scene;
         this._to = to;
         this._from = from;
+
         const fromMesh = this.scene.getMeshById(from);
         if (fromMesh) {
             this.fromAnchor = fromMesh;
@@ -38,6 +47,8 @@ export class DiagramConnection {
                 }
 
                 this.toAnchor = to;
+            } else {
+                this.logger.error("no fromMesh");
             }
         }
         this.buildConnection();
@@ -83,9 +94,6 @@ export class DiagramConnection {
         return this?.fromAnchor?.id;
     }
 
-    public get id(): string {
-        return "connection_" + this._from + "_" + this._to;
-    }
     private tick: number = 0;
     private recalculate() {
         const start = this.fromAnchor?.absolutePosition;
@@ -96,19 +104,9 @@ export class DiagramConnection {
             this._mesh.rotation.x = Math.PI / 2;
             this._mesh.scaling.y = Math.abs(start.subtract(end).length());
         }
-
-        /*if (this.fromAnchor && this.toAnchor) {
-            this.points = [this.fromAnchor.absolutePosition, this.toAnchor.absolutePosition];
-        } else {
-            this.points = [Vector3.Zero(), Vector3.Zero()];
-        }*/
-
     }
 
     private setPoints() {
-        if (this.points.length > 1) {
-            //this._mesh.setPoints([GreasedLineTools.ToNumberArray(this.points)]);
-        }
 
     }
 
