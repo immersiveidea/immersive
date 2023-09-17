@@ -16,6 +16,7 @@ export class AppConfig {
             newRelicAccount: null,
             physicsEnabled: false,
             demoCompleted: false,
+            flyMode: false
         };
         this.onConfigChangedObservable.add((config) => {
             this._currentConfig = config;
@@ -28,6 +29,11 @@ export class AppConfig {
 
     public setRotateSnap(value: number) {
         this._currentConfig.rotateSnap = value;
+        this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
+    }
+
+    public setFlyMode(value: boolean) {
+        this._currentConfig.flyMode = value;
         this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
     }
 
@@ -58,6 +64,12 @@ export class AppConfig {
 
     public setPassphrase(passphrase: string) {
         this._currentConfig.passphrase = passphrase;
+        this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
+
+    }
+
+    public setPhysicsEnabled(physicsEnabled: boolean) {
+        this._currentConfig.physicsEnabled = physicsEnabled;
         this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
 
     }

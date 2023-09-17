@@ -10,5 +10,6 @@ export type AppConfigType = {
     newRelicAccount?: string,
     demoCompleted?: boolean,
     passphrase?: string,
+    flyMode?: boolean,
 
 }
