@@ -1,4 +1,4 @@
-import {AdvancedDynamicTexture, RadioGroup, SelectionPanel, StackPanel} from "@babylonjs/gui";
+import {AdvancedDynamicTexture, CheckboxGroup, RadioGroup, SelectionPanel, StackPanel} from "@babylonjs/gui";
 import {MeshBuilder, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {AppConfig} from "../util/appConfig";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
@@ -66,20 +66,28 @@ export class ConfigMenu extends AbstractMenu {
         columnPanel.isVertical = false;
         configTexture.addControl(columnPanel);
         const selectionPanel1 = new SelectionPanel("selectionPanel1");
-        selectionPanel1.width = .5;
+        selectionPanel1.width = .3;
         columnPanel.addControl(selectionPanel1);
         this.buildGridSizeControl(selectionPanel1);
         this.buildCreateScaleControl(selectionPanel1);
         const selectionPanel2 = new SelectionPanel("selectionPanel2");
-        selectionPanel2.width = .5;
+        selectionPanel2.width = .3;
         columnPanel.addControl(selectionPanel2);
         this.buildRotationSnapControl(selectionPanel2);
         this.buildTurnSnapControl(selectionPanel2);
+
+        const selectionPanel3 = new SelectionPanel("selectionPanel3");
+        selectionPanel3.width = .3;
+        columnPanel.addControl(selectionPanel3);
+        //this.buildRotationSnapControl(selectionPanel3);
+        //this.buildTurnSnapControl(selectionPanel3);
+        this.buildFlyModeControl(selectionPanel3);
+
         configPlane.position.set(0, .2, 0);
         setMenuPosition(this.handle.mesh, this.scene, new Vector3(0, .4, 0));
     }
 
-    private adjustRadio(radio: RadioGroup) {
+    private adjustRadio(radio: RadioGroup | CheckboxGroup) {
         radio.groupPanel.height = "512px";
         radio.groupPanel.fontSize = "64px";
         radio.groupPanel.children[0].height = "70px";
@@ -104,6 +112,14 @@ export class ConfigMenu extends AbstractMenu {
         }
         this.adjustRadio(radio);
         return radio;
+    }
+
+    private buildFlyModeControl(selectionPanel: SelectionPanel): CheckboxGroup {
+        const checkbox = new CheckboxGroup("Fly Mode");
+        selectionPanel.addGroup(checkbox);
+        checkbox.addCheckbox("Fly", this.flyMode.bind(this), this.config.current.flyMode);
+        this.adjustRadio(checkbox);
+        return checkbox;
     }
 
     private buildRotationSnapControl(selectionPanel: SelectionPanel): RadioGroup {
@@ -144,6 +160,10 @@ export class ConfigMenu extends AbstractMenu {
 
     private createVal(value) {
         this.config.setCreateSnap(this.gridSnaps[value].value);
+    }
+
+    private flyMode(value) {
+        this.config.setFlyMode(value);
     }
 
     private rotateVal(value) {
