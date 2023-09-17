@@ -1,8 +1,11 @@
-import {AbstractMesh, Observable, TransformNode} from "@babylonjs/core";
+import {AbstractMesh, Observable, TransformNode, Vector3} from "@babylonjs/core";
 
 export type ControllerEvent = {
     type: ControllerEventType,
     value?: number,
+    startPosition?: Vector3,
+    endPosition?: Vector3,
+    duration?: number,
     gripId?: string;
 }
 
@@ -25,7 +28,8 @@ export enum ControllerEventType {
     TURN = 'turn',
     UP_DOWN = 'updown',
     TRIGGER = 'trigger',
-    MENU = 'menu'
+    MENU = 'menu',
+    MOTION = 'motion'
 }
 
 export class Controllers {

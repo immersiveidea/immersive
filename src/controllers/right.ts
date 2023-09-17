@@ -8,18 +8,7 @@ import {DiagramListingMenu} from "../menus/diagramListingMenu";
 export class Right extends Base {
     private listingMenu: DiagramListingMenu;
 
-    constructor(controller:
-                    WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers,
-    ) {
-        super(controller, scene, xr, controllers, diagramManager);
-        this.listingMenu = new DiagramListingMenu(this.scene, xr, this.controllers);
-        this.controller.onMotionControllerInitObservable.add((init) => {
-            this.initTrigger(init.components['xr-standard-trigger']);
-            this.initBButton(init.components['b-button']);
-            this.initAButton(init.components['a-button']);
-            this.initThumbstick(init.components['xr-standard-thumbstick']);
-        });
-    }
+    private startPosition: Vector3 = null;
 
     private initBButton(bbutton: WebXRControllerComponent) {
         if (bbutton) {
@@ -33,6 +22,24 @@ export class Right extends Base {
             });
         }
     }
+    private startTime: number = null;
+    private endPosition: Vector3 = null;
+
+    constructor(controller: WebXRInputSource,
+                scene: Scene,
+                xr: WebXRDefaultExperience,
+                diagramManager: DiagramManager,
+                controllers: Controllers,
+    ) {
+        super(controller, scene, xr, controllers, diagramManager);
+        this.listingMenu = new DiagramListingMenu(this.scene, xr, this.controllers);
+        this.controller.onMotionControllerInitObservable.add((init) => {
+            this.initTrigger(init.components['xr-standard-trigger']);
+            this.initBButton(init.components['b-button']);
+            this.initAButton(init.components['a-button']);
+            this.initThumbstick(init.components['xr-standard-thumbstick']);
+        });
+    }
 
     private initTrigger(trigger: WebXRControllerComponent) {
         if (trigger) {
@@ -44,8 +51,28 @@ export class Right extends Base {
                             type: ControllerEventType.TRIGGER,
                             value: button.value
                         });
+                        if (!this.startTime) {
+                            this.startTime = new Date().getTime();
+                            this.startPosition = this.controller.pointer.absolutePosition.clone();
+                        }
+
+                    } else {
+                        this.endPosition = this.controller.pointer.absolutePosition.clone();
+                        if (this.startTime && this.startPosition) {
+                            const duration = new Date().getTime() - this.startTime;
+
+                            this.controllers.controllerObserver.notifyObservers({
+                                type: ControllerEventType.MOTION,
+                                startPosition: this.startPosition,
+                                endPosition: this.endPosition,
+                                duration: duration
+                            });
+                            this.startTime = null;
+                            this.startPosition = null;
+                        }
+
                     }
-                });
+                }, -1, false, this);
         }
     }
 
