@@ -1,4 +1,4 @@
-import {Angle, Mesh, Quaternion, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {Angle, Color3, Mesh, MeshBuilder, Quaternion, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {Right} from "./right";
 import {Left} from "./left";
 import {EditMenu} from "../menus/editMenu";
@@ -36,7 +36,7 @@ export class Rigplatform {
         this.controllers = controllers;
         this.xr = xr;
         this.bMenu = new EditMenu(scene, xr, this.diagramManager, controllers);
-        this.rigMesh = buildRig(scene);
+        this.rigMesh = buildRig(scene, this.diagramManager.config);
         this.fixRotation();
         this.initializeControllers();
         scene.onActiveCameraChanged.add((s) => {
@@ -78,6 +78,9 @@ export class Rigplatform {
     private registerVelocityObserver() {
         this.scene.onBeforeRenderObservable.add(() => {
             const vel = this.velocity.applyRotationQuaternion(this.scene.activeCamera.absoluteRotation);
+            if (!this.diagramManager.config.current.flyMode) {
+                vel.y = 0;
+            }
             if (vel.length() > 0) {
                 this.logger.debug('Velocity', this.velocity, vel, this.scene.activeCamera.absoluteRotation);
             }
@@ -114,13 +117,30 @@ export class Rigplatform {
                         this.leftright(event.value);
                         break;
                     case ControllerEventType.UP_DOWN:
-                        this.updown(event.value);
+                        if (this.diagramManager.config.current.flyMode) {
+                            this.updown(event.value);
+                        }
                         break;
                     case ControllerEventType.MENU:
                         this.bMenu.toggle();
                         break;
+                    case ControllerEventType.MOTION:
+                        console.log(JSON.stringify(event));
+                        this.buildKickLine(event.startPosition, event.endPosition);
+                        break;
                 }
             });
+        }
+    }
+
+    private buildKickLine(start: Vector3, end: Vector3) {
+        if (end.y < start.y) {
+            const line = MeshBuilder.CreateLines("kickLine", {points: [start, end]}, this.scene);
+            line.color = new Color3(1, 0, 0);
+            line.isPickable = false;
+            setTimeout(() => {
+                line.dispose();
+            }, 2000);
         }
     }
 
