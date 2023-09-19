@@ -11,7 +11,7 @@ import {
     Vector3,
     WebXRDefaultExperience,
 } from "@babylonjs/core";
-import {Button3D, GUI3DManager, PlanePanel, TextBlock} from "@babylonjs/gui";
+import {GUI3DManager, PlanePanel} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
 import {EditMenuState} from "./editMenuState";
 import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
@@ -36,7 +36,6 @@ export class EditMenu extends AbstractMenu {
     private readonly diagramManager: DiagramManager;
     private connection: DiagramConnection = null;
     private panel: PlanePanel;
-    private buttonMaterial: StandardMaterial;
     private sounds: DiaSounds;
 
     private get isVisible(): boolean {
@@ -60,8 +59,6 @@ export class EditMenu extends AbstractMenu {
 
         panel.columns = 4;
         this.manager.addControl(panel);
-        this.buttonMaterial = new StandardMaterial("buttonMaterial", this.scene);
-        this.buttonMaterial.diffuseColor = Color3.FromHexString("#000000");
         panel.addControl(this.makeButton("Modify", "modify"));
         panel.addControl(this.makeButton("Remove", "remove"));
         panel.addControl(this.makeButton("Add Label", "label"));
@@ -141,14 +138,7 @@ export class EditMenu extends AbstractMenu {
     }
 
     makeButton(name: string, id: string) {
-        const button = new Button3D(name);
-        button.scaling = new Vector3(.1, .1, .1);
-        button.name = id;
-        const text = new TextBlock(name, name);
-        text.fontSize = "48px";
-        text.color = "#ffffff";
-        text.alpha = 1;
-        button.content = text;
+        const button = super.makeButton(name, id);
         button.onPointerClickObservable.add(this.handleClick, -1, false, this);
         return button;
     }

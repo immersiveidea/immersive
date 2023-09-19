@@ -10,18 +10,16 @@ import {
 } from "@babylonjs/core";
 import {Ball} from "./ball";
 import {Team} from "./team";
-import {ControllerEventType, Controllers} from "../controllers/controllers";
 
 export class Field {
     private readonly scene: Scene;
-    private ball: Ball;
-    private controllers: Controllers;
+    public ball: Ball;
     private goalMesh: Mesh;
     private material: StandardMaterial;
     private team1: Team;
     private readonly fieldCenter: TransformNode;
     private team2: Team;
-    private gazePoint: Vector3;
+    public gazePoint: Vector3;
 
     constructor(scene: Scene) {
         this.scene = scene;
@@ -39,25 +37,6 @@ export class Field {
         this.buildField();
     }
 
-    public addControllers(controllers: Controllers) {
-        this.controllers = controllers;
-        this.controllers.controllerObserver.add((event) => {
-            switch (event.type) {
-                case ControllerEventType.MOTION:
-                    this.ball.kick(event.startPosition.clone().subtract(event.endPosition).normalize(), event.duration / 100);
-                    break;
-                case ControllerEventType.GAZEPOINT:
-                    if (event.endPosition) {
-                        this.gazePoint = event.endPosition.clone();
-                    }
-                    break;
-
-            }
-
-        });
-
-
-    }
 
     private buildField() {
         const width = .08;
