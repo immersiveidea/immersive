@@ -124,6 +124,26 @@ export class Rigplatform {
                     case ControllerEventType.MENU:
                         this.bMenu.toggle();
                         break;
+                    case ControllerEventType.TRIGGER:
+                        const worldRay = this.scene.activeCamera.getForwardRay();
+                        worldRay.origin = this.scene.activeCamera.globalPosition;
+                        const pickInfo = this.scene.pickWithRay(worldRay, null);
+                        if (pickInfo?.hit) {
+                            const circle = MeshBuilder.CreateSphere("circle", {diameter: .02}, this.scene);
+                            circle.position = pickInfo.pickedPoint;
+                            setTimeout(() => {
+                                circle.dispose();
+                            }, 500);
+
+                            if (pickInfo?.pickedMesh?.name == 'Football Ball.001') {
+                                this.controllers.controllerObserver.notifyObservers({
+                                    type: ControllerEventType.GAZEPOINT,
+                                    endPosition: pickInfo.pickedPoint,
+                                    startPosition: this.xr.baseExperience.camera.globalPosition
+                                })
+                            }
+                        }
+                        break;
                     case ControllerEventType.MOTION:
                         console.log(JSON.stringify(event));
                         this.buildKickLine(event.startPosition, event.endPosition);

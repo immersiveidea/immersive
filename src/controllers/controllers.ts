@@ -29,7 +29,8 @@ export enum ControllerEventType {
     UP_DOWN = 'updown',
     TRIGGER = 'trigger',
     MENU = 'menu',
-    MOTION = 'motion'
+    MOTION = 'motion',
+    GAZEPOINT = 'gazepoint',
 }
 
 export class Controllers {

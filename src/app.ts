@@ -20,6 +20,7 @@ import workerUrl from "./worker?worker&url";
 import {DiagramEventType} from "./diagram/diagramEntity";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 import {DiagramExporter} from "./util/diagramExporter";
+import {Field} from "./soccer/field";
 
 
 export class App {
@@ -116,6 +117,7 @@ export class App {
         camera.attachControl(canvas, true);
         new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
 
+
         environment.groundMeshObservable.add(async (ground) => {
             const xr = await WebXRDefaultExperience.CreateAsync(scene, {
                 floorMeshes: [ground],
@@ -137,8 +139,8 @@ export class App {
                 });
             });
 
-            xr.baseExperience.onStateChangedObservable.add((state) => {
 
+            xr.baseExperience.onStateChangedObservable.add((state) => {
                 if (state == WebXRState.IN_XR) {
                     scene.audioEnabled = true;
                     xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
@@ -153,6 +155,10 @@ export class App {
             });
             import('./controllers/rigplatform').then((rigmodule) => {
                 const rig = new rigmodule.Rigplatform(scene, xr, diagramManager, controllers);
+                setTimeout(() => {
+                    const field = new Field(scene);
+                    field.addControllers(controllers);
+                }, 5000);
             });
         });
 

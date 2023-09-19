@@ -1,31 +1,61 @@
-import {InstancedMesh, Mesh, MeshBuilder, Scene, StandardMaterial, Vector2, Vector3} from "@babylonjs/core";
+import {
+    InstancedMesh,
+    Mesh,
+    MeshBuilder,
+    Scene,
+    StandardMaterial,
+    TransformNode,
+    Vector2,
+    Vector3
+} from "@babylonjs/core";
 import {Ball} from "./ball";
-import {Rigplatform} from "../controllers/rigplatform";
+import {Team} from "./team";
+import {ControllerEventType, Controllers} from "../controllers/controllers";
 
 export class Field {
     private readonly scene: Scene;
     private ball: Ball;
-    private rig: Rigplatform;
+    private controllers: Controllers;
     private goalMesh: Mesh;
     private material: StandardMaterial;
+    private team1: Team;
+    private readonly fieldCenter: TransformNode;
+    private team2: Team;
+    private gazePoint: Vector3;
 
     constructor(scene: Scene) {
         this.scene = scene;
+        this.fieldCenter = new TransformNode("fieldCenter", this.scene);
+        this.team1 = new Team(scene, 1, "one");
+        this.team2 = new Team(scene, -1, "two");
+
         this.goalMesh = MeshBuilder.CreateCylinder("goalPost", {diameter: .1, height: 1}, this.scene);
         this.material = new StandardMaterial("material", this.scene);
         this.material.diffuseColor.set(1, 1, 1);
         this.material.alpha = .5;
         this.goalMesh.material = this.getMaterial();
         this.goalMesh.setEnabled(false);
+        this.ball = new Ball(this.scene);
         this.buildField();
     }
 
-    public addBall(ball: Ball) {
-        this.ball = ball;
-    }
+    public addControllers(controllers: Controllers) {
+        this.controllers = controllers;
+        this.controllers.controllerObserver.add((event) => {
+            switch (event.type) {
+                case ControllerEventType.MOTION:
+                    this.ball.kick(event.startPosition.clone().subtract(event.endPosition).normalize(), event.duration / 100);
+                    break;
+                case ControllerEventType.GAZEPOINT:
+                    if (event.endPosition) {
+                        this.gazePoint = event.endPosition.clone();
+                    }
+                    break;
 
-    public addRig(rig: Rigplatform) {
-        this.rig = rig;
+            }
+
+        });
+
 
     }
 
@@ -42,7 +72,6 @@ export class Field {
         this.buildLine(new Vector2(18.33, 50 - 8.25), new Vector2(width, 16.5 - width));
         this.buildLine(new Vector2(-18.33, -50 + 8.25), new Vector2(width, 16.5 - width));
         this.buildLine(new Vector2(18.33, -50 + 8.25), new Vector2(width, 16.5 - width));
-
 
         this.buildLine(new Vector2(0, -50), new Vector2(70 - width, width));
         this.buildLine(new Vector2(0, 50), new Vector2(70 - width, width));
@@ -83,6 +112,7 @@ export class Field {
         }
         goalPost.scaling.y = length;
         goalPost.visibility = 1;
+        goalPost.setParent(this.fieldCenter);
     }
 
     private buildCircle(position: Vector2) {
@@ -92,6 +122,7 @@ export class Field {
         circle.position.y = .01;
         circle.rotation.x = Math.PI / 2;
         circle.material = this.getMaterial();
+        circle.setParent(this.fieldCenter);
     }
 
     private buildArc(position: Vector2, arc: number = Math.PI, rotation: number = 0) {
@@ -109,6 +140,7 @@ export class Field {
         circle.position.x = position.x;
         circle.position.z = position.y;
         circle.rotation = new Vector3(0, rotation, 0);
+        circle.setParent(this.fieldCenter);
     }
 
     private getMaterial(): StandardMaterial {
@@ -125,5 +157,6 @@ export class Field {
         line.position.y = .01;
         line.position.x = position.x;
         line.position.z = position.y;
+        line.setParent(this.fieldCenter);
     }
 }

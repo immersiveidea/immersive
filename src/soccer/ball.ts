@@ -52,8 +52,9 @@ export class Ball {
                         this.scene?.getPhysicsEngine()?.getPhysicsPlugin()) {
                         console.log("creating physics aggregate");
                         this.physicsAggregate = new PhysicsAggregate(this.parent,
-                            PhysicsShapeType.SPHERE, {mass: 1, restitution: .5, friction: .6}, this.scene);
-                        this.physicsAggregate.body.setLinearDamping(.2);
+                            PhysicsShapeType.SPHERE, {mass: 1, restitution: .6, friction: .6}, this.scene);
+                        this.physicsAggregate.body.setLinearDamping(.3);
+                        this.physicsAggregate.body.setAngularDamping(2);
                         this.mesh.setParent(this.physicsAggregate.transformNode);
                         this.mesh.position.y = 0;
                         return;

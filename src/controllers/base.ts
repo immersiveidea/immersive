@@ -1,6 +1,7 @@
 import {
     AbstractMesh,
     HavokPlugin,
+    Mesh,
     PhysicsMotionType,
     Scene,
     TransformNode,
@@ -108,17 +109,27 @@ export class Base {
     }
 
     private grab() {
-        const mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
+        let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
         if (!mesh) {
             return;
         }
+        let player = false;
         const template = mesh?.metadata?.template;
         if (!template) {
             if (mesh?.metadata?.handle == true) {
                 mesh && mesh.setParent(this.controller.motionController.rootMesh);
                 this.grabbedMesh = mesh;
             } else {
-                return;
+                if (mesh?.parent?.parent?.metadata?.grabbable) {
+                    if (mesh?.parent?.parent?.parent) {
+                        mesh = (mesh?.parent?.parent?.parent as Mesh);
+                        this.grabbedMesh = mesh;
+                        player = true;
+                    }
+                } else {
+                    return;
+                }
+
             }
         } else {
             if (template == '#connection-template') {
@@ -131,7 +142,7 @@ export class Base {
         this.previousScaling = mesh?.scaling.clone();
         this.previousPosition = mesh?.position.clone();
 
-        if ("toolbox" != mesh?.parent?.parent?.id) {
+        if (("toolbox" != mesh?.parent?.parent?.id) || player) {
             if (mesh.physicsBody) {
                 const transformNode = setupTransformNode(mesh, this.controller.motionController.rootMesh);
                 mesh.physicsBody.setMotionType(PhysicsMotionType.ANIMATED);
@@ -196,7 +207,7 @@ export class Base {
         this.previousRotation = null;
         this.previousPosition = null;
         this.grabbedMesh = null;
-        if (mesh?.metadata?.template.indexOf('#') == -1) {
+        if (mesh?.metadata?.template && (mesh?.metadata?.template.indexOf('#') == -1)) {
             return;
         }
         const entity = toDiagramEntity(mesh);

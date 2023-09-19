@@ -37,7 +37,7 @@ export function diagramEventHandler(event: DiagramEvent,
         case DiagramEventType.DROPPED:
             break;
         case DiagramEventType.DROP:
-            if (mesh.metadata.template.indexOf('#') > -1) {
+            if (mesh?.metadata?.template && (mesh.metadata.template.indexOf('#') > -1)) {
                 TextLabel.updateTextNode(mesh, entity.text);
             }
             break;
