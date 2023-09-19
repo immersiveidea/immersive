@@ -9,8 +9,10 @@ import {
     Vector3
 } from "@babylonjs/core";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
+import log, {Logger} from "loglevel";
 
 export class Ball {
+    private readonly logger: Logger = log.getLogger('Ball');
     private readonly scene: Scene;
     private transformNode: TransformNode;
     private mesh: AbstractMesh;
@@ -40,7 +42,7 @@ export class Ball {
     private buildBall() {
         SceneLoader.ImportMesh(null, "/assets/models/", "ball.gltf", this.scene,
             (meshes, particleSystems, skeletons, animationGroups) => {
-                console.log('ball loaded');
+                this.logger.debug('ball loaded');
                 this.mesh = meshes[0];
                 this.parent = MeshBuilder.CreateSphere("ballParent", {diameter: .17}, this.scene);
 
@@ -50,7 +52,7 @@ export class Ball {
                 this.scene.onBeforeRenderObservable.add(() => {
                     if (!this.physicsAggregate &&
                         this.scene?.getPhysicsEngine()?.getPhysicsPlugin()) {
-                        console.log("creating physics aggregate");
+                        this.logger.debug("creating physics aggregate");
                         this.physicsAggregate = new PhysicsAggregate(this.parent,
                             PhysicsShapeType.SPHERE, {mass: 1, restitution: .6, friction: .6}, this.scene);
                         this.physicsAggregate.body.setLinearDamping(.3);
@@ -60,12 +62,6 @@ export class Ball {
                         return;
                     }
                 }, -1, false, this, false);
-
-                //animationGroups[0].stop();
-
-                //this.animationGroup = animationGroups[6];
-                //this.animationGroup.start(false, 1, 266, 266);
-
 
             });
     }

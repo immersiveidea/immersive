@@ -14,8 +14,10 @@ import {
     Vector2,
     Vector3
 } from "@babylonjs/core";
+import log, {Logger} from "loglevel";
 
 export class PlayerFactory {
+    private readonly logger: Logger = log.getLogger('PlayerFactory')
     public onReadyObservable: Observable<any> = new Observable();
     private readonly scene: Scene;
     private container: AssetContainer;
@@ -28,17 +30,20 @@ export class PlayerFactory {
             (container: AssetContainer) => {
                 this.container = container;
                 this.onReadyObservable.notifyObservers(this);
+                this.logger.debug('Player Model Loaded');
             });
 
     }
 
     public buildPlayer(position: Vector3, number: number, teamName: string = "team"): Player {
+        this.logger.debug(`Building player #${number}, for team ${teamName}`);
         return new Player(this.scene, position, this.container, number, teamName);
     }
 
 }
 
 export class Player {
+    private readonly logger: Logger = log.getLogger('Player');
     public readonly onReadyObservable: Observable<any> = new Observable();
     private readonly scene: Scene;
     private position: Vector3;
@@ -88,6 +93,7 @@ export class Player {
     }
 
     public runTo(location: Vector2) {
+        this.logger.debug(`Running to ${JSON.stringify(location)}`)
         this.destination = location;
         const body = this.physicsAggregate.transformNode.physicsBody;
         body.setMotionType(PhysicsMotionType.ANIMATED);
