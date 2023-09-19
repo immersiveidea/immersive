@@ -145,7 +145,7 @@ export class Rigplatform {
                         }
                         break;
                     case ControllerEventType.MOTION:
-                        console.log(JSON.stringify(event));
+                        this.logger.debug(JSON.stringify(event));
                         this.buildKickLine(event.startPosition, event.endPosition);
                         break;
                 }
