@@ -16,7 +16,7 @@ export class Ball {
     private readonly scene: Scene;
     private transformNode: TransformNode;
     private mesh: AbstractMesh;
-    private position: Vector3 = new Vector3(0, .5, 0);
+    _position: Vector3 = new Vector3(0, .5, 0);
     private parent: AbstractMesh;
     private controllers: Controllers;
     private physicsAggregate: PhysicsAggregate;
@@ -39,6 +39,10 @@ export class Ball {
         this.physicsAggregate.body.applyImpulse(direction.scale(force), Vector3.Zero());
     }
 
+    public get position(): Vector3 {
+        return this.physicsAggregate.transformNode.absolutePosition;
+    }
+
     private buildBall() {
         SceneLoader.ImportMesh(null, "/assets/models/", "ball.gltf", this.scene,
             (meshes, particleSystems, skeletons, animationGroups) => {
@@ -47,7 +51,7 @@ export class Ball {
                 this.parent = MeshBuilder.CreateSphere("ballParent", {diameter: .17}, this.scene);
 
                 this.parent.isVisible = false;
-                this.parent.position = this.position;
+                this.parent.position = this._position;
 
                 this.scene.onBeforeRenderObservable.add(() => {
                     if (!this.physicsAggregate &&

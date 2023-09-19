@@ -1,4 +1,4 @@
-import {AbstractMesh, Observable, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, Observable, TransformNode, Vector3, WebXRInputSource} from "@babylonjs/core";
 
 export type ControllerEvent = {
     type: ControllerEventType,
@@ -7,6 +7,7 @@ export type ControllerEvent = {
     endPosition?: Vector3,
     duration?: number,
     gripId?: string;
+    controller?: WebXRInputSource;
 }
 
 export enum ControllerEventType {

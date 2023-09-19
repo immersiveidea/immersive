@@ -27,6 +27,7 @@ export class Left extends Base {
                 });
                 this.initXButton(init.components['x-button']);
                 this.initYButton(init.components['y-button']);
+                this.initTrigger(init.components['xr-standard-trigger']);
                 init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
                     if (value.pressed) {
                         log.trace('Left', 'thumbstick changed');
@@ -40,6 +41,21 @@ export class Left extends Base {
         });
 
     }
+
+    private initTrigger(trigger: WebXRControllerComponent) {
+        if (trigger) {
+            trigger
+                .onButtonStateChangedObservable
+                .add((button) => {
+                    this.controllers.controllerObserver.notifyObservers({
+                        type: ControllerEventType.TRIGGER,
+                        value: button.value,
+                        controller: this.controller
+                    });
+                }, -1, false, this);
+        }
+    }
+
     private initXButton(xbutton: WebXRControllerComponent) {
         if (xbutton) {
             xbutton.onButtonStateChangedObservable.add((button) => {

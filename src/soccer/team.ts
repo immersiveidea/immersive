@@ -29,7 +29,6 @@ export class Team {
         this.playerFactory = new PlayerFactory(this.scene);
         this.playerFactory.onReadyObservable.add(() => {
             this.buildTeam();
-            this.players[5].runTo(new Vector2(3, -3 * this.goalSide));
         });
 
     }

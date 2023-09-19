@@ -22,6 +22,7 @@ export class Right extends Base {
             });
         }
     }
+
     private startTime: number = null;
     private endPosition: Vector3 = null;
 
@@ -46,32 +47,11 @@ export class Right extends Base {
             trigger
                 .onButtonStateChangedObservable
                 .add((button) => {
-                    if (button.pressed) {
-                        this.controllers.controllerObserver.notifyObservers({
-                            type: ControllerEventType.TRIGGER,
-                            value: button.value
-                        });
-                        if (!this.startTime) {
-                            this.startTime = new Date().getTime();
-                            this.startPosition = this.controller.pointer.absolutePosition.clone();
-                        }
-
-                    } else {
-                        this.endPosition = this.controller.pointer.absolutePosition.clone();
-                        if (this.startTime && this.startPosition) {
-                            const duration = new Date().getTime() - this.startTime;
-
-                            this.controllers.controllerObserver.notifyObservers({
-                                type: ControllerEventType.MOTION,
-                                startPosition: this.startPosition,
-                                endPosition: this.endPosition,
-                                duration: duration
-                            });
-                            this.startTime = null;
-                            this.startPosition = null;
-                        }
-
-                    }
+                    this.controllers.controllerObserver.notifyObservers({
+                        type: ControllerEventType.TRIGGER,
+                        value: button.value,
+                        controller: this.controller
+                    });
                 }, -1, false, this);
         }
     }
