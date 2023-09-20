@@ -1,5 +1,5 @@
 import {Player, PlayerFactory} from "./player";
-import {Scene, Vector2, Vector3} from "@babylonjs/core";
+import {Scene, Texture, Vector2, Vector3} from "@babylonjs/core";
 
 export class Team {
     private readonly scene: Scene;
@@ -21,11 +21,14 @@ export class Team {
     ];
 
     private name: string;
-
+    private uniforms: Texture[] = [];
     constructor(scene: Scene, side: number = 1, name: string = "team") {
         this.scene = scene;
         this.goalSide = side;
         this.name = name;
+        this.uniforms.push(new Texture("/assets/textures/team1.png", this.scene))
+        this.uniforms.push(new Texture("/assets/textures/team2.png", this.scene))
+
         this.playerFactory = new PlayerFactory(this.scene);
         this.playerFactory.onReadyObservable.add(() => {
             this.buildTeam();
@@ -37,6 +40,7 @@ export class Team {
         for (let i = 0; i < 11; i++) {
             const player = this.playerFactory
                 .buildPlayer(new Vector3(this.positions[i].x * this.goalSide, 1, this.positions[i].y * this.goalSide), i,
+                    this.uniforms[this.goalSide == 1 ? 0 : 1],
                     this.name);
             player.lookAt(new Vector2(0, -50 * this.goalSide))
             this.players.push(player);

@@ -5,12 +5,14 @@ import {
     Mesh,
     MeshBuilder,
     Observable,
+    PBRMaterial,
     PhysicsAggregate,
     PhysicsMotionType,
     PhysicsShapeType,
     Scene,
     SceneLoader,
     Skeleton,
+    Texture,
     Vector2,
     Vector3
 } from "@babylonjs/core";
@@ -35,9 +37,9 @@ export class PlayerFactory {
 
     }
 
-    public buildPlayer(position: Vector3, number: number, teamName: string = "team"): Player {
+    public buildPlayer(position: Vector3, number: number, uniformTexture: Texture = null, teamName: string = "team"): Player {
         this.logger.debug(`Building player #${number}, for team ${teamName}`);
-        return new Player(this.scene, position, this.container, number, teamName);
+        return new Player(this.scene, position, this.container, number, uniformTexture, teamName);
     }
 
 }
@@ -57,13 +59,18 @@ export class Player {
     private forward = true;
     private destination: Vector2;
 
-    constructor(scene: Scene, position: Vector3, container: AssetContainer, number: number = 0, teamName: string = "team") {
+    constructor(scene: Scene, position: Vector3, container: AssetContainer, number: number = 0, texture: Texture = null, teamName: string = "team") {
         this.scene = scene;
         this.position = position;
         this.number = number;
         this.teamName = teamName;
         const data = container.instantiateModelsToScene(undefined, false, {doNotInstantiate: true});
         this.mesh = (data.rootNodes[0] as Mesh);
+        if (texture) {
+            ((this.mesh.getChildren()[0].getChildren()[2] as Mesh).material as PBRMaterial).albedoTexture = texture;
+//            (this.mesh.material as PBRMaterial).albedoTexture = texture;
+        }
+
         this.skeleton = data.skeletons[0];
         this.animationGroup = data.animationGroups[6];
         this.buildPlayer();
