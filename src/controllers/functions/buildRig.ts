@@ -7,19 +7,28 @@ import {
     PhysicsShapeType,
     Scene,
     StandardMaterial,
+    TransformNode,
     Vector3
 } from "@babylonjs/core";
 import {AppConfig} from "../../util/appConfig";
 
 export function buildRig(scene: Scene, appConfig: AppConfig): Mesh {
-    const rigMesh = MeshBuilder.CreateBox("platform", {width: 2, height: .1, depth: 2}, scene);
+    const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: 1.6}, scene);
+    const cameratransform = new TransformNode("cameraTransform", scene);
+    cameratransform.parent = rigMesh;
+    cameratransform.position = new Vector3(0, -.8, 0);
     for (const cam of scene.cameras) {
-        cam.parent = rigMesh;
+        cam.parent = cameratransform;
     }
+
+    scene.onActiveCameraChanged.add((s) => {
+        s.activeCamera.parent = cameratransform;
+    });
+
     const rigMaterial = new StandardMaterial("rigMaterial", scene);
     rigMaterial.diffuseColor = Color3.Blue();
     rigMesh.material = rigMaterial;
-    rigMesh.setAbsolutePosition(new Vector3(0, .1, -3));
+    rigMesh.setAbsolutePosition(new Vector3(0, .01, -3));
     rigMesh.visibility = 0;
     const rigAggregate =
         new PhysicsAggregate(
@@ -27,6 +36,7 @@ export function buildRig(scene: Scene, appConfig: AppConfig): Mesh {
             PhysicsShapeType.CYLINDER,
             {friction: 0, center: Vector3.Zero(), mass: 50, restitution: .1},
             scene);
+
 
     /*const rightFoot = MeshBuilder.CreateBox("rightFoot", {width: .1, height: .1, depth: .2}, scene);
     const rightFootAggregate =

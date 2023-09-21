@@ -39,9 +39,6 @@ export class Rigplatform {
         this.rigMesh = buildRig(scene, this.diagramManager.config);
         this.fixRotation();
         this.initializeControllers();
-        scene.onActiveCameraChanged.add((s) => {
-            s.activeCamera.parent = this.rigMesh;
-        });
         this.registerVelocityObserver();
     }
     public forwardback(val: number) {
