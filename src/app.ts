@@ -20,6 +20,7 @@ import workerUrl from "./worker?worker&url";
 import {DiagramEventType} from "./diagram/diagramEntity";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 import {DiagramExporter} from "./util/diagramExporter";
+import {Introduction} from "./tutorial/introduction";
 
 
 export class App {
@@ -76,6 +77,7 @@ export class App {
         }, 2);
         config.onConfigChangedObservable.add((config) => {
             this.logger.debug('App', 'config changed', config);
+
             worker.postMessage({config: config});
         }, 2);
         worker.onmessage = (evt) => {
@@ -95,6 +97,10 @@ export class App {
 
             if (evt.data.config) {
                 config.onConfigChangedObservable.notifyObservers(evt.data.config, 1);
+                if (!evt.data.config.demoCompleted) {
+                    const intro = new Introduction(scene, config);
+                    //intro.start();
+                }
             }
         }
 

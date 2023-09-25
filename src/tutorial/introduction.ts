@@ -28,12 +28,21 @@ export class Introduction {
     private sounds: DiaSounds;
     private config: AppConfig;
 
+    private videoElement: HTMLVideoElement;
+
     constructor(scene: Scene, config: AppConfig) {
         this.sounds = new DiaSounds(scene);
         this.scene = scene;
         this.config = config;
         this.manager = new GUI3DManager(scene);
         this.physicsHelper = new PhysicsHelper(scene);
+
+        this.scene.onReadyObservable.add(() => {
+            setTimeout((s) => {
+                s.start()
+            }, 2000, this);
+        });
+
     }
 
     public start() {
@@ -50,8 +59,9 @@ export class Introduction {
         }, -1, false, this, false);
         this.manager.addControl(this.advance);
         this.advance.isVisible = false;
-        this.advance.position.y = 0;
-        this.advance.position.x = 2;
+        this.advance.position.y = .5;
+        this.advance.position.x = -2;
+        this.advance.position.z = -1;
         this.scene.onReadyObservable.add(() => {
             this.advance.isVisible = true;
         });
@@ -59,6 +69,7 @@ export class Introduction {
 
     buildVideo(src: string, size: number, position: Vector3): AbstractMesh {
         const vid = document.createElement("video");
+        this.videoElement = vid;
         vid.setAttribute('autoplay', 'true');
         vid.setAttribute('playsinline', 'true');
 
@@ -148,7 +159,7 @@ export class Introduction {
                 this.current = this.items.slice(-2);
                 break;
             case 1:
-                this.items.push(this.buildText("Let us show you", 3, 1024, new Vector3(-1.5, 16, 5)));
+                this.items.push(this.buildText("Let us show you", 3, 1024, new Vector3(-1.6, 16, 5)));
                 this.items.push(this.buildText("what you can build", 4, 1200, new Vector3(2, 12, 5)));
                 this.current = this.items.slice(-2);
                 break;
@@ -173,6 +184,11 @@ export class Introduction {
                 config.demoCompleted = true;
                 this.config.current = config;
                 this.items = [];
+                if (this.videoElement) {
+                    this.videoElement.pause();
+                    this.videoElement.remove();
+                    this.videoElement = null;
+                }
         }
         this.step++;
 
