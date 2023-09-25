@@ -1,4 +1,4 @@
-import {IPersistenceManager} from "../iPersistenceManager";
+import {IPersistenceManager} from "../integration/iPersistenceManager";
 import {
     AbstractMesh,
     Color3,
