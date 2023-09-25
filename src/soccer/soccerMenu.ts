@@ -49,6 +49,7 @@ export class SoccerMenu extends AbstractMenu {
     private forceFactor: number = 10;
 
     private buildKickLine(direction: Vector3, force: number) {
+
         const start = this.field.ball.position.clone();
         const line = MeshBuilder.CreateLines("kickLine", {points: [start, start.add(direction.scale(force))]}, this.scene);
         line.color = new Color3(1, 1, .5);

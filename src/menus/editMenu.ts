@@ -26,6 +26,7 @@ import {AbstractMenu} from "./abstractMenu";
 import {Controllers} from "../controllers/controllers";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {DiagramExporter} from "../util/diagramExporter";
+import {SoccerMenu} from "../soccer/soccerMenu";
 
 export class EditMenu extends AbstractMenu {
     private state: EditMenuState = EditMenuState.NONE;
@@ -42,64 +43,7 @@ export class EditMenu extends AbstractMenu {
         return this.panel.isVisible;
     }
 
-    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
-        super(scene, xr, controllers);
-        this.scene = scene;
-        this.sounds = new DiaSounds(scene);
-        this.diagramManager = diagramManager;
-        this.gizmoManager = new GizmoManager(scene);
-        this.gizmoManager.boundingBoxGizmoEnabled = true;
-        this.gizmoManager.gizmos.boundingBoxGizmo.scaleBoxSize = .020;
-        this.gizmoManager.gizmos.boundingBoxGizmo.rotationSphereSize = .020;
-        this.gizmoManager.gizmos.boundingBoxGizmo.scaleDragSpeed = 2;
-        this.gizmoManager.clearGizmoOnEmptyPointerEvent = true;
-        this.gizmoManager.usePointerToAttachGizmos = false;
-        this.manager = new GUI3DManager(this.scene);
-        const panel = new PlanePanel();
-
-        panel.columns = 4;
-        this.manager.addControl(panel);
-        panel.addControl(this.makeButton("Modify", "modify"));
-        panel.addControl(this.makeButton("Remove", "remove"));
-        panel.addControl(this.makeButton("Add Label", "label"));
-        panel.addControl(this.makeButton("Copy", "copy"));
-        panel.addControl(this.makeButton("Connect", "connect"));
-        panel.addControl(this.makeButton("Export", "export"));
-        panel.addControl(this.makeButton("Recolor", "recolor"));
-        panel.addControl(this.makeButton("New Relic", "newrelic"));
-
-        //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
-        this.manager.controlScaling = .1;
-        this.scene.onPointerObservable.add((pointerInfo) => {
-            switch (pointerInfo.type) {
-                case PointerEventTypes.POINTERPICK:
-                    const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
-                    if (pickedMesh.metadata?.template &&
-                        pickedMesh?.parent?.parent?.id != "toolbox") {
-                        this.diagramEntityPicked(pointerInfo).then(() => {
-                            this.logger.debug("handled");
-                        }).catch((e) => {
-                            this.logger.error(e);
-                        });
-                        break;
-                    } else {
-                        const tool = pickedMesh?.metadata?.tool;
-                        if (tool) {
-                            this.logger.debug("tool type", tool);
-                            this.paintColor = (pickedMesh.material as StandardMaterial).diffuseColor.toHexString();
-                            this.logger.debug((pickedMesh.material as StandardMaterial).diffuseColor.toHexString());
-                            this.logger.debug(pickedMesh.id);
-                        }
-
-                    }
-            }
-        });
-        this.panel = panel;
-        this.createHandle(this.manager.rootContainer.children[0].node);
-        this.manager.rootContainer.children[0].node.position.y = .2;
-        this.isVisible = false;
-
-    }
+    private soccerMenu: SoccerMenu;
 
     private set isVisible(visible: boolean) {
         this.panel.isVisible = visible;
@@ -277,6 +221,66 @@ export class EditMenu extends AbstractMenu {
 
     }
 
+    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
+        super(scene, xr, controllers);
+        this.scene = scene;
+        this.sounds = new DiaSounds(scene);
+        this.diagramManager = diagramManager;
+        this.gizmoManager = new GizmoManager(scene);
+        this.gizmoManager.boundingBoxGizmoEnabled = true;
+        this.gizmoManager.gizmos.boundingBoxGizmo.scaleBoxSize = .020;
+        this.gizmoManager.gizmos.boundingBoxGizmo.rotationSphereSize = .020;
+        this.gizmoManager.gizmos.boundingBoxGizmo.scaleDragSpeed = 2;
+        this.gizmoManager.clearGizmoOnEmptyPointerEvent = true;
+        this.gizmoManager.usePointerToAttachGizmos = false;
+        this.manager = new GUI3DManager(this.scene);
+        const panel = new PlanePanel();
+
+        panel.columns = 4;
+        this.manager.addControl(panel);
+
+        panel.addControl(this.makeButton("Modify", "modify"));
+        panel.addControl(this.makeButton("Remove", "remove"));
+        panel.addControl(this.makeButton("Add Label", "label"));
+        panel.addControl(this.makeButton("Copy", "copy"));
+        panel.addControl(this.makeButton("Connect", "connect"));
+        panel.addControl(this.makeButton("Export", "export"));
+        panel.addControl(this.makeButton("Recolor", "recolor"));
+        panel.addControl(this.makeButton("New Relic", "newrelic"));
+        panel.addControl(this.makeButton("Soccer", "soccer"));
+        //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
+        this.manager.controlScaling = .1;
+        this.scene.onPointerObservable.add((pointerInfo) => {
+            switch (pointerInfo.type) {
+                case PointerEventTypes.POINTERPICK:
+                    const pickedMesh = pointerInfo.pickInfo?.pickedMesh;
+                    if (pickedMesh.metadata?.template &&
+                        pickedMesh?.parent?.parent?.id != "toolbox") {
+                        this.diagramEntityPicked(pointerInfo).then(() => {
+                            this.logger.debug("handled");
+                        }).catch((e) => {
+                            this.logger.error(e);
+                        });
+                        break;
+                    } else {
+                        const tool = pickedMesh?.metadata?.tool;
+                        if (tool) {
+                            this.logger.debug("tool type", tool);
+                            this.paintColor = (pickedMesh.material as StandardMaterial).diffuseColor.toHexString();
+                            this.logger.debug((pickedMesh.material as StandardMaterial).diffuseColor.toHexString());
+                            this.logger.debug(pickedMesh.id);
+                        }
+
+                    }
+            }
+        });
+        this.panel = panel;
+        this.createHandle(this.manager.rootContainer.children[0].node);
+        this.manager.rootContainer.children[0].node.position.y = .2;
+        this.isVisible = false;
+
+    }
+
     private handleClick(_info, state) {
         switch (state.currentTarget.name) {
             case "modify":
@@ -303,6 +307,9 @@ export class EditMenu extends AbstractMenu {
             case "export":
                 this.download();
                 break;
+            case "soccer":
+                this.createSoccerField();
+                break;
             default:
                 this.logger.error("Unknown button");
                 return;
@@ -310,6 +317,12 @@ export class EditMenu extends AbstractMenu {
         }
 
         this.isVisible = false;
+    }
+
+    private createSoccerField() {
+        if (!this.soccerMenu) {
+            this.soccerMenu = new SoccerMenu(this.scene, this.xr, this.controllers);
+        }
     }
 
     private download() {

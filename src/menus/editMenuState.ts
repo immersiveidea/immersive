@@ -5,7 +5,8 @@ export enum EditMenuState {
     REMOVING,
     COPYING, // Removing an entity
     CONNECTING,
-    RECOLORING
+    RECOLORING,
+    SOCCER,
 
 
 }

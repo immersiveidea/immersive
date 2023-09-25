@@ -20,7 +20,6 @@ import workerUrl from "./worker?worker&url";
 import {DiagramEventType} from "./diagram/diagramEntity";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 import {DiagramExporter} from "./util/diagramExporter";
-import {SoccerMenu} from "./soccer/soccerMenu";
 
 
 export class App {
@@ -155,9 +154,11 @@ export class App {
             });
             import('./controllers/rigplatform').then((rigmodule) => {
                 const rig = new rigmodule.Rigplatform(scene, xr, diagramManager, controllers);
-                setTimeout(() => {
+                /*setTimeout(() => {
                     const soccerMenu = new SoccerMenu(scene, xr, controllers);
                 }, 5000);
+
+                 */
             });
         });
 
