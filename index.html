@@ -2,21 +2,40 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
   <title>Deep Diagram</title>
   <style>
-    body {
+      body {
+          width: 100vw;
+          heigth: 100vh;
+          margin: 0px;
+          padding: 0px;
+          aspect-ratio: auto;
+      }
 
-    }
+      .scene {
+          width: 100vw;
+          height: 100vh;
+          overflow: hidden;
+      }
 
-    .loader {
-      position: fixed;
-      left: 0px;
-      top: 0px;
-      width: 200px;
-      height: 200px;
-      display: flex;
-      justify-content: center;
-      align-content: center;
+      #gameCanvas {
+          width: 100%;
+          height: 100%;
+          margin: 0px;
+          padding: 0px;
+
+      }
+
+      .loader {
+          position: fixed;
+          left: 0px;
+          top: 0px;
+          width: 200px;
+          height: 200px;
+          display: flex;
+          justify-content: center;
+          align-content: center;
       flex-direction: column;
       z-index: -1;
       /*noinspection CssUnknownTarget*/
@@ -92,5 +111,9 @@
 
 </script>
 <script type="module" src="./src/app.ts"></script>
+<div class="scene">
+    <canvas id="gameCanvas"></canvas>
+</div>
+
 </body>
 </html>

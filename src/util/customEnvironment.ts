@@ -2,7 +2,7 @@ import {
     GroundMesh,
     MeshBuilder,
     Observable,
-    PBRMetallicRoughnessMaterial,
+    PBRMaterial,
     PhotoDome,
     PhysicsAggregate,
     PhysicsShapeType,
@@ -31,9 +31,13 @@ export class CustomEnvironment {
                 const ground = this.createGround();
                 this._groundMeshObservable.notifyObservers(ground);
             });
+
+
         const photo = new PhotoDome('sky',
             '/assets/textures/outdoor_field4.jpeg', {},
             scene);
+
+
         try {
             const sounds = new DiaSounds(scene);
             window.setTimeout((sound) => {
@@ -71,13 +75,18 @@ export class CustomEnvironment {
 
     private createGround() {
         const scene = this.scene;
-        const groundMaterial = new PBRMetallicRoughnessMaterial("groundMaterial", scene);
+        const groundMaterial = new PBRMaterial("groundMaterial", scene);
         const gText = new Texture("/assets/textures/grass1.jpeg", scene);
-        gText.uScale = 40;
-        gText.vScale = 40;
-        groundMaterial.baseTexture = gText;
+        gText.uScale = 30;
+        gText.vScale = 30;
+        groundMaterial.albedoTexture = gText;
         groundMaterial.metallic = 0;
         groundMaterial.roughness = 1;
+        const grassBump = new Texture("/assets/textures/grassnormal.png", scene);
+        grassBump.uScale = 20;
+        grassBump.vScale = 20;
+        groundMaterial.bumpTexture =
+            grassBump;
 
         const ground: GroundMesh = MeshBuilder.CreateGround("ground", {
             width: 100,
@@ -87,6 +96,7 @@ export class CustomEnvironment {
 
         ground.material = groundMaterial;
         new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, scene);
+
         return ground;
     }
 }

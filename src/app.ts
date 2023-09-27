@@ -21,6 +21,7 @@ import {DiagramEventType} from "./diagram/diagramEntity";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 import {DiagramExporter} from "./util/diagramExporter";
 import {Introduction} from "./tutorial/introduction";
+import {Spinner} from "./util/spinner";
 
 
 export class App {
@@ -34,11 +35,9 @@ export class App {
         log.getLogger('App').setLevel('debug');
         log.getLogger('DiagramManager').setLevel('debug');
         log.getLogger('PeerjsNetworkConnection').setLevel('debug');
-        const canvas = document.createElement("canvas");
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
-        canvas.id = "gameCanvas";
-        document.body.appendChild(canvas);
+
+        const canvas = document.querySelector('#gameCanvas');
+
         this.logger.debug('App', 'gameCanvas created');
         this.initialize(canvas).then(() => {
             this.logger.debug('App', 'Scene Initialized');
@@ -52,7 +51,14 @@ export class App {
     async initialize(canvas) {
 
         const engine = new Engine(canvas, true);
+        engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+        window.onresize = () => {
+            engine.resize();
+        }
+
         const scene = new Scene(engine);
+        const spinner = new Spinner(scene);
+        spinner.show();
         const config = new AppConfig();
         const peerjsNetworkConnection = new PeerjsNetworkConnection();
 
@@ -66,6 +72,7 @@ export class App {
         const toolbox = new Toolbox(scene, controllers);
 
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
+
         peerjsNetworkConnection.diagramEventObservable.add((evt) => {
             this.logger.debug('App', 'peerjs network event', evt);
             diagramManager.onDiagramEventObservable.notifyObservers(evt, 1);
@@ -77,7 +84,6 @@ export class App {
         }, 2);
         config.onConfigChangedObservable.add((config) => {
             this.logger.debug('App', 'config changed', config);
-
             worker.postMessage({config: config});
         }, 2);
         worker.onmessage = (evt) => {
@@ -138,9 +144,13 @@ export class App {
                 }
 
             });
+
+            spinner.hide();
+
             xr.baseExperience.sessionManager.onXRSessionInit.add((session) => {
                 session.addEventListener('visibilitychange', (ev) => {
                     this.logger.debug(ev);
+
                 });
             });
 
@@ -154,9 +164,7 @@ export class App {
                             log.debug('App', event.detail);
                         }
                     });
-
                 }
-
             });
             import('./controllers/rigplatform').then((rigmodule) => {
                 const rig = new rigmodule.Rigplatform(scene, xr, diagramManager, controllers);
