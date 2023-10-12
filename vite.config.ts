@@ -2,8 +2,13 @@ import {defineConfig} from "vite";
 
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
-    define: {
-        "global": {}
+    define: {},
+    optimizeDeps: {
+        esbuildOptions: {
+            define: {
+                global: 'window',
+            }
+        }
     },
     server: {
         port: 3001,
