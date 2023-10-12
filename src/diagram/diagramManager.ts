@@ -1,4 +1,4 @@
-import {AbstractMesh, InstancedMesh, Mesh, Observable, Scene} from "@babylonjs/core";
+import {AbstractMesh, Color3, InstancedMesh, Mesh, Observable, Scene} from "@babylonjs/core";
 import {DiagramEvent, DiagramEventType} from "./diagramEntity";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
@@ -40,7 +40,10 @@ export class DiagramManager {
         }
         this.toolbox.colorChangeObservable.add((evt) => {
             this.logger.debug(evt);
-            this.onDiagramEventObservable.notifyObservers({type: DiagramEventType.CHANGECOLOR}, 2);
+            this.onDiagramEventObservable.notifyObservers({
+                type: DiagramEventType.CHANGECOLOR,
+                oldColor: Color3.FromHexString(evt.oldColor), newColor: Color3.FromHexString(evt.newColor)
+            }, 2);
         }, -1, true, this, false);
         this.onDiagramEventObservable.add(this.onDiagramEvent, 1, true, this);
         this.logger.debug("DiagramManager constructed");

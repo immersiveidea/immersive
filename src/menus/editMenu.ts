@@ -76,7 +76,7 @@ export class EditMenu extends AbstractMenu {
 
         } else {
             this.sounds.enter.play();
-            setMenuPosition(this.handle.mesh, this.scene, new Vector3(0, .4, 0));
+            setMenuPosition(this.handle.mesh, this.scene, new Vector3(-.6, .4, 0));
             this.isVisible = true;
         }
     }
@@ -223,7 +223,6 @@ export class EditMenu extends AbstractMenu {
 
     constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
         super(scene, xr, controllers);
-        this.scene = scene;
         this.sounds = new DiaSounds(scene);
         this.diagramManager = diagramManager;
         this.gizmoManager = new GizmoManager(scene);

@@ -9,7 +9,7 @@ export abstract class AbstractMenu {
     protected xr: WebXRDefaultExperience;
     protected controllers: Controllers;
 
-    constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
+    protected constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
         this.scene = scene;
         this.xr = xr;
         this.controllers = controllers;

@@ -17,20 +17,25 @@ export function diagramEventHandler(event: DiagramEvent,
                                     sounds: DiaSounds) {
     const entity = event.entity;
     let mesh;
-    if (event?.entity?.template) {
-        const toolMesh = scene.getMeshById("tool-" + event.entity.template + "-" + event.entity.color);
-        if (!toolMesh && event.type != DiagramEventType.CHANGECOLOR) {
-            log.debug('no mesh found for ' + event.entity.template + "-" + event.entity.color, 'adding it');
-            toolbox.updateToolbox(event.entity.color);
-        }
-        mesh = fromDiagramEntity(event.entity, scene);
-        if (mesh) {
-            mesh.actionManager = actionManager;
-            if (physicsEnabled) {
-                applyPhysics(sounds, mesh, scene, PhysicsMotionType.DYNAMIC);
+    if (event.type == DiagramEventType.REMOVE) {
+        mesh = scene.getMeshById(entity.id);
+    } else {
+        if (event?.entity?.template) {
+            const toolMesh = scene.getMeshById("tool-" + event.entity.template + "-" + event.entity.color);
+            if (!toolMesh && event.type != DiagramEventType.CHANGECOLOR) {
+                log.debug('no mesh found for ' + event.entity.template + "-" + event.entity.color, 'adding it');
+                toolbox.updateToolbox(event.entity.color);
+            }
+            mesh = fromDiagramEntity(event.entity, scene);
+            if (mesh) {
+                mesh.actionManager = actionManager;
+                if (physicsEnabled) {
+                    applyPhysics(sounds, mesh, scene, PhysicsMotionType.DYNAMIC);
+                }
             }
         }
     }
+
     switch (event.type) {
         case DiagramEventType.CLEAR:
             break;

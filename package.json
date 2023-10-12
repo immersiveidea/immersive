@@ -35,6 +35,8 @@
     "mxgraph": "^4.2.2",
     "niceware": "^4.0.0",
     "p2p-data-channel": "^1.10.7",
+    "pouchdb": "^8.0.1",
+    "pouchdb-find": "^7.2.2",
     "query-string": "^8.1.0",
     "recordrtc": "^5.6.2",
     "ring-client-api": "11.7.7",

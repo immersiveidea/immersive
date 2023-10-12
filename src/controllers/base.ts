@@ -4,7 +4,6 @@ import {
     Mesh,
     PhysicsMotionType,
     Scene,
-    TransformNode,
     Vector3,
     WebXRControllerComponent,
     WebXRDefaultExperience,
@@ -19,6 +18,7 @@ import {setupTransformNode} from "./functions/setupTransformNode";
 import {reparent} from "./functions/reparent";
 import {snapGridVal} from "../util/functions/snapGridVal";
 import {snapRotateVal} from "../util/functions/snapRotateVal";
+import {grabAndClone} from "./functions/grab";
 
 export class Base {
     static stickVector = Vector3.Zero();
@@ -153,23 +153,13 @@ export class Base {
 
             this.grabbedMesh = mesh;
         } else {
-            const newMesh = this.diagramManager.createCopy(mesh);
-            const transformNode = new TransformNode("grabAnchor, this.scene");
-            transformNode.id = "grabAnchor";
-            transformNode.position = newMesh.position.clone();
-            if (newMesh.rotationQuaternion) {
-                transformNode.rotationQuaternion = newMesh.rotationQuaternion.clone();
-            } else {
-                transformNode.rotation = newMesh.rotation.clone();
-            }
-            transformNode.setParent(this.controller.motionController.rootMesh);
-            newMesh.setParent(transformNode);
-            this.grabbedMeshParentId = transformNode.id;
-            this.grabbedMesh = newMesh;
+            const clone = grabAndClone(this.diagramManager, mesh, this.controller.motionController.rootMesh);
+            this.grabbedMeshParentId = clone.transformNode.id;
+            this.grabbedMesh = clone.newMesh;
             this.previousParentId = null;
             const event: DiagramEvent = {
                 type: DiagramEventType.ADD,
-                entity: toDiagramEntity(newMesh)
+                entity: toDiagramEntity(clone.newMesh)
             }
             this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
         }

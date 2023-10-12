@@ -79,12 +79,11 @@ export class ConfigMenu extends AbstractMenu {
         const selectionPanel3 = new SelectionPanel("selectionPanel3");
         selectionPanel3.width = .3;
         columnPanel.addControl(selectionPanel3);
-        //this.buildRotationSnapControl(selectionPanel3);
-        //this.buildTurnSnapControl(selectionPanel3);
+
         this.buildFlyModeControl(selectionPanel3);
 
         configPlane.position.set(0, .2, 0);
-        setMenuPosition(this.handle.mesh, this.scene, new Vector3(0, .4, 0));
+        setMenuPosition(this.handle.mesh, this.scene, new Vector3(.6, .4, 0));
     }
 
     private adjustRadio(radio: RadioGroup | CheckboxGroup) {

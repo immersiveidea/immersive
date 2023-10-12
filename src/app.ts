@@ -1,6 +1,6 @@
 import {
-    ArcRotateCamera,
     Engine,
+    FreeCamera,
     HemisphericLight,
     Scene,
     Vector3,
@@ -20,8 +20,9 @@ import workerUrl from "./worker?worker&url";
 import {DiagramEventType} from "./diagram/diagramEntity";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 import {DiagramExporter} from "./util/diagramExporter";
-import {Introduction} from "./tutorial/introduction";
 import {Spinner} from "./util/spinner";
+import {WebController} from "./controllers/webController";
+import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager";
 
 
 export class App {
@@ -57,23 +58,67 @@ export class App {
         }
 
         const scene = new Scene(engine);
+
+
         const spinner = new Spinner(scene);
         spinner.show();
         const config = new AppConfig();
         const peerjsNetworkConnection = new PeerjsNetworkConnection();
 
         //const persistenceManager = new IndexdbPersistenceManager("diagram");
-        const worker = new Worker(workerUrl, {type: 'module'});
+        /*const worker = new Worker(workerUrl, {type: 'module'});
         peerjsNetworkConnection.connectionObservable.add((peerId) => {
             this.logger.debug('App', 'peerjs network connected', peerId);
             worker.postMessage({type: 'sync'});
         });
+
+         */
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
 
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
+        const db = new PouchdbPersistenceManager("diagram");
 
-        peerjsNetworkConnection.diagramEventObservable.add((evt) => {
+        db.configObserver.add((newConfig) => {
+            config.onConfigChangedObservable.notifyObservers(newConfig, 1);
+        });
+        config.onConfigChangedObservable.add((newConfig) => {
+            db.setConfig(newConfig);
+        }, 2, false, this);
+
+        diagramManager.onDiagramEventObservable.add((evt) => {
+            switch (evt.type) {
+                case DiagramEventType.CHANGECOLOR:
+                    db.changeColor(evt.oldColor, evt.newColor);
+                    break;
+                case DiagramEventType.ADD:
+                    db.add(evt.entity);
+                    break;
+                case DiagramEventType.REMOVE:
+                    db.remove(evt.entity.id);
+                    break;
+                case DiagramEventType.MODIFY:
+                case DiagramEventType.DROP:
+                    db.modify(evt.entity);
+                    break;
+                default:
+                    this.logger.warn('App', 'unknown diagram event type', evt);
+            }
+        }, 2);
+        db.updateObserver.add((evt) => {
+            diagramManager.onDiagramEventObservable.notifyObservers({
+                type: DiagramEventType.ADD,
+                entity: evt
+            }, 1);
+        });
+        db.removeObserver.add((entity) => {
+            diagramManager.onDiagramEventObservable.notifyObservers(
+                {type: DiagramEventType.REMOVE, entity: entity}, 1);
+        });
+
+        await db.initialize();
+
+        /*peerjsNetworkConnection.diagramEventObservable.add((evt) => {
             this.logger.debug('App', 'peerjs network event', evt);
             diagramManager.onDiagramEventObservable.notifyObservers(evt, 1);
         });
@@ -111,7 +156,7 @@ export class App {
         }
 
         worker.postMessage({type: 'init'});
-
+*/
         //diagramManager.setPersistenceManager(persistenceManager);
 
         const environment = new CustomEnvironment(scene, "default", config);
@@ -122,13 +167,13 @@ export class App {
             }
         });
 */
-        const camera: ArcRotateCamera = new ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 2, 4,
-            new Vector3(0, 1.6, 0), scene);
+        const camera: FreeCamera = new FreeCamera("Camera",
+            new Vector3(0, 1.6, 3), scene);
+        camera.setTarget(new Vector3(0, 1.6, 0));
+//        camera.attachControl(canvas, true);
 
-        camera.attachControl(canvas, true);
         new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
-
-
+        new HemisphericLight("light1", new Vector3(-1, 1, 0), scene);
         environment.groundMeshObservable.add(async (ground) => {
             const xr = await WebXRDefaultExperience.CreateAsync(scene, {
                 floorMeshes: [ground],
@@ -168,6 +213,9 @@ export class App {
             });
             import('./controllers/rigplatform').then((rigmodule) => {
                 const rig = new rigmodule.Rigplatform(scene, xr, diagramManager, controllers);
+
+                const webController = new WebController(scene, rig, diagramManager, controllers);
+                // const deckMenu = new DeckMenu(scene, xr, controllers);
                 /*setTimeout(() => {
                     const soccerMenu = new SoccerMenu(scene, xr, controllers);
                 }, 5000);

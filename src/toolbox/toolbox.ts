@@ -72,8 +72,11 @@ export class Toolbox {
         addButton.onPointerClickObservable.add(() => {
             buildColor(Color3.Random(), this.scene, this.node, this.index++, this.colorChangeObservable);
         });
-
+        //this.node.parent
         this.node.parent.setEnabled(false);
+        setMenuPosition(this.node.parent as Mesh, this.scene,
+            Vector3.Zero());
+
     }
 }
 
