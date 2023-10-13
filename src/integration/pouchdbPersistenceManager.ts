@@ -210,14 +210,18 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
     private async beginSync() {
         try {
 
-            const syncTarget = "mike";
+            const syncTarget = "user123";
             const dbs = await axios.get('https://syncdb-service-d3f974de56ef.herokuapp.com/_all_dbs');
             if (dbs.data.indexOf(syncTarget) == -1) {
                 console.log('sync target missing');
                 return;
             }
             console.log(dbs);
-            this.remote = new PouchDB('https://syncdb-service-d3f974de56ef.herokuapp.com/' + syncTarget);
+
+            this.remote = new PouchDB('https://syncdb-service-d3f974de56ef.herokuapp.com/' + syncTarget,
+                {auth: {username: syncTarget, password: 'password'}});
+
+            //this.remote.login(syncTarget, 'password');
             this.syncDoc = this.syncDoc.bind(this);
             this.db.sync(this.remote, {live: true, retry: true})
                 .on('change', this.syncDoc);
