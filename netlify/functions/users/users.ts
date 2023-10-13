@@ -5,10 +5,12 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     try {
         const origin = event.headers.origin;
         const baseurl = 'https://syncdb-service-d3f974de56ef.herokuapp.com/';
-        const dbKey = event.queryStringParameters.shareKey;
-        const password = event.queryStringParameters.password;
+        const params = JSON.parse(event.body);
+        const dbKey = params.shareKey;
+        const password = params.password;
 
         if (!dbKey || !password) {
+            console.log(params);
             throw new Error('No share key provided');
         }
         try {
