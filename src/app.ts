@@ -63,7 +63,7 @@ export class App {
         const spinner = new Spinner(scene);
         spinner.show();
         const config = new AppConfig();
-        const peerjsNetworkConnection = new PeerjsNetworkConnection();
+        //const peerjsNetworkConnection = new PeerjsNetworkConnection();
 
         //const persistenceManager = new IndexdbPersistenceManager("diagram");
         /*const worker = new Worker(workerUrl, {type: 'module'});
