@@ -25,13 +25,14 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
                 'Access-Control-Allow-Credentials': 'true'
             },
             statusCode: 200,
-            body: data
+            body: JSON.stringify({data: data})
         }
     } catch (err) {
         console.log(err);
+        const response = {err: err};
         return {
             statusCode: 500,
-            body: err
+            body: JSON.stringify(response)
         }
     }
 }
