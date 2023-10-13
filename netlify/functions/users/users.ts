@@ -8,7 +8,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         const dbKey = event.queryStringParameters.shareKey;
         const password = event.queryStringParameters.password;
 
-        if (!dbKey) {
+        if (!dbKey || !password) {
             throw new Error('No share key provided');
         }
         try {
@@ -37,7 +37,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         if (response.status == 200) {
             const response2 = await axios.put(
                 baseurl + '_users',
-                {_id: 'org.couchdb.user:' + dbKey, name: dbKey, password: password, roles: []},
+                {_id: 'org.couchdb.user:' + dbKey, name: dbKey, password: password, roles: [], type: 'user'},
                 {
                     headers: {
                         'Authorization': 'Basic ' + authToken,
