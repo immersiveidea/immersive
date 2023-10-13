@@ -36,7 +36,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
                 }
             });
         const data = await response.data;
-        if (response.status == 200) {
+        if (response.status == 201) {
             const response2 = await axios.put(
                 baseurl + '_users',
                 {_id: 'org.couchdb.user:' + dbKey, name: dbKey, password: password, roles: [], type: 'user'},
