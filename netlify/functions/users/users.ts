@@ -20,11 +20,19 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
             console.log(err);
 
         }
+        const auth = 'admin:stM8Lnm@Cuf-tWZHv';
+        const authToken = Buffer.from(auth).toString('base64');
 
         const response = await axios.put(
             baseurl + dbKey,
             null,
-            {headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}});
+            {
+                headers: {
+                    'Authorization': 'Basic ' + authToken,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
         const data = await response.data;
         return {
             headers: {
