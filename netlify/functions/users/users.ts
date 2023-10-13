@@ -25,7 +25,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
 
         const response = await axios.put(
             baseurl + dbKey,
-            null,
+            {},
             {
                 headers: {
                     'Authorization': 'Basic ' + authToken,
