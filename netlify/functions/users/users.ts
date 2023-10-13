@@ -5,8 +5,9 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     try {
         const origin = event.headers.origin;
         const baseurl = 'https://syncdb-service-d3f974de56ef.herokuapp.com/';
-        const more = 'mike/_all_docs?include_docs=true'
         const dbKey = event.queryStringParameters.shareKey;
+        const password = event.queryStringParameters.password;
+
         if (!dbKey) {
             throw new Error('No share key provided');
         }
@@ -14,11 +15,10 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
             const exist = await axios.head(baseurl + dbKey);
             return {
                 statusCode: 200,
-                body: JSON.stringify({data: exist.data})
+                body: JSON.stringify({data: "OK"})
             }
         } catch (err) {
             console.log(err);
-
         }
         const auth = 'admin:stM8Lnm@Cuf-tWZHv';
         const authToken = Buffer.from(auth).toString('base64');
@@ -34,6 +34,19 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
                 }
             });
         const data = await response.data;
+        if (response.status == 200) {
+            const response2 = await axios.put(
+                baseurl + '_users',
+                {_id: 'org.couchdb.user:' + dbKey, name: dbKey, password: password, roles: []},
+                {
+                    headers: {
+                        'Authorization': 'Basic ' + authToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+            data.auth = response2.data;
+        }
         return {
             headers: {
                 'Content-Type': 'application/json',
@@ -41,7 +54,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
                 'Access-Control-Allow-Credentials': 'true'
             },
             statusCode: 200,
-            body: JSON.stringify({data: data})
+            body: JSON.stringify({data: data}, null, 2)
         }
     } catch (err) {
         console.log(err);
