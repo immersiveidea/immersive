@@ -3,16 +3,24 @@ import axios from 'axios';
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
     try {
+        const origin = event.headers.origin;
         const baseurl = 'https://syncdb-service-d3f974de56ef.herokuapp.com/';
         const more = 'mike/_all_docs?include_docs=true'
         const dbKey = event.queryStringParameters.shareKey;
         if (!dbKey) {
             throw new Error('No share key provided');
         }
-        const exist = await axios.head(baseurl + dbKey);
-        if (exist.status == 200) {
-            throw new Error('Share key already exists');
+        try {
+            const exist = await axios.head(baseurl + dbKey);
+            return {
+                statusCode: 200,
+                body: JSON.stringify({data: exist.data})
+            }
+        } catch (err) {
+            console.log(err);
+
         }
+
         const response = await axios.put(
             baseurl + dbKey,
             null,
@@ -21,7 +29,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         return {
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'https://cameras.immersiveidea.com',
+                'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
                 'Access-Control-Allow-Credentials': 'true'
             },
             statusCode: 200,
