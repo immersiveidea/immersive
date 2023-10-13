@@ -38,7 +38,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         const data = await response.data;
         if (response.status == 201) {
             const response2 = await axios.put(
-                baseurl + '_users',
+                baseurl + '_users/org.couchdb.user:' + dbKey,
                 {_id: 'org.couchdb.user:' + dbKey, name: dbKey, password: password, roles: [], type: 'user'},
                 {
                     headers: {
@@ -48,6 +48,16 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
                     }
                 });
             data.auth = response2.data;
+            const authresponse = await axios.put(
+                baseurl + dbKey + '/_security',
+                {admins: {names: [], roles: []}, members: {names: [dbKey], roles: []}},
+                {
+                    headers: {
+                        'Authorization': 'Basic ' + authToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
         }
         return {
             headers: {
