@@ -115,10 +115,15 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
 
     }
 
-    public async setConfig(config: any): Promise<any> {
-        const doc = await this.config.get('1');
-        const newConf = {...config, _id: '1', _rev: doc._rev};
-        return this.config.put(newConf);
+    public async setConfig(config: any, initial: boolean = false): Promise<any> {
+        if (!initial) {
+            const doc = await this.config.get('1');
+            const newConf = {...config, _id: '1', _rev: doc._rev};
+            return this.config.put(newConf);
+        } else {
+            const newConf = {...config, _id: '1'};
+            return this.config.put(newConf);
+        }
     }
 
     public async getConfig(): Promise<any> {
@@ -150,7 +155,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
                 currentDiagramId: uuidv4()
             }
             try {
-                await this.setConfig(defaultConfig);
+                await this.setConfig(defaultConfig, true);
             } catch (err) {
                 console.log(err);
             }
@@ -214,7 +219,12 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             const dbs = await axios.get('https://syncdb-service-d3f974de56ef.herokuapp.com/_all_dbs');
             if (dbs.data.indexOf(syncTarget) == -1) {
                 console.log('sync target missing');
-                return;
+                const buildTarget = await axios.post('https://deepdiagram.com/.netlify/functions/users',
+                    {username: syncTarget, password: 'password'});
+                if (buildTarget.status != 200) {
+                    console.log(buildTarget.statusText);
+                    return;
+                }
             }
             console.log(dbs);
 

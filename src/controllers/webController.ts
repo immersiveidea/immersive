@@ -4,9 +4,11 @@ import {ControllerEventType, Controllers} from "./controllers";
 import {DiagramManager} from "../diagram/diagramManager";
 import {GridMaterial} from "@babylonjs/materials";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
+import {wheelHandler} from "./functions/wheelHandler";
 
 export class WebController {
     private scene: Scene;
+    private speed: number = 1;
     private readonly referencePlane: AbstractMesh;
     private grabbedMesh: AbstractMesh;
     private pickedMesh: AbstractMesh;
@@ -14,6 +16,8 @@ export class WebController {
     private diagramManager: DiagramManager;
     private mouseDown: boolean = false;
     private controllers: Controllers;
+    private upDownWheel: boolean = false;
+    private fowardBackWheel: boolean = false;
 
     constructor(scene: Scene, rig: Rigplatform, diagramManager: DiagramManager, controllers: Controllers) {
         this.scene = scene;
@@ -36,16 +40,22 @@ export class WebController {
             if (kbInfo.type == 1) {
                 switch (kbInfo.event.key) {
                     case "ArrowUp":
-                        this.rig.forwardback(-1);
+                        this.rig.forwardback(-this.speed);
                         break;
                     case "ArrowDown":
-                        this.rig.forwardback(1);
+                        this.rig.forwardback(this.speed);
                         break;
                     case "ArrowLeft":
-                        this.rig.leftright(-1);
+                        this.rig.leftright(-this.speed);
                         break;
                     case "ArrowRight":
-                        this.rig.leftright(1);
+                        this.rig.leftright(this.speed);
+                        break;
+                    case "]":
+                        this.speed *= 1.5;
+                        break;
+                    case "[":
+                        this.speed *= .5;
                         break;
                     case " ":
                         if (kbInfo.event.ctrlKey) {
@@ -81,6 +91,35 @@ export class WebController {
             this.rig.turn(0);
         };
 
+
+        window.addEventListener('wheel', (evt) => {
+            switch (evt.buttons) {
+                case 0:
+                    if (this.fowardBackWheel == false) {
+                        this.fowardBackWheel = true;
+                        const reset = wheelHandler.bind(this);
+                        setTimeout(reset, 500);
+                    }
+                    if (Math.sign(evt.deltaY) != 0) {
+                        this.rig.forwardback(evt.deltaY / 100);
+                    }
+                    break;
+                case 1:
+                    if (this.upDownWheel == false) {
+                        this.upDownWheel = true;
+                        const reset = wheelHandler.bind(this);
+                        setTimeout(reset, 500);
+                    }
+                    if (Math.sign(evt.deltaY) != 0) {
+                        this.rig.updown(evt.deltaY / 100);
+                    }
+
+                    break;
+
+            }
+
+
+        });
         this.scene.onPointerDown = (evt, state, type) => {
             if (evt.pointerType == "mouse") {
                 if (evt.shiftKey) {

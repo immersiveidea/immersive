@@ -4,6 +4,16 @@ import axios from 'axios';
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
     try {
         const origin = event.headers.origin;
+        if (event.httpMethod == 'OPTIONS') {
+            return {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
+                    'Access-Control-Allow-Credentials': 'true'
+                },
+                statusCode: 200
+            };
+        }
         const baseurl = 'https://syncdb-service-d3f974de56ef.herokuapp.com/';
         const params = JSON.parse(event.body);
         const dbKey = params.shareKey;
