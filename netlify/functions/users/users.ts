@@ -3,12 +3,13 @@ import axios from 'axios';
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
     try {
+        console.log(event.httpMethod);
         const origin = event.headers.origin;
         if (event.httpMethod == 'OPTIONS') {
             return {
                 headers: {
-                    'Content-Type': 'application/json',
                     'Allow': 'POST',
+                    'Max-Age': '86400',
                     'Access-Control-Allow-Methods': 'POST',
                     'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
                     'Access-Control-Allow-Credentials': 'true'
@@ -17,7 +18,10 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
             };
         }
         const baseurl = 'https://syncdb-service-d3f974de56ef.herokuapp.com/';
+        console.log(baseurl);
         const params = JSON.parse(event.body);
+        console.log(event.body);
+
         const dbKey = params.shareKey;
         const password = params.password;
 
