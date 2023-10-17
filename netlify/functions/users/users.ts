@@ -8,6 +8,8 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
             return {
                 headers: {
                     'Content-Type': 'application/json',
+                    'Allow': 'POST',
+                    'Access-Control-Allow-Methods': 'POST',
                     'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
                     'Access-Control-Allow-Credentials': 'true'
                 },
