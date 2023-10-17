@@ -22,7 +22,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         const params = JSON.parse(event.body);
         console.log(event.body);
 
-        const dbKey = params.shareKey;
+        const dbKey = params.username;
         const password = params.password;
 
         if (!dbKey || !password) {
