@@ -1,9 +1,18 @@
-import {Scene, Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
+import {
+    Scene,
+    TransformNode,
+    Vector2,
+    Vector3,
+    WebXRControllerComponent,
+    WebXRDefaultExperience,
+    WebXRInputSource
+} from "@babylonjs/core";
 import {Base} from "./base";
 import {ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {ConfigMenu} from "../menus/configMenu";
 import {DiagramManager} from "../diagram/diagramManager";
+import {Button} from "../objects/button";
 
 
 export class Left extends Base {
@@ -25,8 +34,22 @@ export class Left extends Base {
                         this.moveMovable(value);
                     }
                 });
+                if (init.components['x-button']) {
+                    const transform = new TransformNode('x-button', scene);
+                    transform.parent = controller.grip;
+                    transform.rotation.x = Math.PI / 2;
+                    transform.scaling = new Vector3(.2, .2, .2);
+                    const xbutton = new Button(transform, 'X', 'toggle toolbox menu', new Vector2(-.5, -.1));
+                    const ybutton = new Button(transform, 'Y', 'toggle settings menu', new Vector2(-.4, .1));
+
+                }
                 this.initXButton(init.components['x-button']);
                 this.initYButton(init.components['y-button']);
+                const buttonhome = new TransformNode('buttons', scene)
+
+                //const xbutton = new Button(buttonhome, 'X', 'open edit menu', new Vector2(0,0));
+                //const ybutton = new Button(buttonhome, 'Y', 'open edit menu', new Vector2(.4,0));
+
                 this.initTrigger(init.components['xr-standard-trigger']);
                 init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
                     if (value.pressed) {
@@ -58,6 +81,7 @@ export class Left extends Base {
 
     private initXButton(xbutton: WebXRControllerComponent) {
         if (xbutton) {
+
             xbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
                     this.controllers.controllerObserver.notifyObservers({

@@ -21,7 +21,6 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
         console.log(name);
         this.config = new PouchDB("config");
         this.diagramListings = new PouchDB("diagramListings");
-
     }
 
     private _currentDiagramId: string;
@@ -38,7 +37,6 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             this.diagramListings.put({_id: value, name: "New Diagram"});
         }
         this.db = new PouchDB(value);
-
         this.db.sync(this.remote, {live: true});
     }
 
@@ -108,11 +106,11 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
     }
 
     public async getNewRelicData(): Promise<any[]> {
-
+        return [];
     }
 
     public async setNewRelicData(data: any[]): Promise<any> {
-
+        return data;
     }
 
     public async setConfig(config: any, initial: boolean = false): Promise<any> {
@@ -175,7 +173,6 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
         }
 
     }
-
     syncDoc = function (info) {
         console.log(info);
         if (info.direction == 'pull') {

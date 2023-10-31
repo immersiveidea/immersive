@@ -23,6 +23,7 @@ import {DiagramExporter} from "./util/diagramExporter";
 import {Spinner} from "./util/spinner";
 import {WebController} from "./controllers/webController";
 import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager";
+import {addSceneInspector} from "./util/functions/sceneInspctor";
 
 
 export class App {
@@ -78,6 +79,7 @@ export class App {
 
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
         const db = new PouchdbPersistenceManager("diagram");
+        //diagramManager.setPersistenceManager(db);
 
         db.configObserver.add((newConfig) => {
             config.onConfigChangedObservable.notifyObservers(newConfig, 1);
@@ -253,31 +255,13 @@ export class App {
         });
 
          */
-        window.addEventListener("keydown", (ev) => {
-            if (ev.key == "z") {
-                //voiceManager.startRecording();
-            }
-            if (ev.key == "x") {
-                //voiceManager.stopRecording();
-            }
-            if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-                import("@babylonjs/core/Debug/debugLayer").then(() => {
-                    import("@babylonjs/inspector").then(() => {
-                        if (scene.debugLayer.isVisible()) {
-                            scene.debugLayer.hide();
-                        } else {
-                            scene.debugLayer.show();
-                        }
-                    });
-                });
-            }
-        });
+        addSceneInspector(scene);
         const exportLink = document.querySelector('#downloadLink');
         if (exportLink) {
             exportLink.addEventListener('click', (ev) => {
                 ev.preventDefault();
                 const exporter = new DiagramExporter(scene);
-                exporter.export();
+                exporter.exportgltf();
             });
         }
 

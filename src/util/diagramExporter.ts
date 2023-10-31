@@ -7,7 +7,7 @@ export class DiagramExporter {
         this.scene = scene;
     }
 
-    public export() {
+    public exportgltf() {
         import("@babylonjs/serializers").then((serializers) => {
             serializers.GLTF2Export.GLBAsync(this.scene, 'diagram.glb', {
                 shouldExportNode: function (node) {

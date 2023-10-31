@@ -1,9 +1,18 @@
 import {Base} from "./base";
-import {Scene, Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
+import {
+    Scene,
+    TransformNode,
+    Vector2,
+    Vector3,
+    WebXRControllerComponent,
+    WebXRDefaultExperience,
+    WebXRInputSource
+} from "@babylonjs/core";
 import {ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramListingMenu} from "../menus/diagramListingMenu";
+import {Button} from "../objects/button";
 
 export class Right extends Base {
     private listingMenu: DiagramListingMenu;
@@ -36,6 +45,15 @@ export class Right extends Base {
         this.listingMenu = new DiagramListingMenu(this.scene, xr, this.controllers);
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
+            if (init.components['a-button']) {
+                const transform = new TransformNode('a-button', scene);
+                transform.parent = controller.grip;
+                transform.rotation.x = Math.PI / 2;
+                transform.scaling = new Vector3(.2, .2, .2);
+                const abutton = new Button(transform, 'A', 'toggle edit menu', new Vector2(.5, -.1));
+                const bbutton = new Button(transform, 'B', 'toggle diagram selector', new Vector2(.4, .1));
+
+            }
             this.initBButton(init.components['b-button']);
             this.initAButton(init.components['a-button']);
             this.initThumbstick(init.components['xr-standard-thumbstick']);

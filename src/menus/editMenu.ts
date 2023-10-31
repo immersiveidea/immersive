@@ -27,6 +27,7 @@ import {Controllers} from "../controllers/controllers";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {DiagramExporter} from "../util/diagramExporter";
 import {SoccerMenu} from "../soccer/soccerMenu";
+import {CameraMenu} from "./cameraMenu";
 
 export class EditMenu extends AbstractMenu {
     private state: EditMenuState = EditMenuState.NONE;
@@ -37,6 +38,7 @@ export class EditMenu extends AbstractMenu {
     private readonly diagramManager: DiagramManager;
     private connection: DiagramConnection = null;
     private panel: PlanePanel;
+    private cameraMenu: CameraMenu = null;
     private sounds: DiaSounds;
 
     private get isVisible(): boolean {
@@ -237,13 +239,13 @@ export class EditMenu extends AbstractMenu {
 
         panel.columns = 4;
         this.manager.addControl(panel);
-
+        panel.addControl(this.makeButton("Cameras", "camera"));
         panel.addControl(this.makeButton("Modify", "modify"));
         panel.addControl(this.makeButton("Remove", "remove"));
         panel.addControl(this.makeButton("Add Label", "label"));
         panel.addControl(this.makeButton("Copy", "copy"));
         panel.addControl(this.makeButton("Connect", "connect"));
-        panel.addControl(this.makeButton("Export", "export"));
+        panel.addControl(this.makeButton("Export GLTF", "exportgltf"));
         panel.addControl(this.makeButton("Recolor", "recolor"));
         panel.addControl(this.makeButton("New Relic", "newrelic"));
         panel.addControl(this.makeButton("Soccer", "soccer"));
@@ -303,12 +305,16 @@ export class EditMenu extends AbstractMenu {
             case "newrelic":
                 this.showNewRelic();
                 break;
-            case "export":
-                this.download();
+            case "exportgltf":
+                this.downloadgltf();
                 break;
             case "soccer":
                 this.createSoccerField();
                 break;
+            case "camera":
+                if (!this.cameraMenu) {
+                    this.cameraMenu = new CameraMenu(this.scene, null, null);
+                }
             default:
                 this.logger.error("Unknown button");
                 return;
@@ -324,8 +330,8 @@ export class EditMenu extends AbstractMenu {
         }
     }
 
-    private download() {
+    private downloadgltf() {
         const exporter = new DiagramExporter(this.scene);
-        exporter.export();
+        exporter.exportgltf();
     }
 }

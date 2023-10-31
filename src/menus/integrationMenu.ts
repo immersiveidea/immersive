@@ -30,6 +30,4 @@ export class IntegrationMenu extends AbstractMenu {
         grid.addControl(labelText2, 1, 0);
         setMenuPosition(this.plane, this.scene);
     }
-
-
 }
