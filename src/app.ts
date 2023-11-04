@@ -1,12 +1,4 @@
-import {
-    Engine,
-    FreeCamera,
-    HemisphericLight,
-    Scene,
-    Vector3,
-    WebXRDefaultExperience,
-    WebXRState
-} from "@babylonjs/core";
+import {Engine, FreeCamera, Scene, Vector3} from "@babylonjs/core";
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
 import {Toolbox} from "./toolbox/toolbox";
@@ -21,9 +13,9 @@ import {DiagramEventType} from "./diagram/diagramEntity";
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 import {DiagramExporter} from "./util/diagramExporter";
 import {Spinner} from "./util/spinner";
-import {WebController} from "./controllers/webController";
 import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager";
 import {addSceneInspector} from "./util/functions/sceneInspctor";
+import {groundMeshObserver} from "./util/functions/groundMeshObserver";
 
 
 export class App {
@@ -59,8 +51,6 @@ export class App {
         }
 
         const scene = new Scene(engine);
-
-
         const spinner = new Spinner(scene);
         spinner.show();
         const config = new AppConfig();
@@ -76,7 +66,6 @@ export class App {
          */
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
-
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
         const db = new PouchdbPersistenceManager("diagram");
         //diagramManager.setPersistenceManager(db);
@@ -120,111 +109,14 @@ export class App {
 
         await db.initialize();
 
-        /*peerjsNetworkConnection.diagramEventObservable.add((evt) => {
-            this.logger.debug('App', 'peerjs network event', evt);
-            diagramManager.onDiagramEventObservable.notifyObservers(evt, 1);
-        });
-        diagramManager.onDiagramEventObservable.add((evt) => {
-            this.logger.debug('App', 'diagram event', evt);
-            peerjsNetworkConnection.dataReplicationObservable.notifyObservers(evt);
-            worker.postMessage({entity: evt});
-        }, 2);
-        config.onConfigChangedObservable.add((config) => {
-            this.logger.debug('App', 'config changed', config);
-            worker.postMessage({config: config});
-        }, 2);
-        worker.onmessage = (evt) => {
-            this.logger.debug(evt);
-
-            if (evt.data.entity) {
-                this.logger.debug('App', 'worker message', evt.data.entity);
-                peerjsNetworkConnection.dataReplicationObservable.notifyObservers({
-                    type: DiagramEventType.ADD,
-                    entity: evt.data.entity
-                });
-                diagramManager.onDiagramEventObservable.notifyObservers({
-                    type: DiagramEventType.ADD,
-                    entity: evt.data.entity
-                }, 1);
-            }
-
-            if (evt.data.config) {
-                config.onConfigChangedObservable.notifyObservers(evt.data.config, 1);
-                if (!evt.data.config.demoCompleted) {
-                    const intro = new Introduction(scene, config);
-                    //intro.start();
-                }
-            }
-        }
-
-        worker.postMessage({type: 'init'});
-*/
-        //diagramManager.setPersistenceManager(persistenceManager);
-
         const environment = new CustomEnvironment(scene, "default", config);
-        /*persistenceManager.initialize().then(() => {
-            if (!config.current?.demoCompleted) {
-                const intro = new Introduction(scene, config);
-                intro.start();
-            }
-        });
-*/
         const camera: FreeCamera = new FreeCamera("Camera",
             new Vector3(0, 1.6, 3), scene);
         camera.setTarget(new Vector3(0, 1.6, 0));
-//        camera.attachControl(canvas, true);
 
-        new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
-        new HemisphericLight("light1", new Vector3(-1, 1, 0), scene);
-        environment.groundMeshObservable.add(async (ground) => {
-            const xr = await WebXRDefaultExperience.CreateAsync(scene, {
-                floorMeshes: [ground],
-                disableTeleportation: true,
-                outputCanvasOptions: {
-                    canvasOptions: {
-                        framebufferScaleFactor: 1
-                    }
-                },
-                optionalFeatures: true,
-                pointerSelectionOptions: {
-                    enablePointerSelectionOnAllControllers: true
-                }
-
-            });
-
-            spinner.hide();
-
-            xr.baseExperience.sessionManager.onXRSessionInit.add((session) => {
-                session.addEventListener('visibilitychange', (ev) => {
-                    this.logger.debug(ev);
-
-                });
-            });
-
-
-            xr.baseExperience.onStateChangedObservable.add((state) => {
-                if (state == WebXRState.IN_XR) {
-                    scene.audioEnabled = true;
-                    xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
-                    window.addEventListener(('pa-button-state-change'), (event: any) => {
-                        if (event.detail) {
-                            log.debug('App', event.detail);
-                        }
-                    });
-                }
-            });
-            import('./controllers/rigplatform').then((rigmodule) => {
-                const rig = new rigmodule.Rigplatform(scene, xr, diagramManager, controllers);
-
-                const webController = new WebController(scene, rig, diagramManager, controllers);
-                // const deckMenu = new DeckMenu(scene, xr, controllers);
-                /*setTimeout(() => {
-                    const soccerMenu = new SoccerMenu(scene, xr, controllers);
-                }, 5000);
-
-                 */
-            });
-        });
+        environment.groundMeshObservable.add((ground) => {
+            groundMeshObserver(ground, scene, diagramManager, controllers, spinner);
+        }, -1, false, this);
 
         const gamepadManager = new GamepadManager(scene);
         /*

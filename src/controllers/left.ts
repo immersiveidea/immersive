@@ -12,7 +12,7 @@ import {ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {ConfigMenu} from "../menus/configMenu";
 import {DiagramManager} from "../diagram/diagramManager";
-import {Button} from "../objects/button";
+import {RoundButton} from "../objects/roundButton";
 
 
 export class Left extends Base {
@@ -39,8 +39,8 @@ export class Left extends Base {
                     transform.parent = controller.grip;
                     transform.rotation.x = Math.PI / 2;
                     transform.scaling = new Vector3(.2, .2, .2);
-                    const xbutton = new Button(transform, 'X', 'toggle toolbox menu', new Vector2(-.5, -.1));
-                    const ybutton = new Button(transform, 'Y', 'toggle settings menu', new Vector2(-.4, .1));
+                    const xbutton = new RoundButton(transform, 'X', 'toggle toolbox menu', new Vector2(-.5, -.1));
+                    const ybutton = new RoundButton(transform, 'Y', 'toggle settings menu', new Vector2(-.4, .1));
 
                 }
                 this.initXButton(init.components['x-button']);

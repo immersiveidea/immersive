@@ -24,27 +24,7 @@
           height: 100%;
           margin: 0px;
           padding: 0px;
-
       }
-
-      .loader {
-          position: fixed;
-          left: 0px;
-          top: 0px;
-          width: 200px;
-          height: 200px;
-          display: flex;
-          justify-content: center;
-          align-content: center;
-      flex-direction: column;
-      z-index: -1;
-      /*noinspection CssUnknownTarget*/
-      background: url("/spinner.gif");
-      background-position: center;
-      background-repeat: no-repeat;
-      text-align: center;
-
-    }
 
     #questLaunch {
       position: fixed;
@@ -69,7 +49,6 @@
       background: #000;
       color: #fff;
     }
-
   </style>
   <link as="script" href="/newRelic.js" rel="preload">
   <script src="/newRelic.js"></script>
@@ -82,11 +61,11 @@
   <script src='/niceware.js'></script>
 </head>
 <body>
-<!--<div class="loader" id="loader">Loading...</div> -->
-<div id="questLaunch"><a href="https://www.oculus.com/open_url/?url=https://www.deepdiagram.com/" target="_blank">Launch
+<!--<div id="questLaunch"><a href="https://www.oculus.com/open_url/?url=https://www.deepdiagram.com/" target="_blank">Launch
   On Quest</a>
 </div>
 <div id="download"><a href="#" id="downloadLink">Download Model</a></div>
+-->
 <script>
   /*
   var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
@@ -114,6 +93,5 @@
 <div class="scene">
     <canvas id="gameCanvas"></canvas>
 </div>
-
 </body>
 </html>

@@ -24,7 +24,7 @@
     "@babylonjs/procedural-textures": "^6.21.3",
     "@babylonjs/serializers": "^6.21.3",
     "@cloudflare/workers-types": "^4.20230821.0",
-    "@netlify/functions": "^1.6.0",
+    "@netlify/functions": "^2.3.0",
     "events": "^3.3.0",
     "@typed-mxgraph/typed-mxgraph": "^1.0.8",
     "@types/node": "^18.14.0",

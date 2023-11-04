@@ -12,7 +12,7 @@ import {ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramListingMenu} from "../menus/diagramListingMenu";
-import {Button} from "../objects/button";
+import {RoundButton} from "../objects/roundButton";
 
 export class Right extends Base {
     private listingMenu: DiagramListingMenu;
@@ -50,8 +50,8 @@ export class Right extends Base {
                 transform.parent = controller.grip;
                 transform.rotation.x = Math.PI / 2;
                 transform.scaling = new Vector3(.2, .2, .2);
-                const abutton = new Button(transform, 'A', 'toggle edit menu', new Vector2(.5, -.1));
-                const bbutton = new Button(transform, 'B', 'toggle diagram selector', new Vector2(.4, .1));
+                const abutton = new RoundButton(transform, 'A', 'toggle edit menu', new Vector2(.5, -.1));
+                const bbutton = new RoundButton(transform, 'B', 'toggle diagram selector', new Vector2(.4, .1));
 
             }
             this.initBButton(init.components['b-button']);

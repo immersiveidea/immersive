@@ -1,26 +1,28 @@
-import {Handler, HandlerContext, HandlerEvent} from "@netlify/functions";
+import {Context} from "@netlify/functions";
 import axios from 'axios';
 
-export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
+export default async (req: Request, context: Context) => {
     try {
-        console.log(event.httpMethod);
-        const origin = event.headers.origin;
-        if (event.httpMethod == 'OPTIONS') {
-            return {
-                headers: {
-                    'Allow': 'POST',
-                    'Max-Age': '86400',
-                    'Access-Control-Allow-Methods': 'POST',
-                    'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
-                    'Access-Control-Allow-Credentials': 'true'
-                },
-                statusCode: 200
-            };
+        console.log(req.method);
+        const origin = req.headers['origin'];
+        if (req.method == 'OPTIONS') {
+            return new Response(
+                new Blob(),
+                {
+                    headers: {
+                        'Allow': 'POST',
+                        'Max-Age': '86400',
+                        'Access-Control-Allow-Methods': 'POST',
+                        'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
+                        'Access-Control-Allow-Credentials': 'true'
+                    },
+                    status: 200
+                })
         }
         const baseurl = 'https://syncdb-service-d3f974de56ef.herokuapp.com/';
         console.log(baseurl);
-        const params = JSON.parse(event.body);
-        console.log(event.body);
+        const params = JSON.parse(await req.text());
+        console.log(params);
 
         const dbKey = params.username;
         const password = params.password;
@@ -31,10 +33,11 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         }
         try {
             const exist = await axios.head(baseurl + dbKey);
-            return {
-                statusCode: 200,
-                body: JSON.stringify({data: "OK"})
+            if (exist) {
+                return
+                new Response('OK');
             }
+
         } catch (err) {
             console.log(err);
         }
@@ -75,21 +78,24 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
                     }
                 });
         }
-        return {
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
-                'Access-Control-Allow-Credentials': 'true'
-            },
-            statusCode: 200,
-            body: JSON.stringify({data: data}, null, 2)
-        }
+        return
+        new Response(
+            new Blob(),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
+                    'Access-Control-Allow-Credentials': 'true'
+                },
+                status: 200,
+            }
+        )
     } catch (err) {
         console.log(err);
         const response = {err: err};
-        return {
-            statusCode: 500,
-            body: JSON.stringify(response)
-        }
+        return
+        new Response(JSON.stringify(response),
+            {status: 500}
+        )
     }
 }

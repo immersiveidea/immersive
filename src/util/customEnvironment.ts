@@ -1,5 +1,6 @@
 import {
     GroundMesh,
+    HemisphericLight,
     MeshBuilder,
     Observable,
     PBRMaterial,
@@ -24,6 +25,9 @@ export class CustomEnvironment {
     constructor(scene: Scene, name: string = "default", config: AppConfig) {
         this.scene = scene;
         this.name = name;
+        new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
+        new HemisphericLight("light2", new Vector3(-1, 1, 0), scene);
+
         const physics = new CustomPhysics(this.scene, config);
         physics
             .initializeAsync()

@@ -10,7 +10,6 @@ export class WebController {
     private scene: Scene;
     private speed: number = 1;
     private readonly referencePlane: AbstractMesh;
-    private grabbedMesh: AbstractMesh;
     private pickedMesh: AbstractMesh;
     private rig: Rigplatform;
     private diagramManager: DiagramManager;
@@ -120,7 +119,7 @@ export class WebController {
 
 
         });
-        this.scene.onPointerDown = (evt, state, type) => {
+        this.scene.onPointerDown = (evt, state) => {
             if (evt.pointerType == "mouse") {
                 if (evt.shiftKey) {
                     setMenuPosition(this.referencePlane, this.scene, new Vector3(0, 0, 5));
@@ -135,7 +134,6 @@ export class WebController {
         };
         this.scene.onPointerMove = (evt) => {
             if (this.mouseDown) {
-                //this.rig.leftright(evt.movementX);
                 this.rig.turn(evt.movementX);
             }
             const meshPickInfo = scene.pick(this.scene.pointerX, this.scene.pointerY, (mesh) => {
@@ -150,7 +148,6 @@ export class WebController {
                     this.mesh = meshPickInfo.pickedMesh;
                 } else {
                     if (this._mesh.id != meshPickInfo.pickedMesh.id) {
-                        //const clone = grabAndClone()
                         this.mesh = meshPickInfo.pickedMesh;
                     }
                 }

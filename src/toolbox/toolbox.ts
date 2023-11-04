@@ -4,8 +4,9 @@ import {Button3D, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {buildColor} from "./functions/buildColor";
-import {MenuHandle} from "../menus/menuHandle";
+
 import log from "loglevel";
+import {Handle} from "../objects/handle";
 
 export class Toolbox {
     private readonly logger = log.getLogger('Toolbox');
@@ -18,7 +19,7 @@ export class Toolbox {
     private readonly xObserver;
     public readonly colorChangeObservable: Observable<{ oldColor: string, newColor: string }> =
         new Observable<{ oldColor: string; newColor: string }>()
-    private handle: MenuHandle;
+    private handle: Handle;
     constructor(scene: Scene, controllers: Controllers) {
         this.scene = scene;
         this.controllers = controllers;
@@ -26,7 +27,7 @@ export class Toolbox {
         this.manager = new GUI3DManager(scene);
         this.manager.addControl(this.addPanel);
         this.node = new TransformNode("toolbox", this.scene);
-        this.handle = new MenuHandle(this.node);
+        this.handle = new Handle(this.node);
         this.node.position.y = .1;
         this.node.position.z = .2;
         this.node.scaling = new Vector3(0.6, 0.6, 0.6);
