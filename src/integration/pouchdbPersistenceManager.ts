@@ -217,7 +217,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             if (dbs.data.indexOf(syncTarget) == -1) {
                 console.log('sync target missing');
                 const buildTarget = await axios.post('https://deepdiagram.com/.netlify/functions/users',
-                    {username: syncTarget, password: 'password'});
+                    {username: syncTarget, password: 'password', db: syncTarget});
                 if (buildTarget.status != 200) {
                     console.log(buildTarget.statusText);
                     return;
