@@ -50,6 +50,7 @@ async function checkIfDbExists(params: Params) {
 
 async function createDB(params: Params) {
     console.log("Creating DB");
+
     const response = await axios.put(
         baseurl + params.username,
         {},
@@ -60,10 +61,9 @@ async function createDB(params: Params) {
                 'Accept': 'application/json'
             }
         });
-
-    const data = response.data;
-    console.log(JSON.stringify(response));
-    return data;
+    console.log(response.status);
+    console.log(response.data);
+    return response;
 }
 
 async function createUser(params: Params) {
