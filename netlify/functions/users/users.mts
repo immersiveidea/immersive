@@ -43,7 +43,7 @@ async function checkIfDbExists(params: Params) {
         }
     } catch (err) {
         console.log("DB not Found");
-        console.log(err);
+        //console.log(err);
     }
     return false;
 }
@@ -60,7 +60,8 @@ async function createDB(params: Params) {
                 'Accept': 'application/json'
             }
         });
-    const data = await response.data;
+
+    const data = response.data;
     console.log(JSON.stringify(response));
     return data;
 }
