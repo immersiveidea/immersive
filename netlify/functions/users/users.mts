@@ -130,7 +130,7 @@ export default async (req: Request, context: Context) => {
     if (req.method == 'OPTIONS') {
         const origin = req.headers.get('Origin');
         console.log(origin);
-        const res = new Response(
+        return new Response(
             new Blob(),
             {
                 headers: {
@@ -142,8 +142,6 @@ export default async (req: Request, context: Context) => {
                 },
                 status: 200
             });
-        console.log(JSON.stringify(res));
-        return res;
     }
 
 
