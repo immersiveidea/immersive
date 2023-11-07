@@ -191,15 +191,16 @@ export default async (req: Request): Promise<Response> => {
         if (authorizeUserResponse.status != 200) {
             throw new Error('could not authorize user');
         }
-        const origin = req.headers['origin'];
+        const origin = req.headers.get('origin');
+        console.log(origin);
         return new Response(
             'OK',
             {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
-                    'Access-Control-Allow-Credentials': 'true'
-                },
+                headers: [
+                    ['Content-Type', 'application/json'],
+                    ['Access-Control-Allow-Origin', origin],
+                    ['Access-Control-Allow-Credentials', 'true']
+                ],
                 status: 200
             }
         )
