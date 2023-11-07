@@ -8,12 +8,13 @@ const authToken = Buffer.from(auth).toString('base64');
 function buildOptions(req: Request) {
     if (req.method == 'OPTIONS') {
         const origin = req.headers['origin'];
+        console.log(origin);
         return new Response(
             "",
             {
                 headers: {
                     'Allow': 'POST',
-                    'Max-Age': '86400',
+                    'Max-Age': '30',
                     'Access-Control-Allow-Methods': 'POST',
                     'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
                     'Access-Control-Allow-Credentials': 'true'
@@ -147,7 +148,8 @@ export default async (req: Request, context: Context) => {
     console.log(req.method);
 
     const options = buildOptions(req);
-    if (options) {
+    if (options != null) {
+        console.log('Options Call Found');
         return options;
     }
 

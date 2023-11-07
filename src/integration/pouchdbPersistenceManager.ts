@@ -166,11 +166,11 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             const config = await this.config.get('1');
             if (config.currentDiagramId) {
                 this.db = new PouchDB(config.currentDiagramId);
-                await this.beginSync();
+                await this.beginSync(config.currentDiagramId);
             } else {
                 config.currentDiagramId = uuidv4();
                 this.db = new PouchDB(config.currentDiagramId);
-                await this.beginSync();
+                await this.beginSync(config.currentDiagramId);
                 await this.config.put(config);
             }
             this.configObserver.notifyObservers(config);
@@ -193,7 +193,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
 
             this.diagramListings.put({_id: defaultConfig.currentDiagramId, name: "New Diagram"});
             this.db = new PouchDB(defaultConfig.currentDiagramId);
-            await this.beginSync();
+            await this.beginSync(defaultConfig.currentDiagramId);
             this.configObserver.notifyObservers(defaultConfig);
         }
         try {
@@ -242,10 +242,10 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
 
     }
 
-    private async beginSync() {
+    private async beginSync(remoteDbName: string) {
         try {
 
-            const remoteDbName = "db1";
+            //const remoteDbName = "db1";
             const remoteUserName = "user1";
             const password = "password";
             const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT + '_all_dbs');

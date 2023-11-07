@@ -58,12 +58,14 @@ export class App {
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
 
         const db = new PouchdbPersistenceManager();
+        db.setDiagramManager(diagramManager);
         db.configObserver.add((newConfig) => {
             config.onConfigChangedObservable.notifyObservers(newConfig, 1);
         });
         config.onConfigChangedObservable.add((newConfig) => {
             db.setConfig(newConfig);
         }, 2, false, this);
+
 
         await db.initialize();
 
