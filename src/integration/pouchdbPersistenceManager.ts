@@ -6,6 +6,7 @@ import {AppConfigType} from "../util/appConfigType";
 import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
 import {DiagramManager} from "../diagram/diagramManager";
+import log, {Logger} from "loglevel";
 
 export class PouchdbPersistenceManager implements IPersistenceManager {
     configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
@@ -17,7 +18,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
     private remote: PouchDB;
     private config: PouchDB;
     private diagramListings: PouchDB;
-
+    private readonly logger: Logger = log.getLogger('PouchdbPersistenceManager');
     constructor() {
         this.config = new PouchDB("config");
         this.diagramListings = new PouchDB("diagramListings");
@@ -80,7 +81,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
         try {
             this.db.put(newEntity);
         } catch (err) {
-            console.log(err);
+            this.logger.error(err);
         }
     }
 
@@ -92,7 +93,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             const doc = await this.db.get(id);
             this.db.remove(doc);
         } catch (err) {
-            console.log(err);
+            this.logger.error(err);
         }
     }
 
@@ -106,7 +107,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             this.db.put(newDoc);
 
         } catch (err) {
-            console.log(err);
+            this.logger.error(err);
         }
     }
 
@@ -123,7 +124,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
         try {
             this.diagramListings.delete(diagram.id);
         } catch (err) {
-            console.log(err);
+            this.logger.error(err);
         }
     }
 
@@ -132,7 +133,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             const doc = await this.db.get(diagram.id);
             this.db.put({...doc, ...diagram});
         } catch (err) {
-            console.log(err);
+            this.logger.error(err);
         }
 
     }
@@ -187,7 +188,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             try {
                 await this.setConfig(defaultConfig, true);
             } catch (err) {
-                console.log(err);
+                this.logger.error(err);
             }
 
             this.diagramListings.put({_id: defaultConfig.currentDiagramId, name: "New Diagram"});
@@ -201,12 +202,12 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
                 this.updateObserver.notifyObservers(entity.doc, 1);
             }
         } catch (err) {
-
+            this.logger.error(err);
         }
 
     }
     syncDoc = function (info) {
-        console.log(info);
+        this.logger.info(info);
         if (info.direction == 'pull') {
             const docs = info.change.docs;
             for (const doc of docs) {
@@ -225,7 +226,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
     async changeColor(oldColor: Color3, newColor: Color3) {
         const all = await this.db.allDocs({include_docs: true});
         for (const entity of all.rows) {
-            console.log(`comparing ${entity.doc.color} to ${oldColor.toHexString()}`);
+            this.logger.debug(`comparing ${entity.doc.color} to ${oldColor.toHexString()}`);
             if (entity.doc.color == oldColor.toHexString()) {
                 entity.doc.color = newColor.toHexString();
                 this.db.put({...entity.doc, _rev: entity.doc._rev});
@@ -244,27 +245,29 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
     private async beginSync() {
         try {
 
-            const syncTarget = "user123";
-            const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT);
-            if (dbs.data.indexOf(syncTarget) == -1) {
-                console.log('sync target missing');
+            const remoteDbName = "db1";
+            const remoteUserName = "user1";
+            const password = "password";
+            const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT + '_all_dbs');
+            if (dbs.data.indexOf(remoteDbName) == -1) {
+                this.logger.warn('sync target missing');
                 const buildTarget = await axios.post(import.meta.env.VITE_USER_ENDPOINT,
-                    {username: syncTarget, password: 'password', db: syncTarget});
+                    {username: remoteUserName, password: password, db: remoteDbName});
                 if (buildTarget.status != 200) {
-                    console.log(buildTarget.statusText);
+                    this.logger.info(buildTarget.statusText);
                     return;
                 }
             }
-            console.log(dbs);
+            this.logger.debug(dbs);
 
-            this.remote = new PouchDB('https://syncdb-service-d3f974de56ef.herokuapp.com/' + syncTarget,
-                {auth: {username: syncTarget, password: 'password'}});
+            this.remote = new PouchDB(import.meta.env.VITE_SYNCDB_ENDPOINT + remoteDbName,
+                {auth: {username: remoteUserName, password: password}});
 
             this.syncDoc = this.syncDoc.bind(this);
             this.db.sync(this.remote, {live: true, retry: true})
                 .on('change', this.syncDoc);
         } catch (err) {
-            console.log(err);
+            this.logger.error(err);
         }
     }
 }

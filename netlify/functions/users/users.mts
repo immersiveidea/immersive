@@ -9,7 +9,7 @@ function buildOptions(req: Request) {
     if (req.method == 'OPTIONS') {
         const origin = req.headers['origin'];
         return new Response(
-            new Blob(),
+            "",
             {
                 headers: {
                     'Allow': 'POST',
