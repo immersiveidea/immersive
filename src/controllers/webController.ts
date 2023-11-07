@@ -7,14 +7,14 @@ import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {wheelHandler} from "./functions/wheelHandler";
 
 export class WebController {
-    private scene: Scene;
+    private readonly scene: Scene;
     private speed: number = 1;
     private readonly referencePlane: AbstractMesh;
     private pickedMesh: AbstractMesh;
     private rig: Rigplatform;
     private diagramManager: DiagramManager;
     private mouseDown: boolean = false;
-    private controllers: Controllers;
+    private readonly controllers: Controllers;
     private upDownWheel: boolean = false;
     private fowardBackWheel: boolean = false;
 
@@ -64,6 +64,7 @@ export class WebController {
                                 )
                             }
                         }
+                        break;
                     default:
                         console.log(kbInfo.event);
                 }

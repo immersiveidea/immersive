@@ -84,7 +84,6 @@ export class Base {
                                 this.logger.debug("pulse done");
                             });
                     }
-                    ;
                     break;
                 case ControllerEventType.HIDE:
                     this.disable();

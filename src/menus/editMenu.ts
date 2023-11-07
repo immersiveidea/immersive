@@ -315,6 +315,7 @@ export class EditMenu extends AbstractMenu {
                 if (!this.cameraMenu) {
                     this.cameraMenu = new CameraMenu(this.scene, null, null);
                 }
+                break;
             default:
                 this.logger.error("Unknown button");
                 return;

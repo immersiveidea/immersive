@@ -1,7 +1,7 @@
 import {Color3, DynamicTexture, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3} from "@babylonjs/core";
 
 export class CameraMenu {
-    private scene: Scene;
+    private readonly scene: Scene;
     private xr;
     private controllers;
 

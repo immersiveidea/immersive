@@ -4,7 +4,7 @@ import {Scene, Texture, Vector2, Vector3} from "@babylonjs/core";
 export class Team {
     private readonly scene: Scene;
     private players: Player[] = [];
-    private goalSide: number = -1;
+    private readonly goalSide: number = -1;
     private playerFactory: PlayerFactory;
     private positions: Vector2[] = [
         new Vector2(3, 1),
@@ -20,7 +20,7 @@ export class Team {
         new Vector2(0, 47),
     ];
 
-    private name: string;
+    private readonly name: string;
     private uniforms: Texture[] = [];
     constructor(scene: Scene, side: number = 1, name: string = "team") {
         this.scene = scene;

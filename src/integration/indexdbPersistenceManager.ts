@@ -4,6 +4,7 @@ import {DiagramEntity} from "../diagram/diagramEntity";
 import Dexie from "dexie";
 import log from "loglevel";
 import {AppConfigType} from "../util/appConfigType";
+import {DiagramManager} from "../diagram/diagramManager";
 
 
 export class IndexdbPersistenceManager implements IPersistenceManager {
@@ -25,6 +26,10 @@ export class IndexdbPersistenceManager implements IPersistenceManager {
         this.db.version(version).stores({diagramlisting: "id,name,description,sharekey"});
         this.db.version(version).stores({newRelicData: "id,priority, incidentId"});
         this.logger.debug("IndexdbPersistenceManager constructed");
+    }
+
+    public setDiagramManager(diagramManager: DiagramManager) {
+        console.log(diagramManager.config);
     }
 
     public setCurrentDiagram(diagram: DiagramListing) {

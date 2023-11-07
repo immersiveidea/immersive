@@ -9,7 +9,7 @@ import {CustomEnvironment} from "./util/customEnvironment";
 import {Controllers} from "./controllers/controllers";
 // @ts-ignore
 import workerUrl from "./worker?worker&url";
-import {DiagramEventType} from "./diagram/diagramEntity";
+
 import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
 import {DiagramExporter} from "./util/diagramExporter";
 import {Spinner} from "./util/spinner";
@@ -25,7 +25,7 @@ export class App {
     constructor() {
 
         log.setDefaultLevel('warn');
-        //log.getLogger('PeerjsNetworkConnection').setLevel('debug');
+
         log.getLogger('App').setLevel('debug');
         log.getLogger('DiagramManager').setLevel('debug');
         log.getLogger('PeerjsNetworkConnection').setLevel('debug');
@@ -43,7 +43,6 @@ export class App {
     }
 
     async initialize(canvas) {
-
         const engine = new Engine(canvas, true);
         engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
         window.onresize = () => {
@@ -54,58 +53,17 @@ export class App {
         const spinner = new Spinner(scene);
         spinner.show();
         const config = new AppConfig();
-        //const peerjsNetworkConnection = new PeerjsNetworkConnection();
-
-        //const persistenceManager = new IndexdbPersistenceManager("diagram");
-        /*const worker = new Worker(workerUrl, {type: 'module'});
-        peerjsNetworkConnection.connectionObservable.add((peerId) => {
-            this.logger.debug('App', 'peerjs network connected', peerId);
-            worker.postMessage({type: 'sync'});
-        });
-
-         */
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
-        const db = new PouchdbPersistenceManager("diagram");
-        //diagramManager.setPersistenceManager(db);
 
+        const db = new PouchdbPersistenceManager();
         db.configObserver.add((newConfig) => {
             config.onConfigChangedObservable.notifyObservers(newConfig, 1);
         });
         config.onConfigChangedObservable.add((newConfig) => {
             db.setConfig(newConfig);
         }, 2, false, this);
-
-        diagramManager.onDiagramEventObservable.add((evt) => {
-            switch (evt.type) {
-                case DiagramEventType.CHANGECOLOR:
-                    db.changeColor(evt.oldColor, evt.newColor);
-                    break;
-                case DiagramEventType.ADD:
-                    db.add(evt.entity);
-                    break;
-                case DiagramEventType.REMOVE:
-                    db.remove(evt.entity.id);
-                    break;
-                case DiagramEventType.MODIFY:
-                case DiagramEventType.DROP:
-                    db.modify(evt.entity);
-                    break;
-                default:
-                    this.logger.warn('App', 'unknown diagram event type', evt);
-            }
-        }, 2);
-        db.updateObserver.add((evt) => {
-            diagramManager.onDiagramEventObservable.notifyObservers({
-                type: DiagramEventType.ADD,
-                entity: evt
-            }, 1);
-        });
-        db.removeObserver.add((entity) => {
-            diagramManager.onDiagramEventObservable.notifyObservers(
-                {type: DiagramEventType.REMOVE, entity: entity}, 1);
-        });
 
         await db.initialize();
 
@@ -159,7 +117,6 @@ export class App {
 
 
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
-
 
         engine.runRenderLoop(() => {
             scene.render();

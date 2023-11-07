@@ -1,7 +1,7 @@
 import {DynamicTexture, MeshBuilder, StandardMaterial, TransformNode, Vector2, Vector3} from "@babylonjs/core";
 
 export class RoundButton {
-    private parent: TransformNode;
+    private readonly parent: TransformNode;
 
     constructor(parent: TransformNode, label: string, description: string, position: Vector2) {
         this.parent = parent;

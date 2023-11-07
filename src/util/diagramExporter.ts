@@ -11,12 +11,7 @@ export class DiagramExporter {
         import("@babylonjs/serializers").then((serializers) => {
             serializers.GLTF2Export.GLBAsync(this.scene, 'diagram.glb', {
                 shouldExportNode: function (node) {
-                    if (node?.metadata?.exportable) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-
+                    return (node?.metadata?.exportable as boolean);
                 }
             }).then((gltf) => {
                 gltf.downloadFiles();

@@ -89,12 +89,16 @@ export class Introduction {
             hls.loadSource(src);
             hls.attachMedia(vid);
             hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                vid.play();
+                vid.play().then(() => {
+                    console.log("Video Playing");
+                });
             });
         } else if (vid.canPlayType('application/vnd.apple.mpegurl')) {
             vid.src = src;
             vid.addEventListener('loadedmetadata', function () {
-                vid.play();
+                vid.play().then(() => {
+                    console.log("Video Playing");
+                });
             });
         }
         return mesh;

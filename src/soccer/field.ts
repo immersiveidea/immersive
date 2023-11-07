@@ -14,7 +14,7 @@ import {Team} from "./team";
 export class Field {
     private readonly scene: Scene;
     public ball: Ball;
-    private goalMesh: Mesh;
+    private readonly goalMesh: Mesh;
     private material: StandardMaterial;
     private team1: Team;
     private readonly fieldCenter: TransformNode;

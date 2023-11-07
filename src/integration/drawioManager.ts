@@ -35,8 +35,7 @@ class EntityTree {
         const output: Array<DrawIOEntity> = new Array<DrawIOEntity>();
         this.nodes.forEach((node) => {
             if (node.parentEntity) {
-                const geometry = this.computeOffset(node);
-                node.geometry = geometry;
+                node.geometry = this.computeOffset(node);
             }
             output.push(node);
         });
@@ -81,23 +80,21 @@ class EntityTree {
             const parentgeo = this.computeOffset(node.parentEntity);
             if (parentgeo) {
                 const parentzIndex = 1 + parentgeo.zIndex ? parentgeo.zIndex : 0;
-                const geo = {
+                return {
                     x: node.geometry.x,
                     y: node.geometry.y,
                     width: node.geometry.width,
                     height: node.geometry.height,
                     zIndex: node.geometry.zIndex ? node.geometry.zIndex + parentzIndex : parentzIndex + 1
                 };
-                return geo;
             } else {
-                const geo = {
+                return {
                     x: node.geometry.x,
                     y: node.geometry.y,
                     width: node.geometry.width,
                     height: node.geometry.height,
                     zIndex: node.geometry.zIndex ? node.geometry.zIndex : 0
                 };
-                return geo;
             }
 
         } else {
@@ -150,14 +147,12 @@ export class DrawioManager {
         const graph = await fetch(url);
         this.logger.debug('got graph');
         const graphXml = await graph.text();
-        const doc = new DOMParser().parseFromString(graphXml, 'text/html');
-        return doc;
+        return new DOMParser().parseFromString(graphXml, 'text/html');
     }
 
     private getDiagram(doc: Document, index: number): Element {
         const firstDiagram = doc.querySelectorAll('diagram')[index];
-        const mxDiagram = firstDiagram.querySelector('mxGraphModel');
-        return mxDiagram;
+        return firstDiagram.querySelector('mxGraphModel');
     }
 
     private parseDiagram(mxDiagram: Element): EntityTree {

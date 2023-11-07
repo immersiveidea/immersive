@@ -1,10 +1,11 @@
 import {DiagramListing, DiagramListingEvent, IPersistenceManager} from "./iPersistenceManager";
 import PouchDB from 'pouchdb';
-import {DiagramEntity} from "../diagram/diagramEntity";
+import {DiagramEntity, DiagramEventType} from "../diagram/diagramEntity";
 import {Color3, Observable} from "@babylonjs/core";
 import {AppConfigType} from "../util/appConfigType";
 import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
+import {DiagramManager} from "../diagram/diagramManager";
 
 export class PouchdbPersistenceManager implements IPersistenceManager {
     configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
@@ -17,10 +18,41 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
     private config: PouchDB;
     private diagramListings: PouchDB;
 
-    constructor(name: string) {
-        console.log(name);
+    constructor() {
         this.config = new PouchDB("config");
         this.diagramListings = new PouchDB("diagramListings");
+    }
+
+    public setDiagramManager(diagramManager: DiagramManager) {
+        diagramManager.onDiagramEventObservable.add((evt) => {
+            switch (evt.type) {
+                case DiagramEventType.CHANGECOLOR:
+                    this.changeColor(evt.oldColor, evt.newColor);
+                    break;
+                case DiagramEventType.ADD:
+                    this.add(evt.entity);
+                    break;
+                case DiagramEventType.REMOVE:
+                    this.remove(evt.entity.id);
+                    break;
+                case DiagramEventType.MODIFY:
+                case DiagramEventType.DROP:
+                    this.modify(evt.entity);
+                    break;
+                default:
+                //this.logger.warn('App', 'unknown diagram event type', evt);
+            }
+        }, 2);
+        this.updateObserver.add((evt) => {
+            diagramManager.onDiagramEventObservable.notifyObservers({
+                type: DiagramEventType.ADD,
+                entity: evt
+            }, 1);
+        });
+        this.removeObserver.add((entity) => {
+            diagramManager.onDiagramEventObservable.notifyObservers(
+                {type: DiagramEventType.REMOVE, entity: entity}, 1);
+        });
     }
 
     private _currentDiagramId: string;
@@ -133,11 +165,11 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             const config = await this.config.get('1');
             if (config.currentDiagramId) {
                 this.db = new PouchDB(config.currentDiagramId);
-                this.beginSync();
+                await this.beginSync();
             } else {
                 config.currentDiagramId = uuidv4();
                 this.db = new PouchDB(config.currentDiagramId);
-                this.beginSync();
+                await this.beginSync();
                 await this.config.put(config);
             }
             this.configObserver.notifyObservers(config);
@@ -160,7 +192,7 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
 
             this.diagramListings.put({_id: defaultConfig.currentDiagramId, name: "New Diagram"});
             this.db = new PouchDB(defaultConfig.currentDiagramId);
-            this.beginSync();
+            await this.beginSync();
             this.configObserver.notifyObservers(defaultConfig);
         }
         try {
@@ -228,7 +260,6 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
             this.remote = new PouchDB('https://syncdb-service-d3f974de56ef.herokuapp.com/' + syncTarget,
                 {auth: {username: syncTarget, password: 'password'}});
 
-            //this.remote.login(syncTarget, 'password');
             this.syncDoc = this.syncDoc.bind(this);
             this.db.sync(this.remote, {live: true, retry: true})
                 .on('change', this.syncDoc);

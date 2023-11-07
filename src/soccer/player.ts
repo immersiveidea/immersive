@@ -48,14 +48,14 @@ export class Player {
     private readonly logger: Logger = log.getLogger('Player');
     public readonly onReadyObservable: Observable<any> = new Observable();
     private readonly scene: Scene;
-    private position: Vector3;
+    private readonly position: Vector3;
     private mesh: Mesh;
     private parent: AbstractMesh;
     private animationGroup: AnimationGroup;
     private physicsAggregate: PhysicsAggregate;
     private skeleton: Skeleton;
-    private number: number;
-    private teamName: string;
+    private readonly number: number;
+    private readonly teamName: string;
     private forward = true;
     private destination: Vector2;
 

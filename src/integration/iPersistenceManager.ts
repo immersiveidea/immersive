@@ -1,6 +1,7 @@
 import {Color3, Observable} from "@babylonjs/core";
 import {DiagramEntity} from "../diagram/diagramEntity";
 import {AppConfigType} from "../util/appConfigType";
+import {DiagramManager} from "../diagram/diagramManager";
 
 export enum DiagramListingEventType {
     GET,
@@ -55,4 +56,6 @@ export interface IPersistenceManager {
     changeColor(oldColor: Color3, newColor: Color3);
 
     setCurrentDiagram(diagram: DiagramListing);
+
+    setDiagramManager(diagramManager: DiagramManager);
 }

@@ -18,7 +18,7 @@ export class Rigplatform {
     public static instance: Rigplatform;
     private rightController: Right;
     private leftController: Left;
-    private xr: WebXRDefaultExperience;
+    private readonly xr: WebXRDefaultExperience;
     private yRotation: number = 0;
     public rigMesh: Mesh;
 
