@@ -131,7 +131,7 @@ export default async (req: Request, context: Context) => {
         const origin = req.headers.get('Origin');
         console.log(origin);
         const res = new Response(
-            "",
+            new Blob(),
             {
                 headers: {
                     'Allow': 'POST',
@@ -142,7 +142,7 @@ export default async (req: Request, context: Context) => {
                 },
                 status: 200
             });
-        console.log(res);
+        console.log(JSON.stringify(res));
         return res;
     }
 
