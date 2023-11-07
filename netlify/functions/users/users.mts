@@ -7,9 +7,9 @@ const authToken = Buffer.from(auth).toString('base64');
 
 function buildOptions(req: Request) {
     if (req.method == 'OPTIONS') {
-        const origin = req.headers['origin'];
+        const origin = req.headers.get('Origin');
         console.log(origin);
-        return new Response(
+        const res = new Response(
             "",
             {
                 headers: {
@@ -20,7 +20,9 @@ function buildOptions(req: Request) {
                     'Access-Control-Allow-Credentials': 'true'
                 },
                 status: 200
-            })
+            });
+        console.log(res);
+        return res;
     } else {
         return null;
     }
