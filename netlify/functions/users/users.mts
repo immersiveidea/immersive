@@ -124,14 +124,14 @@ async function authorizeUser(params: Params) {
         });
 }
 
-export default async (req: Request, context: Context) => {
+export default async (req: Request, context: Context): Promise<Response> => {
     console.log(req.method);
 
     if (req.method == 'OPTIONS') {
         const origin = req.headers.get('Origin');
         console.log(origin);
         return new Response(
-            new Blob(),
+            'OK',
             {
                 headers: {
                     'Allow': 'POST',
