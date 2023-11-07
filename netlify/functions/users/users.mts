@@ -5,28 +5,6 @@ const baseurl = 'https://syncdb-service-d3f974de56ef.herokuapp.com/';
 const auth = 'admin:stM8Lnm@Cuf-tWZHv';
 const authToken = Buffer.from(auth).toString('base64');
 
-function buildOptions(req: Request) {
-    if (req.method == 'OPTIONS') {
-        const origin = req.headers.get('Origin');
-        console.log(origin);
-        const res = new Response(
-            "",
-            {
-                headers: {
-                    'Allow': 'POST',
-                    'Max-Age': '30',
-                    'Access-Control-Allow-Methods': 'POST',
-                    'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
-                    'Access-Control-Allow-Credentials': 'true'
-                },
-                status: 200
-            });
-        console.log(res);
-        return res;
-    } else {
-        return null;
-    }
-}
 
 type Params = {
     username: string,
@@ -149,11 +127,25 @@ async function authorizeUser(params: Params) {
 export default async (req: Request, context: Context) => {
     console.log(req.method);
 
-    const options = buildOptions(req);
-    if (options != null) {
-        console.log('Options Call Found');
-        return options;
+    if (req.method == 'OPTIONS') {
+        const origin = req.headers.get('Origin');
+        console.log(origin);
+        const res = new Response(
+            "",
+            {
+                headers: {
+                    'Allow': 'POST',
+                    'Max-Age': '30',
+                    'Access-Control-Allow-Methods': 'POST',
+                    'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
+                    'Access-Control-Allow-Credentials': 'true'
+                },
+                status: 200
+            });
+        console.log(res);
+        return res;
     }
+
 
     try {
         const params = JSON.parse(await req.text());
