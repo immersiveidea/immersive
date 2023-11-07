@@ -1,4 +1,3 @@
-import {Context} from "@netlify/functions";
 import axios from 'axios';
 
 const baseurl = 'https://syncdb-service-d3f974de56ef.herokuapp.com/';
@@ -124,14 +123,29 @@ async function authorizeUser(params: Params) {
         });
 }
 
-export default async (req: Request, context: Context): Promise<Response> => {
+export default async (req: Request): Promise<Response> => {
     console.log(req.method);
 
-    if (req.method == 'OPTIONS') {
-        const origin = req.headers.get('Origin');
-        console.log(origin);
+    try {
+        if (req.method == 'OPTIONS') {
+            const origin = req.headers.get('Origin');
+            console.log(origin);
+            return new Response(
+                'OK',
+                {
+                    headers: {
+                        'Allow': 'POST',
+                        'Max-Age': '30',
+                        'Access-Control-Allow-Methods': 'POST',
+                        'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
+                        'Access-Control-Allow-Credentials': 'true'
+                    },
+                    status: 200
+                });
+        }
+    } catch (err) {
         return new Response(
-            'OK',
+            JSON.stringify(err),
             {
                 headers: {
                     'Allow': 'POST',
@@ -140,7 +154,7 @@ export default async (req: Request, context: Context): Promise<Response> => {
                     'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
                     'Access-Control-Allow-Credentials': 'true'
                 },
-                status: 200
+                status: 500
             });
     }
 
@@ -157,18 +171,18 @@ export default async (req: Request, context: Context): Promise<Response> => {
         const exists = await checkIfDbExists(params);
         switch (exists) {
             case Access.ALLOWED:
-                return new Response("OK");
+                console.log('Allowed');
+                return new Response('OK', {status: 200});
             case Access.DENIED:
-                if (exists == Access.DENIED) {
-                    return new Response("Denied", {status: 401});
-                }
+                console.log('Denied');
+                return new Response('Denied', {status: 401});
             case Access.MISSING:
-                if (exists == Access.MISSING) {
-                    const createDbResponse = await createDB(params);
-                    if (createDbResponse.status != 201) {
-                        throw new Error('Could not create DB');
-                    }
+                console.log('Creating Missing DB');
+                const createDbResponse = await createDB(params);
+                if (createDbResponse.status != 201) {
+                    throw new Error('Could not create DB');
                 }
+
 
         }
 
@@ -179,20 +193,20 @@ export default async (req: Request, context: Context): Promise<Response> => {
         }
         const origin = req.headers['origin'];
         return new Response(
-            "OK",
+            'OK',
             {
                 headers: {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
                     'Access-Control-Allow-Credentials': 'true'
                 },
-                status: 200,
+                status: 200
             }
         )
     } catch (err) {
         console.log(err);
         const response = {err: err};
-        return new Response(JSON.stringify(response),
+        return new Response('Error',
             {status: 500}
         )
     }
