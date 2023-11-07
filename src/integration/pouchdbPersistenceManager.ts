@@ -213,10 +213,10 @@ export class PouchdbPersistenceManager implements IPersistenceManager {
         try {
 
             const syncTarget = "user123";
-            const dbs = await axios.get('https://syncdb-service-d3f974de56ef.herokuapp.com/_all_dbs');
+            const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT);
             if (dbs.data.indexOf(syncTarget) == -1) {
                 console.log('sync target missing');
-                const buildTarget = await axios.post('https://deepdiagram.com/.netlify/functions/users',
+                const buildTarget = await axios.post(import.meta.env.VITE_USER_ENDPOINT,
                     {username: syncTarget, password: 'password', db: syncTarget});
                 if (buildTarget.status != 200) {
                     console.log(buildTarget.statusText);
