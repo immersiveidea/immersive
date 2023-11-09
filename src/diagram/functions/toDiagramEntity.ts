@@ -1,5 +1,5 @@
 import {AbstractMesh, Vector3} from "@babylonjs/core";
-import {DiagramEntity} from "../diagramEntity";
+import {DiagramEntity} from "../types/diagramEntity";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
 

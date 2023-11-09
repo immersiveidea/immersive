@@ -1,4 +1,3 @@
-import {IPersistenceManager} from "../integration/iPersistenceManager";
 import {
     AbstractMesh,
     Color3,
@@ -9,16 +8,17 @@ import {
     StandardMaterial,
     Vector3
 } from "@babylonjs/core";
+import {PouchdbPersistenceManager} from "../integration/pouchdbPersistenceManager";
 
 export class NewRelicData {
     private key: string;
     private account: string;
     private data: any[];
     private readonly scene: Scene;
-    private persistenceManager: IPersistenceManager;
+    private persistenceManager: PouchdbPersistenceManager;
     private policyLabels: AbstractMesh[] = [];
 
-    constructor(persistenceManager: IPersistenceManager, scene: Scene) {
+    constructor(persistenceManager: PouchdbPersistenceManager, scene: Scene) {
         this.persistenceManager = persistenceManager;
         this.scene = scene;
         this.persistenceManager.getNewRelicData()

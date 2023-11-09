@@ -1,7 +1,7 @@
 import log from "loglevel";
 import {Color3, Scene, Vector3} from "@babylonjs/core";
 import {DiagramManager} from "../diagram/diagramManager";
-import {DiagramEventType} from "../diagram/diagramEntity";
+import {DiagramEventType} from "../diagram/types/diagramEntity";
 
 type DrawIOEntity = {
     text?: string,

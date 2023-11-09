@@ -10,7 +10,7 @@ import {
     WebXRInputSource
 } from "@babylonjs/core";
 import {DiagramManager} from "../diagram/diagramManager";
-import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
+import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import log from "loglevel";
 import {ControllerEventType, Controllers} from "./controllers";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";

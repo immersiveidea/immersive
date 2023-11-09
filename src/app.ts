@@ -7,16 +7,10 @@ import {AppConfig} from "./util/appConfig";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {Controllers} from "./controllers/controllers";
-// @ts-ignore
-import workerUrl from "./worker?worker&url";
-
-import {PeerjsNetworkConnection} from "./integration/peerjsNetworkConnection";
-import {DiagramExporter} from "./util/diagramExporter";
 import {Spinner} from "./util/spinner";
 import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager";
 import {addSceneInspector} from "./util/functions/sceneInspctor";
 import {groundMeshObserver} from "./util/functions/groundMeshObserver";
-
 
 export class App {
     //preTasks = [havokModule];
@@ -28,7 +22,6 @@ export class App {
 
         log.getLogger('App').setLevel('debug');
         log.getLogger('DiagramManager').setLevel('debug');
-        log.getLogger('PeerjsNetworkConnection').setLevel('debug');
 
         const canvas = document.querySelector('#gameCanvas');
 
@@ -108,15 +101,6 @@ export class App {
 
          */
         addSceneInspector(scene);
-        const exportLink = document.querySelector('#downloadLink');
-        if (exportLink) {
-            exportLink.addEventListener('click', (ev) => {
-                ev.preventDefault();
-                const exporter = new DiagramExporter(scene);
-                exporter.exportgltf();
-            });
-        }
-
 
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
 

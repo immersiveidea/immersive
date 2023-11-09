@@ -1,14 +1,14 @@
-import {DiagramListing, DiagramListingEvent, IPersistenceManager} from "./iPersistenceManager";
 import PouchDB from 'pouchdb';
-import {DiagramEntity, DiagramEventType} from "../diagram/diagramEntity";
+import {DiagramEntity, DiagramEventType} from "../diagram/types/diagramEntity";
 import {Color3, Observable} from "@babylonjs/core";
 import {AppConfigType} from "../util/appConfigType";
 import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
 import {DiagramManager} from "../diagram/diagramManager";
 import log, {Logger} from "loglevel";
+import {DiagramListing, DiagramListingEvent} from "../diagram/types/diagramListing";
 
-export class PouchdbPersistenceManager implements IPersistenceManager {
+export class PouchdbPersistenceManager {
     configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
     diagramListingObserver: Observable<DiagramListingEvent> = new Observable<DiagramListingEvent>();
     updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();

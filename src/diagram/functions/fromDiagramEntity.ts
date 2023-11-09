@@ -1,7 +1,7 @@
-import {DiagramEntity} from "../diagramEntity";
+import {DiagramEntity} from "../types/diagramEntity";
 import {AbstractMesh, Color3, InstancedMesh, Mesh, Quaternion, Scene, StandardMaterial, Vector3} from "@babylonjs/core";
 import {DiagramConnection} from "../diagramConnection";
-import {TextLabel} from "../textLabel";
+import {TextLabel} from "../../objects/textLabel";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
 

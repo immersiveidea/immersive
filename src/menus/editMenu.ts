@@ -14,20 +14,20 @@ import {
 import {GUI3DManager, PlanePanel} from "@babylonjs/gui";
 import {DiagramManager} from "../diagram/diagramManager";
 import {EditMenuState} from "./editMenuState";
-import {DiagramEvent, DiagramEventType} from "../diagram/diagramEntity";
+import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import log from "loglevel";
 import {InputTextView} from "../information/inputTextView";
 import {DiaSounds} from "../util/diaSounds";
-import {TextLabel} from "../diagram/textLabel";
+import {TextLabel} from "../objects/textLabel";
 import {DiagramConnection} from "../diagram/diagramConnection";
 
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {AbstractMenu} from "./abstractMenu";
 import {Controllers} from "../controllers/controllers";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
-import {DiagramExporter} from "../util/diagramExporter";
 import {SoccerMenu} from "../soccer/soccerMenu";
 import {CameraMenu} from "./cameraMenu";
+import {exportGltf} from "../util/functions/exportGltf";
 
 export class EditMenu extends AbstractMenu {
     private state: EditMenuState = EditMenuState.NONE;
@@ -332,7 +332,6 @@ export class EditMenu extends AbstractMenu {
     }
 
     private downloadgltf() {
-        const exporter = new DiagramExporter(this.scene);
-        exporter.exportgltf();
+        exportGltf(this.scene);
     }
 }

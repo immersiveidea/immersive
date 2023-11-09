@@ -1,12 +1,12 @@
-import {DiagramEvent, DiagramEventType} from "./diagramEntity";
+import {DiagramEvent, DiagramEventType} from "../types/diagramEntity";
 import log from "loglevel";
-import {applyPhysics} from "./functions/diagramShapePhysics";
+import {applyPhysics} from "./diagramShapePhysics";
 import {ActionManager, PhysicsMotionType, Scene} from "@babylonjs/core";
-import {TextLabel} from "./textLabel";
-import {Toolbox} from "../toolbox/toolbox";
-import {DiaSounds} from "../util/diaSounds";
+import {TextLabel} from "../../objects/textLabel";
+import {Toolbox} from "../../toolbox/toolbox";
+import {DiaSounds} from "../../util/diaSounds";
 
-import {fromDiagramEntity} from "./functions/fromDiagramEntity";
+import {fromDiagramEntity} from "./fromDiagramEntity";
 
 
 export function diagramEventHandler(event: DiagramEvent,
