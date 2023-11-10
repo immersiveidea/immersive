@@ -1,6 +1,7 @@
 import {PresentationStep} from "./presentationStep";
 import log, {Logger} from "loglevel";
 import {Scene} from "@babylonjs/core";
+import {isDiagramEntity} from "./functions/isDiagramEntity";
 
 export class PresentationManager {
     _currentStep: PresentationStep = null;
@@ -24,7 +25,7 @@ export class PresentationManager {
             this._steps[this._steps.length - 1].next = step;
         } else {
             this.scene.getActiveMeshes().forEach((mesh) => {
-                if (mesh.metadata?.template) {
+                if (isDiagramEntity(mesh)) {
                     step.entities.push({
                         entity: mesh,
                         endPosition: mesh.position.clone(),

@@ -1,6 +1,7 @@
 import {DiaSounds} from "../../util/diaSounds";
 import {AbstractMesh, PhysicsAggregate, PhysicsBody, PhysicsMotionType, PhysicsShapeType, Scene} from "@babylonjs/core";
 import log from "loglevel";
+import {isDiagramEntity} from "./isDiagramEntity";
 
 const logger = log.getLogger('DiagramShapePhysics');
 const MASS_FACTOR = 10;
@@ -9,7 +10,7 @@ export function applyPhysics(sounds: DiaSounds,
                              mesh: AbstractMesh,
                              scene: Scene,
                              motionType?: PhysicsMotionType) {
-    if (!mesh?.metadata?.template) {
+    if (!isDiagramEntity(mesh)) {
         logger.error("applyPhysics: mesh.metadata.template is null", mesh);
         return;
     }

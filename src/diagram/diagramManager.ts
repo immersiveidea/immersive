@@ -13,10 +13,13 @@ import {applyScaling} from "./functions/applyScaling";
 import {toDiagramEntity} from "./functions/toDiagramEntity";
 import {v4 as uuidv4} from 'uuid';
 import {buildEntityActionManager} from "./functions/buildEntityActionManager";
+import {isDiagramEntity} from "./functions/isDiagramEntity";
+import {DiagramListingEvent} from "./types/diagramListing";
 
 
 export class DiagramManager {
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
+    public readonly onDiagramEventListingObservable: Observable<DiagramListingEvent> = new Observable();
     private readonly logger = log.getLogger('DiagramManager');
     private readonly toolbox: Toolbox;
     private readonly scene: Scene;
@@ -49,7 +52,7 @@ export class DiagramManager {
         this.logger.debug("DiagramManager constructed");
 
         scene.onMeshRemovedObservable.add((mesh) => {
-            if (mesh?.metadata?.template) {
+            if (isDiagramEntity(mesh)) {
                 if (mesh.metadata.template != '#connection-template') {
                     scene.meshes.forEach((m) => {
                         if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {

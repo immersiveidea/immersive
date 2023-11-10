@@ -1,9 +1,10 @@
 import {DiagramEntity} from "../types/diagramEntity";
-import {AbstractMesh, Color3, InstancedMesh, Mesh, Quaternion, Scene, StandardMaterial, Vector3} from "@babylonjs/core";
+import {AbstractMesh, InstancedMesh, Mesh, Quaternion, Scene, Vector3} from "@babylonjs/core";
 import {DiagramConnection} from "../diagramConnection";
 import {TextLabel} from "../../objects/textLabel";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
+import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
 
 const logger = log.getLogger('fromDiagramEntity');
 
@@ -54,9 +55,8 @@ export function fromDiagramEntity(entity: DiagramEntity, scene: Scene): Abstract
             newMesh.scaling = xyztovec(entity.scale);
         }
         if (!newMesh.material) {
-            const material = new StandardMaterial("material-" + entity.id, scene);
-            material.diffuseColor = Color3.FromHexString(entity.color);
-            newMesh.material = material;
+            this.logger.warn("new material created, this shouldn't happen");
+            newMesh.material = buildStandardMaterial("material-" + entity.id, scene, entity.color);
         }
         if (entity.text) {
             newMesh.metadata.text = entity.text;

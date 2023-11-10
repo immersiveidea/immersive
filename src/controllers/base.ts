@@ -19,6 +19,7 @@ import {reparent} from "./functions/reparent";
 import {snapGridVal} from "../util/functions/snapGridVal";
 import {snapRotateVal} from "../util/functions/snapRotateVal";
 import {grabAndClone} from "./functions/grab";
+import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 
 export class Base {
     static stickVector = Vector3.Zero();
@@ -113,8 +114,8 @@ export class Base {
             return;
         }
         let player = false;
-        const template = mesh?.metadata?.template;
-        if (!template) {
+
+        if (!isDiagramEntity(mesh)) {
             if (mesh?.metadata?.handle == true) {
                 mesh && mesh.setParent(this.controller.motionController.rootMesh);
                 this.grabbedMesh = mesh;
@@ -131,7 +132,8 @@ export class Base {
 
             }
         } else {
-            if (template == '#connection-template') {
+
+            if (mesh?.metadata?.template == '#connection-template') {
                 return;
             }
         }
@@ -165,7 +167,7 @@ export class Base {
     }
 
     private toolboxHandleWasGrabbed(mesh: AbstractMesh): boolean {
-        if (!mesh?.metadata?.template
+        if (isDiagramEntity(mesh)
             && mesh?.metadata?.handle == true) {
             this.grabbedMesh = null;
             this.previousParentId = null;
@@ -196,7 +198,7 @@ export class Base {
         this.previousRotation = null;
         this.previousPosition = null;
         this.grabbedMesh = null;
-        if (mesh?.metadata?.template && (mesh?.metadata?.template.indexOf('#') == -1)) {
+        if (isDiagramEntity(mesh) && (mesh?.metadata?.template.indexOf('#') == -1)) {
             return;
         }
         const entity = toDiagramEntity(mesh);

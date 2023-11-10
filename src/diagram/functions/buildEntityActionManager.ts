@@ -1,8 +1,10 @@
 import {ActionManager, ExecuteCodeAction, PlaySoundAction, Scene} from "@babylonjs/core";
 import {ControllerEventType, Controllers} from "../../controllers/controllers";
 import {DiaSounds} from "../../util/diaSounds";
+import log from "loglevel";
 
 export function buildEntityActionManager(scene: Scene, sounds: DiaSounds, controllers: Controllers) {
+    const logger = log.getLogger('buildEntityActionManager');
     const actionManager = new ActionManager(scene);
     actionManager.registerAction(
         new PlaySoundAction(ActionManager.OnPointerOverTrigger, sounds.tick));
@@ -12,7 +14,7 @@ export function buildEntityActionManager(scene: Scene, sounds: DiaSounds, contro
                 type: ControllerEventType.PULSE,
                 gripId: evt?.additionalData?.pickResult?.gripTransform?.id
             })
-            this.logger.debug(evt);
+            logger.debug(evt);
         })
     );
     return actionManager;

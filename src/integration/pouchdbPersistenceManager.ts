@@ -6,11 +6,11 @@ import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
 import {DiagramManager} from "../diagram/diagramManager";
 import log, {Logger} from "loglevel";
-import {DiagramListing, DiagramListingEvent} from "../diagram/types/diagramListing";
+import {DiagramListing, DiagramListingEventType} from "../diagram/types/diagramListing";
+
 
 export class PouchdbPersistenceManager {
     configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
-    diagramListingObserver: Observable<DiagramListingEvent> = new Observable<DiagramListingEvent>();
     updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
     removeObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
     //implement IPersistenceManager interface with pouchdb apis
@@ -25,6 +25,18 @@ export class PouchdbPersistenceManager {
     }
 
     public setDiagramManager(diagramManager: DiagramManager) {
+        diagramManager.onDiagramEventListingObservable.add((evt) => {
+            if (evt.type == DiagramListingEventType.GETALL) {
+                this.diagramListings.allDocs({include_docs: true}).then((all) => {
+                    for (const entity of all.rows) {
+                        diagramManager.onDiagramEventListingObservable.notifyObservers({
+                            type: DiagramListingEventType.ADD,
+                            listing: {id: entity.doc._id, name: entity.doc.name}
+                        }, -1, false, this);
+                    }
+                });
+            }
+        }, -1, false, this);
         diagramManager.onDiagramEventObservable.add((evt) => {
             switch (evt.type) {
                 case DiagramEventType.CHANGECOLOR:

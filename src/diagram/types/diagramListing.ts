@@ -2,15 +2,15 @@ export enum DiagramListingEventType {
     GET,
     ADD,
     REMOVE,
-    MODIFY
+    MODIFY,
+    GETALL,
 }
 
 export type DiagramListingEvent = {
     type: DiagramListingEventType;
-    listing: DiagramListing;
+    listing?: DiagramListing;
 }
 export type DiagramListing = {
-    type: DiagramListingEvent;
     id: string;
     name: string;
     description?: string;

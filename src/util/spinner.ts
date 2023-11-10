@@ -54,14 +54,7 @@ export class Spinner {
         rotate.setKeys(keys);
         spinner.animations.push(rotate);
         this.scene.beginAnimation(spinner, 0, 30, true);
-        //material.indexOfRefraction = Math.PI/4;
 
-        //material.indexOfRefraction = 1;
-        /*material.reflectionFresnelParameters = new FresnelParameters();
-        material.reflectionFresnelParameters.leftColor = Color3.Black();
-        material.reflectionFresnelParameters.rightColor = Color3.White();
-        material.reflectionFresnelParameters.power = 1;
-*/
         material.alpha = .9;
         spinner.material = material;
         let particleSystem;
@@ -92,7 +85,5 @@ export class Spinner {
         this.spinner = spinner;
         this.spinner.setEnabled(false);
         this.particleSystem = particleSystem;
-
-
     }
 }

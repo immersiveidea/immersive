@@ -19,9 +19,9 @@ export function buildTool(tool: ToolType, parent: AbstractMesh) {
         WIDGET_SIZE,
         WIDGET_SIZE);
     newItem.parent = parent;
-    newItem.metadata = {template: tool};
+    newItem.metadata = {template: tool, tool: true};
     const instance = new InstancedMesh("instance-" + id, newItem);
-    instance.metadata = {template: tool};
+    instance.metadata = {template: tool, tool: true};
     instance.parent = parent;
     newItem.setEnabled(false);
     newItem.onEnabledStateChangedObservable.add(() => {

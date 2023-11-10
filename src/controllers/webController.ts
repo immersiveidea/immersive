@@ -5,9 +5,12 @@ import {DiagramManager} from "../diagram/diagramManager";
 import {GridMaterial} from "@babylonjs/materials";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {wheelHandler} from "./functions/wheelHandler";
+import log, {Logger} from "loglevel";
+import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 
 export class WebController {
     private readonly scene: Scene;
+    private readonly logger: Logger = log.getLogger('WebController');
     private speed: number = 1;
     private readonly referencePlane: AbstractMesh;
     private pickedMesh: AbstractMesh;
@@ -35,7 +38,7 @@ export class WebController {
 
 
         this.scene.onKeyboardObservable.add((kbInfo) => {
-            console.log(kbInfo);
+            this.logger.debug(kbInfo);
             if (kbInfo.type == 1) {
                 switch (kbInfo.event.key) {
                     case "ArrowUp":
@@ -66,7 +69,7 @@ export class WebController {
                         }
                         break;
                     default:
-                        console.log(kbInfo.event);
+                        this.logger.debug(kbInfo.event);
                 }
 
             } else {
@@ -138,7 +141,7 @@ export class WebController {
                 this.rig.turn(evt.movementX);
             }
             const meshPickInfo = scene.pick(this.scene.pointerX, this.scene.pointerY, (mesh) => {
-                return mesh.metadata?.template != undefined;
+                return isDiagramEntity(mesh);
             });
             const planePickInfo = scene.pick(this.scene.pointerX, this.scene.pointerY, (mesh) => {
                 return mesh.id == this.referencePlane.id;
@@ -177,10 +180,5 @@ export class WebController {
             }
         }
         this._mesh = mesh;
-    }
-
-    private handlePointer(info, state) {
-        console.log(info);
-        console.log(state);
     }
 }

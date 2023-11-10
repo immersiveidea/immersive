@@ -3,6 +3,7 @@ import HavokPhysics from "@babylonjs/havok";
 import {AppConfig} from "./appConfig";
 import {snapGridVal} from "./functions/snapGridVal";
 import {snapRotateVal} from "./functions/snapRotateVal";
+import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 
 export class CustomPhysics {
     private readonly scene: Scene;
@@ -21,7 +22,7 @@ export class CustomPhysics {
         scene.collisionsEnabled = true;
         scene.onAfterPhysicsObservable.add(() => {
                 scene.meshes.forEach((mesh) => {
-                    if (mesh?.metadata?.template && mesh.physicsBody) {
+                    if (isDiagramEntity(mesh) && mesh.physicsBody) {
                         const body = mesh.physicsBody;
                         const linearVelocity = new Vector3();
                         body.getLinearVelocityToRef(linearVelocity);

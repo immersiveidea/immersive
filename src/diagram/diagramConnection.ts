@@ -1,15 +1,7 @@
-import {
-    AbstractMesh,
-    Color3,
-    MeshBuilder,
-    PointerInfo,
-    Scene,
-    StandardMaterial,
-    TransformNode,
-    Vector3
-} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, PointerInfo, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {v4 as uuidv4} from 'uuid';
 import log, {Logger} from "loglevel";
+import {buildStandardMaterial} from "../materials/functions/buildStandardMaterial";
 
 
 export class DiagramConnection {
@@ -112,10 +104,8 @@ export class DiagramConnection {
 
     private buildConnection() {
         this.logger.debug(`buildConnection from ${this._from} to ${this._to}`);
-        this._mesh = MeshBuilder.CreateCylinder(this.id + "_cylinder", {diameter: .02, height: 1}, this.scene);
-        const material = new StandardMaterial(this.id + "_material", this.scene);
-        material.diffuseColor = new Color3(0, 0, 0);
-        this._mesh.material = material;
+        this._mesh = MeshBuilder.CreateCylinder(this.id + "_connection", {diameter: .02, height: 1}, this.scene);
+        this._mesh.material = buildStandardMaterial(this.id + "_material", this.scene, "#000000");
         this.transformNode = new TransformNode(this.id + "_transform", this.scene);
         this._mesh.setParent(this.transformNode);
         this.recalculate();

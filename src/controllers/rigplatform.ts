@@ -30,7 +30,10 @@ export class Rigplatform {
     private readonly controllers: Controllers;
     private registered = false;
 
-    constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
+    constructor(scene: Scene, xr: WebXRDefaultExperience,
+                diagramManager: DiagramManager,
+                controllers: Controllers,
+    ) {
         this.scene = scene;
         this.diagramManager = diagramManager;
         this.controllers = controllers;

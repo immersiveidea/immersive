@@ -7,6 +7,7 @@ import {Toolbox} from "../../toolbox/toolbox";
 import {DiaSounds} from "../../util/diaSounds";
 
 import {fromDiagramEntity} from "./fromDiagramEntity";
+import {isDiagramEntity} from "./isDiagramEntity";
 
 
 export function diagramEventHandler(event: DiagramEvent,
@@ -37,12 +38,19 @@ export function diagramEventHandler(event: DiagramEvent,
     }
 
     switch (event.type) {
+        case DiagramEventType.RESET:
+            this.scene.getAllMeshes().forEach((m) => {
+                if (m?.metadata?.template && !m?.metadata?.tool) {
+                    m.dispose();
+                }
+            });
+            break;
         case DiagramEventType.CLEAR:
             break;
         case DiagramEventType.DROPPED:
             break;
         case DiagramEventType.DROP:
-            if (mesh?.metadata?.template && (mesh.metadata.template.indexOf('#') > -1)) {
+            if (isDiagramEntity(mesh) && (mesh.metadata.template.indexOf('#') > -1)) {
                 TextLabel.updateTextNode(mesh, entity.text);
             }
             break;
@@ -71,7 +79,6 @@ export function diagramEventHandler(event: DiagramEvent,
                 } else {
                     mesh.dispose();
                 }
-
                 sounds.exit.play();
             }
             break;

@@ -42,7 +42,7 @@ export class Right extends Base {
                 controllers: Controllers,
     ) {
         super(controller, scene, xr, controllers, diagramManager);
-        this.listingMenu = new DiagramListingMenu(this.scene, xr, this.controllers);
+        this.listingMenu = new DiagramListingMenu(this.scene, xr, this.controllers, diagramManager);
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
             if (init.components['a-button']) {

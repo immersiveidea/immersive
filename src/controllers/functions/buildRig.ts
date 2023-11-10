@@ -1,16 +1,15 @@
 import {
-    Color3,
     Mesh,
     MeshBuilder,
     PhysicsAggregate,
     PhysicsMotionType,
     PhysicsShapeType,
     Scene,
-    StandardMaterial,
     TransformNode,
     Vector3
 } from "@babylonjs/core";
 import {AppConfig} from "../../util/appConfig";
+import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
 
 export function buildRig(scene: Scene, appConfig: AppConfig): Mesh {
     const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: 1.6}, scene);
@@ -24,10 +23,7 @@ export function buildRig(scene: Scene, appConfig: AppConfig): Mesh {
     scene.onActiveCameraChanged.add((s) => {
         s.activeCamera.parent = cameratransform;
     });
-
-    const rigMaterial = new StandardMaterial("rigMaterial", scene);
-    rigMaterial.diffuseColor = Color3.Blue();
-    rigMesh.material = rigMaterial;
+    rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
     rigMesh.setAbsolutePosition(new Vector3(0, .01, -3));
     rigMesh.visibility = 0;
     const rigAggregate =

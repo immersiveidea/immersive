@@ -5,9 +5,9 @@ export function buildStandardMaterial(name: string, scene: Scene, color: string)
     if (existingMaterial) {
         return (existingMaterial as StandardMaterial);
     }
-    const handleMaterial = new StandardMaterial(name, scene);
-    handleMaterial.id = name;
-    handleMaterial.diffuseColor = Color3.FromHexString(color);
-    handleMaterial.alpha = 1;
-    return handleMaterial;
+    const newMaterial = new StandardMaterial(name, scene);
+    newMaterial.id = name;
+    newMaterial.diffuseColor = Color3.FromHexString(color);
+    newMaterial.alpha = 1;
+    return newMaterial;
 }

@@ -15,6 +15,7 @@ import {Button3D, GUI3DManager, TextBlock} from "@babylonjs/gui";
 import {DiaSounds} from "../util/diaSounds";
 import {AppConfig} from "../util/appConfig";
 import Hls from "hls.js";
+import log, {Logger} from "loglevel";
 
 
 export class Introduction {
@@ -27,6 +28,7 @@ export class Introduction {
     private advance: Button3D;
     private sounds: DiaSounds;
     private config: AppConfig;
+    private logger: Logger = log.getLogger('Introduction');
 
     private videoElement: HTMLVideoElement;
 
@@ -90,7 +92,7 @@ export class Introduction {
             hls.attachMedia(vid);
             hls.on(Hls.Events.MANIFEST_PARSED, function () {
                 vid.play().then(() => {
-                    console.log("Video Playing");
+                    this.logger.debug("Video Playing");
                 });
             });
         } else if (vid.canPlayType('application/vnd.apple.mpegurl')) {

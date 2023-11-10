@@ -9,7 +9,8 @@ export enum DiagramEventType {
     DROPPED,
     CLEAR,
     CHANGECOLOR,
-    SYNC
+    SYNC,
+    RESET
 }
 
 export enum DiagramEventMask {
