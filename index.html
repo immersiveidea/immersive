@@ -7,7 +7,7 @@
   <style>
       body {
           width: 100vw;
-          heigth: 100vh;
+          height: 100vh;
           margin: 0px;
           padding: 0px;
           aspect-ratio: auto;
@@ -17,6 +17,54 @@
           width: 100vw;
           height: 100vh;
           overflow: hidden;
+
+      }
+
+      .webButton {
+          position: fixed;
+          bottom: 50px;
+          left: 20px;
+          background: rgba(51, 51, 51, .7);
+          display: none;
+          width: 80px;
+          height: 50px;
+          z-index: 10;
+      }
+
+      .webMenu {
+          display: none;
+          position: fixed;
+          bottom: 50px;
+          left: 20px;
+          width: 50%;
+          height: 50%;
+          background: rgba(51, 51, 51, .9);
+          color: #fff;
+          z-index: 9;
+      }
+
+      .webMenu input {
+          background: rgba(51, 51, 51, .9);
+      }
+
+      .webMenu label, .webMenu input {
+
+          color: #fff;
+      }
+
+      .webMenu ul {
+          list-style-type: none;
+          padding: 0px;
+          margin: 0px;
+      }
+
+      .webMenu li label {
+          display: inline-block;
+          width: 200px;
+      }
+
+      .webMenu li {
+          margin: 5px;
       }
 
       #gameCanvas {
@@ -89,9 +137,47 @@
    */
 
 </script>
-<script type="module" src="./src/app.ts"></script>
+<script src="/src/vrApp.ts" type="module"></script>
+
 <div class="scene">
     <canvas id="gameCanvas"></canvas>
 </div>
+<div class="webButton">
+    <button id="menuButton">Open Menu</button>
+</div>
+<div class="webMenu">
+    <ul>
+        <li>
+            <label for="newRelicAccount">New Relic Account</label>
+            <input id="newRelicAccount" type="text" value="">
+        </li>
+        <li>
+
+            <label for="newRelicClient">New Relic Client</label>
+            <input id="newRelicClient" type="text" value="">
+        </li>
+    </ul>
+
+</div>
+<script>
+    const button = document.querySelector('#menuButton');
+    if (button) {
+        button.addEventListener('click', (e) => {
+            const menu = document.querySelector('.webMenu');
+            //const button = document.querySelector('#webButton');
+
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+                button.innerText = "Open Menu";
+
+            } else {
+                menu.style.display = 'block';
+                button.innerText = "Close Menu";
+            }
+        });
+    }
+
+</script>
+
 </body>
 </html>

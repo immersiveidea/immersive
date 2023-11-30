@@ -183,6 +183,7 @@ export class Base {
             return;
         }
         if (this.toolboxHandleWasGrabbed(mesh)) {
+            mesh.setParent(this.scene.getMeshByName("platform"))
             return;
         }
 

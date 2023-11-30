@@ -25,7 +25,9 @@ export class Handle {
 function getHandleMesh(name: string, scene: Scene): InstancedMesh {
     const existingBase = scene.getMeshById("base-handle-mesh");
     if (existingBase) {
-        return new InstancedMesh(name, (existingBase as Mesh));
+        const instance = new InstancedMesh(name, (existingBase as Mesh));
+        instance.setParent(scene.getMeshByName("platform"));
+        return instance;
     }
     const handle = MeshBuilder.CreateCapsule("base-handle-mesh", {
         radius: .05,
@@ -35,5 +37,7 @@ function getHandleMesh(name: string, scene: Scene): InstancedMesh {
     handle.setEnabled(false);
     handle.material = buildStandardMaterial('base-handle-material', scene, "#CCCCDD");
     handle.id = "base-handle-mesh";
-    return new InstancedMesh(name, (handle as Mesh));
+    const instance = new InstancedMesh(name, (handle as Mesh));
+    instance.setParent(scene.getMeshByName("platform"));
+    return instance;
 }

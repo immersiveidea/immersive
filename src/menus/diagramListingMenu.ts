@@ -5,6 +5,7 @@ import {AdvancedDynamicTexture, Button, Control, ScrollViewer, StackPanel, TextB
 import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramListingEvent, DiagramListingEventType} from "../diagram/types/diagramListing";
+import {DiagramEventType} from "../diagram/types/diagramEntity";
 
 
 export class DiagramListingMenu extends AbstractMenu {
@@ -81,6 +82,7 @@ export class DiagramListingMenu extends AbstractMenu {
         selectButton.fontSize = "48px";
         selectButton.background = "#333333";
         selectButton.onPointerClickObservable.add(() => {
+            this.diagramManager.onDiagramEventObservable.notifyObservers({type: DiagramEventType.RESET});
             console.log(id);
         }, -1, false, this);
         const textBlock = new TextBlock('diagramListingText ' + name, 'Diagram ' + name);

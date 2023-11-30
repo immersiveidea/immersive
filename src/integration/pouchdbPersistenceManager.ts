@@ -175,12 +175,18 @@ export class PouchdbPersistenceManager {
 
     public async initialize() {
         try {
+            let current = this.getPath();
             const config = await this.config.get('1');
-            if (config.currentDiagramId) {
+
+            if (!current && config.currentDiagramId) {
                 this.db = new PouchDB(config.currentDiagramId);
                 await this.beginSync(config.currentDiagramId);
             } else {
-                config.currentDiagramId = uuidv4();
+                if (current) {
+                    config.currentDiagramId = current;
+                } else {
+                    config.currentDiagramId = uuidv4();
+                }
                 this.db = new PouchDB(config.currentDiagramId);
                 await this.beginSync(config.currentDiagramId);
                 await this.config.put(config);
@@ -217,6 +223,15 @@ export class PouchdbPersistenceManager {
             this.logger.error(err);
         }
 
+    }
+
+    private getPath(): string {
+        const path = window.location.pathname.split('/');
+        if (path.length == 3 && path[1]) {
+            return path[2];
+        } else {
+            return null;
+        }
     }
     syncDoc = function (info) {
         this.logger.info(info);
@@ -263,7 +278,10 @@ export class PouchdbPersistenceManager {
             const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT + '_all_dbs');
             if (dbs.data.indexOf(remoteDbName) == -1) {
                 this.logger.warn('sync target missing');
-                const buildTarget = await axios.post(import.meta.env.VITE_USER_ENDPOINT,
+                const userEndpoint: string = import.meta.env.VITE_USER_ENDPOINT
+                console.log(userEndpoint);
+                console.log(remoteDbName);
+                const buildTarget = await axios.post(userEndpoint,
                     {username: remoteUserName, password: password, db: remoteDbName});
                 if (buildTarget.status != 200) {
                     this.logger.info(buildTarget.statusText);
@@ -271,8 +289,9 @@ export class PouchdbPersistenceManager {
                 }
             }
             this.logger.debug(dbs);
-
-            this.remote = new PouchDB(import.meta.env.VITE_SYNCDB_ENDPOINT + remoteDbName,
+            const remoteEndpoint: string = import.meta.env.VITE_SYNCDB_ENDPOINT;
+            console.log(remoteEndpoint);
+            this.remote = new PouchDB(remoteEndpoint + remoteDbName,
                 {auth: {username: remoteUserName, password: password}});
 
             this.syncDoc = this.syncDoc.bind(this);

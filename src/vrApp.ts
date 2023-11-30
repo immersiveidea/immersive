@@ -11,8 +11,11 @@ import {Spinner} from "./util/spinner";
 import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager";
 import {addSceneInspector} from "./util/functions/sceneInspctor";
 import {groundMeshObserver} from "./util/functions/groundMeshObserver";
+import {MainMenu} from "./menus/mainMenu";
 
-export class App {
+export class VrApp {
+    private scene: Scene;
+    private engine: Engine;
     //preTasks = [havokModule];
     private logger: Logger = log.getLogger('App');
 
@@ -26,23 +29,17 @@ export class App {
         const canvas = document.querySelector('#gameCanvas');
 
         this.logger.debug('App', 'gameCanvas created');
-        this.initialize(canvas).then(() => {
-            this.logger.debug('App', 'Scene Initialized');
-            const loader = document.querySelector('#loader');
-            if (loader) {
-                loader.remove();
-            }
-        });
+
     }
 
-    async initialize(canvas) {
-        const engine = new Engine(canvas, true);
-        engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+    public async initialize(canvas: HTMLCanvasElement) {
+        this.engine = new Engine(canvas, true);
+        this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
         window.onresize = () => {
-            engine.resize();
+            this.engine.resize();
         }
-
-        const scene = new Scene(engine);
+        const scene = new Scene(this.engine);
+        this.scene = scene;
         const spinner = new Spinner(scene);
         spinner.show();
         const config = new AppConfig();
@@ -101,17 +98,27 @@ export class App {
 
          */
         addSceneInspector(scene);
-
+        const mainMenu = new MainMenu(scene);
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
-
-        engine.runRenderLoop(() => {
-            scene.render();
+        this.engine.runRenderLoop(() => {
+            this.scene.render();
         });
         this.logger.info('Render loop started');
+
+    }
+
+    public async start() {
+
     }
 }
 
-const app = new App();
+const vrApp = new VrApp();
+const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
+vrApp.initialize(canvas).then(() => {
+
+});
+
+
 
 
 
