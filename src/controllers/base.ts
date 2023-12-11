@@ -167,14 +167,13 @@ export class Base {
     }
 
     private toolboxHandleWasGrabbed(mesh: AbstractMesh): boolean {
-        if (isDiagramEntity(mesh)
-            && mesh?.metadata?.handle == true) {
+        if (isDiagramEntity(mesh)) {
             this.grabbedMesh = null;
             this.previousParentId = null;
             mesh.setParent(null);
-            return true;
-        } else {
             return false;
+        } else {
+            return (mesh?.metadata?.handle == true);
         }
     }
     private drop() {

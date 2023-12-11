@@ -16,12 +16,9 @@ export class DiagramListingMenu extends AbstractMenu {
     constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers, diagramManager: DiagramManager) {
         super(scene, xr, controllers);
         this.diagramManager = diagramManager;
-
-
         this.buildMenu();
         this.controllers.controllerObserver.add((event) => {
             if (event.type == ControllerEventType.B_BUTTON) {
-
                 this.toggle();
             }
         });
@@ -47,6 +44,8 @@ export class DiagramListingMenu extends AbstractMenu {
                     height: .5
                 }, this.scene);
         this.mesh = configPlane;
+        this.createHandle(this.mesh);
+        this.mesh.position = new Vector3(0, .32, 0);
         const configTexture = AdvancedDynamicTexture.CreateForMesh(configPlane, 2048, 1024);
 
         configTexture.background = "white";
@@ -55,8 +54,7 @@ export class DiagramListingMenu extends AbstractMenu {
         this.panel = new StackPanel('diagramListingStack');
         scrollViewer.addControl(this.panel);
 
-        this.createHandle(configPlane);
-        configPlane.position.y = .5;
+        //configPlane.position.y = .5;
         setMenuPosition(this.handle.mesh, this.scene, new Vector3(0, .4, 0));
         this.mesh.isVisible = false;
         (this.mesh.parent as AbstractMesh).isVisible = false;

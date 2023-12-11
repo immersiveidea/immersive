@@ -39,10 +39,9 @@ export function diagramEventHandler(event: DiagramEvent,
 
     switch (event.type) {
         case DiagramEventType.RESET:
-
-            scene.getNodes().forEach((m) => {
-                if (m?.metadata?.template && !m?.metadata?.tool) {
-                    m.dispose();
+            scene.getNodes().forEach((node) => {
+                if (node?.metadata?.template && !node?.metadata?.tool) {
+                    node.dispose();
                 }
             });
             break;
