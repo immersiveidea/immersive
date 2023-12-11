@@ -49,7 +49,9 @@ export class Introduction {
 
     public start() {
         this.scene.physicsEnabled = true;
+        this.manager.controlScaling = .5;
         this.advance = new Button3D("advance");
+
         const text = new TextBlock("advance", "Click Me");
         text.fontSize = "48px";
         text.color = "#ffffff";
@@ -61,11 +63,11 @@ export class Introduction {
         }, -1, false, this, false);
         this.manager.addControl(this.advance);
         this.advance.isVisible = false;
-        this.advance.position.y = .5;
-        this.advance.position.x = -2;
-        this.advance.position.z = -1;
+
         this.scene.onReadyObservable.add(() => {
             this.advance.isVisible = true;
+            this.advance.node.position = new Vector3(0, .2, -1);
+            this.advance.node.rotation = new Vector3(0, Math.PI, 0);
         });
     }
 
@@ -155,28 +157,28 @@ export class Introduction {
         this.current.forEach((mesh) => {
             const pos = mesh.physicsBody.transformNode.absolutePosition.clone();
             pos.x = pos.x - .1;
-            mesh.physicsBody.applyImpulse(new Vector3(0, 8, 12), pos);
+            mesh.physicsBody.applyImpulse(new Vector3(0, 10, -12), pos);
         });
 
         switch (this.step) {
             case 0:
-                this.items.push(this.buildText("Welcome To", 3, 1024, new Vector3(0, 15, 5)));
-                this.items.push(this.buildText("Deep Diagram", 5, 1024, new Vector3(0, 10, 5)));
+                this.items.push(this.buildText("Welcome To", 3, 1024, new Vector3(0, 15, -4)));
+                this.items.push(this.buildText("Deep Diagram", 5, 1024, new Vector3(0, 10, -4)));
                 this.current = this.items.slice(-2);
                 break;
             case 1:
-                this.items.push(this.buildText("Let us show you", 3, 1024, new Vector3(-1.6, 16, 5)));
-                this.items.push(this.buildText("what you can build", 4, 1200, new Vector3(2, 12, 5)));
+                this.items.push(this.buildText("Let us show you", 3, 1024, new Vector3(2, 16, -5)));
+                this.items.push(this.buildText("what you can build", 4, 1200, new Vector3(-1.6, 12, -5)));
                 this.current = this.items.slice(-2);
                 break;
             case 2:
-                this.items.push(this.buildText("A quick video", 5, 1024, new Vector3(0, 15, 5)));
+                this.items.push(this.buildText("A quick video", 5, 1024, new Vector3(0, 15, -5)));
                 this.current = this.items.slice(-1);
                 break;
             case 3:
 
                 const src = 'https://customer-l4pyjzbav11fzy04.cloudflarestream.com/8b906146c75bb5d81e03d199707ed0e9/manifest/video.m3u8'
-                this.items.push(this.buildVideo(src, 7, new Vector3(0, 15, 6)));
+                this.items.push(this.buildVideo(src, 7, new Vector3(0, 15, -6)));
                 this.current = this.items.slice(-1);
                 break;
             case 4:
@@ -186,9 +188,7 @@ export class Introduction {
                 });
                 this.advance.dispose();
                 this.manager.dispose();
-                const config = this.config.current;
-                config.demoCompleted = true;
-                this.config.current = config;
+                this.config.setDemoCompleted(true);
                 this.items = [];
                 if (this.videoElement) {
                     this.videoElement.pause();

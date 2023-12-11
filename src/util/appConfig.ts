@@ -73,4 +73,9 @@ export class AppConfig {
         this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
 
     }
+
+    public setDemoCompleted(demoCompleted: boolean) {
+        this._currentConfig.demoCompleted = demoCompleted;
+        this.onConfigChangedObservable.notifyObservers(this._currentConfig, 2);
+    }
 }

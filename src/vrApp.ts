@@ -12,6 +12,7 @@ import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager
 import {addSceneInspector} from "./util/functions/sceneInspctor";
 import {groundMeshObserver} from "./util/functions/groundMeshObserver";
 import {MainMenu} from "./menus/mainMenu";
+import {Introduction} from "./tutorial/introduction";
 
 export class VrApp {
     private scene: Scene;
@@ -50,6 +51,9 @@ export class VrApp {
         const db = new PouchdbPersistenceManager();
         db.setDiagramManager(diagramManager);
         db.configObserver.add((newConfig) => {
+            if (!newConfig.demoCompleted) {
+                const demo = new Introduction(scene, config);
+            }
             config.onConfigChangedObservable.notifyObservers(newConfig, 1);
         });
         config.onConfigChangedObservable.add((newConfig) => {
@@ -60,10 +64,10 @@ export class VrApp {
         await db.initialize();
 
         const environment = new CustomEnvironment(scene, "default", config);
-        const camera: FreeCamera = new FreeCamera("Camera",
-            new Vector3(0, 1.6, 3), scene);
-        camera.setTarget(new Vector3(0, 1.6, 0));
-
+        const camera: FreeCamera = new FreeCamera("Main Camera",
+            new Vector3(0, 1.6, 0), scene);
+        //camera.setTarget(new Vector3(0, 1.6, -3));
+        scene.setActiveCameraByName("Main Camera");
         environment.groundMeshObservable.add((ground) => {
             groundMeshObserver(ground, scene, diagramManager, controllers, spinner);
         }, -1, false, this);
@@ -99,6 +103,10 @@ export class VrApp {
          */
         addSceneInspector(scene);
         const mainMenu = new MainMenu(scene);
+        //const zero = MeshBuilder.CreateSphere('target', {diameter: 1.6}, scene);
+        // zero.position = new Vector3(0, .8, 0);
+        //const newRelic = new NewRelicQuery(scene);
+        //newRelic.getSales();
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
         this.engine.runRenderLoop(() => {
             this.scene.render();

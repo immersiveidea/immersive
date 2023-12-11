@@ -1,0 +1,668 @@
+[
+  {
+    "series": [
+      {
+        "name": "Total Numeric(price)",
+        "series": [
+          {
+            "id": "04c9457963f067213705689ff95a1aa1f01822239",
+            "name": "CTR",
+            "columns": [
+              "begin_time",
+              "Total numeric(price)",
+              "end_time"
+            ],
+            "units": [
+              "timestamp",
+              "count",
+              "timestamp"
+            ],
+            "data": [
+              [
+                1700664033000,
+                4676808.549999999,
+                1700750433000
+              ],
+              [
+                1700750433000,
+                7723020.09,
+                1700836833000
+              ],
+              [
+                1700836833000,
+                6262204.39,
+                1700923233000
+              ],
+              [
+                1700923233000,
+                3772184.58,
+                1701009633000
+              ],
+              [
+                1701009633000,
+                4903447.579999999,
+                1701096033000
+              ],
+              [
+                1701096033000,
+                8205618.880000001,
+                1701182433000
+              ],
+              [
+                1701182433000,
+                3702760.1500000004,
+                1701268833000
+              ],
+              [
+                1701268833000,
+                4117192.0100000002,
+                1701355233000
+              ],
+              [
+                1701355233000,
+                4081216.350000001,
+                1701441633000
+              ]
+            ],
+            "presentation": {
+              "y_axis": "Total numeric(price)",
+              "color": "#00b9d9",
+              "x_axis": "begin_time",
+              "display": "line",
+              "name": "CTR",
+              "tooltip_template": "{{Total numeric(price)}} from {{begin_time}} to {{end_time}}",
+              "x_display_order": [
+                "begin_time"
+              ],
+              "y_display_order": [
+                "Total numeric(price)"
+              ]
+            },
+            "metadata": {
+              "unknown_group": false,
+              "total_result": false,
+              "function": "sum",
+              "alias": "",
+              "attribute": "numeric(price)",
+              "type": "Log_CCV2",
+              "facet": {
+                "label": "'CTR'",
+                "expression": "`regexcapture`(`message`, r'.*BannerId:(?P<banner>\\S+).*')"
+              }
+            }
+          },
+          {
+            "id": "06c651696bed66d97625f2673be90695d04328b8d",
+            "name": "SC",
+            "columns": [
+              "begin_time",
+              "Total numeric(price)",
+              "end_time"
+            ],
+            "units": [
+              "timestamp",
+              "count",
+              "timestamp"
+            ],
+            "data": [
+              [
+                1700664033000,
+                2588610.670000001,
+                1700750433000
+              ],
+              [
+                1700750433000,
+                3864433.64,
+                1700836833000
+              ],
+              [
+                1700836833000,
+                4958889.069999999,
+                1700923233000
+              ],
+              [
+                1700923233000,
+                3083910.9099999997,
+                1701009633000
+              ],
+              [
+                1701009633000,
+                3698118.42,
+                1701096033000
+              ],
+              [
+                1701096033000,
+                4800171.459999998,
+                1701182433000
+              ],
+              [
+                1701182433000,
+                2453778.76,
+                1701268833000
+              ],
+              [
+                1701268833000,
+                2477775.4499999993,
+                1701355233000
+              ],
+              [
+                1701355233000,
+                998172.8500000003,
+                1701441633000
+              ]
+            ],
+            "presentation": {
+              "y_axis": "Total numeric(price)",
+              "color": "#f0ca4d",
+              "x_axis": "begin_time",
+              "display": "line",
+              "name": "SC",
+              "tooltip_template": "{{Total numeric(price)}} from {{begin_time}} to {{end_time}}",
+              "x_display_order": [
+                "begin_time"
+              ],
+              "y_display_order": [
+                "Total numeric(price)"
+              ]
+            },
+            "metadata": {
+              "unknown_group": false,
+              "total_result": false,
+              "function": "sum",
+              "alias": "",
+              "attribute": "numeric(price)",
+              "type": "Log_CCV2",
+              "facet": {
+                "label": "'SC'",
+                "expression": "`regexcapture`(`message`, r'.*BannerId:(?P<banner>\\S+).*')"
+              }
+            }
+          },
+          {
+            "id": "0043f2ddf69955ec2012fb9964380b4fb3696eaed",
+            "name": "MKS",
+            "columns": [
+              "begin_time",
+              "Total numeric(price)",
+              "end_time"
+            ],
+            "units": [
+              "timestamp",
+              "count",
+              "timestamp"
+            ],
+            "data": [
+              [
+                1700664033000,
+                1387502.0800000005,
+                1700750433000
+              ],
+              [
+                1700750433000,
+                2033349.0000000005,
+                1700836833000
+              ],
+              [
+                1700836833000,
+                2316991.13,
+                1700923233000
+              ],
+              [
+                1700923233000,
+                1670253.9000000001,
+                1701009633000
+              ],
+              [
+                1701009633000,
+                1811092.6699999997,
+                1701096033000
+              ],
+              [
+                1701096033000,
+                2308590.9699999997,
+                1701182433000
+              ],
+              [
+                1701182433000,
+                1335727.1400000006,
+                1701268833000
+              ],
+              [
+                1701268833000,
+                1454412.4800000004,
+                1701355233000
+              ],
+              [
+                1701355233000,
+                489153.62000000005,
+                1701441633000
+              ]
+            ],
+            "presentation": {
+              "y_axis": "Total numeric(price)",
+              "color": "#f06c53",
+              "x_axis": "begin_time",
+              "display": "line",
+              "name": "MKS",
+              "tooltip_template": "{{Total numeric(price)}} from {{begin_time}} to {{end_time}}",
+              "x_display_order": [
+                "begin_time"
+              ],
+              "y_display_order": [
+                "Total numeric(price)"
+              ]
+            },
+            "metadata": {
+              "unknown_group": false,
+              "total_result": false,
+              "function": "sum",
+              "alias": "",
+              "attribute": "numeric(price)",
+              "type": "Log_CCV2",
+              "facet": {
+                "label": "'MKS'",
+                "expression": "`regexcapture`(`message`, r'.*BannerId:(?P<banner>\\S+).*')"
+              }
+            }
+          },
+          {
+            "id": "0e55cb43fdad3bb592f03a06239b286b27f631e20",
+            "name": "LEQ",
+            "columns": [
+              "begin_time",
+              "Total numeric(price)",
+              "end_time"
+            ],
+            "units": [
+              "timestamp",
+              "count",
+              "timestamp"
+            ],
+            "data": [
+              [
+                1700664033000,
+                119854.05999999994,
+                1700750433000
+              ],
+              [
+                1700750433000,
+                150485.83,
+                1700836833000
+              ],
+              [
+                1700836833000,
+                167186.66999999998,
+                1700923233000
+              ],
+              [
+                1700923233000,
+                132224.41999999998,
+                1701009633000
+              ],
+              [
+                1701009633000,
+                163320.71,
+                1701096033000
+              ],
+              [
+                1701096033000,
+                181005.11000000004,
+                1701182433000
+              ],
+              [
+                1701182433000,
+                109123.26999999996,
+                1701268833000
+              ],
+              [
+                1701268833000,
+                128689.60000000003,
+                1701355233000
+              ],
+              [
+                1701355233000,
+                39533.739999999976,
+                1701441633000
+              ]
+            ],
+            "presentation": {
+              "y_axis": "Total numeric(price)",
+              "color": "#98cb65",
+              "x_axis": "begin_time",
+              "display": "line",
+              "name": "LEQ",
+              "tooltip_template": "{{Total numeric(price)}} from {{begin_time}} to {{end_time}}",
+              "x_display_order": [
+                "begin_time"
+              ],
+              "y_display_order": [
+                "Total numeric(price)"
+              ]
+            },
+            "metadata": {
+              "unknown_group": false,
+              "total_result": false,
+              "function": "sum",
+              "alias": "",
+              "attribute": "numeric(price)",
+              "type": "Log_CCV2",
+              "facet": {
+                "label": "'LEQ'",
+                "expression": "`regexcapture`(`message`, r'.*BannerId:(?P<banner>\\S+).*')"
+              }
+            }
+          },
+          {
+            "id": "07f9d06664925804a7c184e6c036e1e52315e8091",
+            "name": "ATM",
+            "columns": [
+              "begin_time",
+              "Total numeric(price)",
+              "end_time"
+            ],
+            "units": [
+              "timestamp",
+              "count",
+              "timestamp"
+            ],
+            "data": [
+              [
+                1700664033000,
+                64957.82999999999,
+                1700750433000
+              ],
+              [
+                1700750433000,
+                99035.64999999998,
+                1700836833000
+              ],
+              [
+                1700836833000,
+                123557.49999999996,
+                1700923233000
+              ],
+              [
+                1700923233000,
+                90598.46999999996,
+                1701009633000
+              ],
+              [
+                1701009633000,
+                106364.25999999998,
+                1701096033000
+              ],
+              [
+                1701096033000,
+                141777.25999999995,
+                1701182433000
+              ],
+              [
+                1701182433000,
+                74628.67999999998,
+                1701268833000
+              ],
+              [
+                1701268833000,
+                71244.18,
+                1701355233000
+              ],
+              [
+                1701355233000,
+                15901.249999999996,
+                1701441633000
+              ]
+            ],
+            "presentation": {
+              "y_axis": "Total numeric(price)",
+              "color": "#9b61a7",
+              "x_axis": "begin_time",
+              "display": "line",
+              "name": "ATM",
+              "tooltip_template": "{{Total numeric(price)}} from {{begin_time}} to {{end_time}}",
+              "x_display_order": [
+                "begin_time"
+              ],
+              "y_display_order": [
+                "Total numeric(price)"
+              ]
+            },
+            "metadata": {
+              "unknown_group": false,
+              "total_result": false,
+              "function": "sum",
+              "alias": "",
+              "attribute": "numeric(price)",
+              "type": "Log_CCV2",
+              "facet": {
+                "label": "'ATM'",
+                "expression": "`regexcapture`(`message`, r'.*BannerId:(?P<banner>\\S+).*')"
+              }
+            }
+          },
+          {
+            "id": "0d86544f75148d36eb06a18f69e878a2870ac0087",
+            "name": "PTY",
+            "columns": [
+              "begin_time",
+              "Total numeric(price)",
+              "end_time"
+            ],
+            "units": [
+              "timestamp",
+              "count",
+              "timestamp"
+            ],
+            "data": [
+              [
+                1700664033000,
+                14202.94,
+                1700750433000
+              ],
+              [
+                1700750433000,
+                16589.829999999998,
+                1700836833000
+              ],
+              [
+                1700836833000,
+                14595.310000000001,
+                1700923233000
+              ],
+              [
+                1700923233000,
+                8760.19,
+                1701009633000
+              ],
+              [
+                1701009633000,
+                9123.740000000002,
+                1701096033000
+              ],
+              [
+                1701096033000,
+                14973.260000000002,
+                1701182433000
+              ],
+              [
+                1701182433000,
+                14041.58,
+                1701268833000
+              ],
+              [
+                1701268833000,
+                16656.37,
+                1701355233000
+              ],
+              [
+                1701355233000,
+                16985.59,
+                1701441633000
+              ]
+            ],
+            "presentation": {
+              "y_axis": "Total numeric(price)",
+              "color": "#1e51ad",
+              "x_axis": "begin_time",
+              "display": "line",
+              "name": "PTY",
+              "tooltip_template": "{{Total numeric(price)}} from {{begin_time}} to {{end_time}}",
+              "x_display_order": [
+                "begin_time"
+              ],
+              "y_display_order": [
+                "Total numeric(price)"
+              ]
+            },
+            "metadata": {
+              "unknown_group": false,
+              "total_result": false,
+              "function": "sum",
+              "alias": "",
+              "attribute": "numeric(price)",
+              "type": "Log_CCV2",
+              "facet": {
+                "label": "'PTY'",
+                "expression": "`regexcapture`(`message`, r'.*BannerId:(?P<banner>\\S+).*')"
+              }
+            }
+          },
+          {
+            "id": "0728ad08286766d72dcedbdd0ceedbcc450ff1d12",
+            "name": "TRIANGLE",
+            "columns": [
+              "begin_time",
+              "Total numeric(price)",
+              "end_time"
+            ],
+            "units": [
+              "timestamp",
+              "count",
+              "timestamp"
+            ],
+            "data": [
+              [
+                1700664033000,
+                16020.0,
+                1700750433000
+              ],
+              [
+                1700750433000,
+                18512.0,
+                1700836833000
+              ],
+              [
+                1700836833000,
+                12816.0,
+                1700923233000
+              ],
+              [
+                1700923233000,
+                8099.0,
+                1701009633000
+              ],
+              [
+                1701009633000,
+                7921.0,
+                1701096033000
+              ],
+              [
+                1701096033000,
+                7921.0,
+                1701182433000
+              ],
+              [
+                1701182433000,
+                4895.0,
+                1701268833000
+              ],
+              [
+                1701268833000,
+                7476.0,
+                1701355233000
+              ],
+              [
+                1701355233000,
+                7387.0,
+                1701441633000
+              ]
+            ],
+            "presentation": {
+              "y_axis": "Total numeric(price)",
+              "color": "#562d1e",
+              "x_axis": "begin_time",
+              "display": "line",
+              "name": "TRIANGLE",
+              "tooltip_template": "{{Total numeric(price)}} from {{begin_time}} to {{end_time}}",
+              "x_display_order": [
+                "begin_time"
+              ],
+              "y_display_order": [
+                "Total numeric(price)"
+              ]
+            },
+            "metadata": {
+              "unknown_group": false,
+              "total_result": false,
+              "function": "sum",
+              "alias": "",
+              "attribute": "numeric(price)",
+              "type": "Log_CCV2",
+              "facet": {
+                "label": "'TRIANGLE'",
+                "expression": "`regexcapture`(`message`, r'.*BannerId:(?P<banner>\\S+).*')"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "events": [],
+    "metadata": {
+      "version": 3,
+      "since": "Since 9 days ago",
+      "sinceTime": 1700664033333,
+      "beginTime": 1700664033333,
+      "endTime": 1701441633333,
+      "facets": [
+        "banner"
+      ],
+      "performanceStats": {
+        "inspectedCount": 2172129338,
+        "responseTime": 22604,
+        "exceedsRetentionWindow": false
+      },
+      "nrqlQuery": "SELECT sum(numeric(capture(message, r'.*TotalPriceExcludingTax:(?P<price>\\S+).*'))) FROM Log_CCV2 WHERE message like '%CTFS Payment Response%' Since 9 days ago timeseries 1 day facet capture(message, r'.*BannerId:(?P<banner>\\S+).*')",
+      "refresh_interval": 86400000,
+      "time_zone_offsets": [
+        {
+          "begin_time": 1700642433333,
+          "zone_id": "America/Chicago",
+          "offset": -21600000
+        }
+      ],
+      "account_name": "",
+      "rawUntil": "NOW",
+      "rawSince": "9 DAYS AGO",
+      "offset": 0,
+      "rawBeginTime": "2023-11-22T14:40:33Z",
+      "openEnded": true,
+      "facetExpression": "`regexcapture`(`message`, r'.*BannerId:(?P<banner>\\S+).*')",
+      "eventType": "Log_CCV2",
+      "eventTypes": [
+        "Log_CCV2"
+      ],
+      "routerGuid": "378e5d27-d02a-e980-a421-838bf14786aa",
+      "bucketSizeMillis": 86400000,
+      "rawCompareWith": "",
+      "limit": 10,
+      "guid": "378e5d27-d02a-e980-a421-838bf14786aa",
+      "rawEndTime": "2023-12-01T14:40:33Z",
+      "accounts": [
+        1679802
+      ]
+    },
+    "account_ids": [
+      1679802
+    ]
+  }
+]

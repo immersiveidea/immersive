@@ -13,18 +13,23 @@ import {buildStandardMaterial} from "../../materials/functions/buildStandardMate
 
 export function buildRig(scene: Scene, appConfig: AppConfig): Mesh {
     const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: 1.6}, scene);
+
     const cameratransform = new TransformNode("cameraTransform", scene);
     cameratransform.parent = rigMesh;
     cameratransform.position = new Vector3(0, -.8, 0);
     for (const cam of scene.cameras) {
         cam.parent = cameratransform;
+        console.log(cam.absoluteRotation);
     }
 
+
     scene.onActiveCameraChanged.add((s) => {
+        cameratransform.rotation.set(0, Math.PI, 0);
         s.activeCamera.parent = cameratransform;
     });
     rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
-    rigMesh.setAbsolutePosition(new Vector3(0, .01, -3));
+    rigMesh.setAbsolutePosition(new Vector3(0, .01, 3));
+    rigMesh.lookAt(new Vector3(0, 0.01, 0));
     rigMesh.visibility = 0;
     const rigAggregate =
         new PhysicsAggregate(

@@ -1,4 +1,4 @@
-import {Vector3, WebXRDefaultExperience, WebXRState} from "@babylonjs/core";
+import {WebXRDefaultExperience, WebXRState} from "@babylonjs/core";
 import log from "loglevel";
 import {WebController} from "../../controllers/webController";
 
@@ -30,7 +30,8 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
     xr.baseExperience.onStateChangedObservable.add((state) => {
         if (state == WebXRState.IN_XR) {
             scene.audioEnabled = true;
-            xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
+            //xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
+            //xr.baseExperience.camera.setTarget(new Vector3(0, 1.6, 3));
             window.addEventListener(('pa-button-state-change'), (event: any) => {
                 if (event.detail) {
                     log.debug('App', event.detail);
