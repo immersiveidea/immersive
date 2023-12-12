@@ -6,7 +6,7 @@ import {TextLabel} from "../../objects/textLabel";
 import {Toolbox} from "../../toolbox/toolbox";
 import {DiaSounds} from "../../util/diaSounds";
 
-import {fromDiagramEntity} from "./fromDiagramEntity";
+import {buildMeshFromDiagramEntity} from "./buildMeshFromDiagramEntity";
 import {isDiagramEntity} from "./isDiagramEntity";
 
 
@@ -27,7 +27,7 @@ export function diagramEventHandler(event: DiagramEvent,
                 log.debug('no mesh found for ' + event.entity.template + "-" + event.entity.color, 'adding it');
                 toolbox.updateToolbox(event.entity.color);
             }
-            mesh = fromDiagramEntity(event.entity, scene);
+            mesh = buildMeshFromDiagramEntity(event.entity, scene);
             if (mesh) {
                 mesh.actionManager = actionManager;
                 if (physicsEnabled) {

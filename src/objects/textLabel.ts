@@ -49,16 +49,11 @@ export class TextLabel {
         mat.diffuseTexture = dynamicTexture;
         //mat.emissiveColor = Color3.White();
         dynamicTexture.drawText(text, null, null, font, "#000000", "#ffffff", true);
-
         //Create plane and set dynamic texture as material
         //const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
-
-
         const plane1 = this.createPlane(mat, mesh, text, planeWidth, height);
         const plane2 = this.createPlane(mat, mesh, text, planeWidth, height);
         plane2.rotation.y = Math.PI;
-
-
     }
 
     private static createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth: number, height: number): AbstractMesh {
@@ -68,12 +63,12 @@ export class TextLabel {
         //plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
         plane.metadata = {exportable: true, label: true};
 
-        const yOffset = mesh.getBoundingInfo().boundingSphere.radius;
+        const yOffset = mesh.getBoundingInfo().boundingSphere.maximum.y;
         plane.parent = mesh;
-        plane.position.y = yOffset + height / 2;
-        plane.scaling.y = 1 / mesh.scaling.y;
-        plane.scaling.x = 1 / mesh.scaling.x;
-        plane.scaling.z = 1 / mesh.scaling.z;
+        plane.position.y = yOffset + height;
+        //plane.scaling.y = mesh.scaling.y;
+        //plane.scaling.x = mesh.scaling.x;
+        //plane.scaling.z = mesh.scaling.z;
         return plane;
     }
 }

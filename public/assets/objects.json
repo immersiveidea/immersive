@@ -1,0 +1,10 @@
+{
+  "objects": [
+    {
+      "name": "Server",
+      "id": "server",
+      "type": "glb",
+      "path": "models/server_racking_system.glb"
+    }
+  ]
+}

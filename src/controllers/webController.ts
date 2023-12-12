@@ -1,12 +1,13 @@
-import {AbstractMesh, MeshBuilder, Scene, Vector3} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, Scene} from "@babylonjs/core";
 import {Rigplatform} from "./rigplatform";
 import {ControllerEventType, Controllers} from "./controllers";
 import {DiagramManager} from "../diagram/diagramManager";
 import {GridMaterial} from "@babylonjs/materials";
-import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {wheelHandler} from "./functions/wheelHandler";
 import log, {Logger} from "loglevel";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
+import {DiagramEventType} from "../diagram/types/diagramEntity";
+import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 
 export class WebController {
     private readonly scene: Scene;
@@ -80,6 +81,7 @@ export class WebController {
                 if (kbInfo.type == 1) {
                     //this.referencePlane.setEnabled(true);
                 } else {
+
                     this.referencePlane.setEnabled(false);
                     if (this.pickedMesh) {
                         this.pickedMesh.showBoundingBox = false;
@@ -126,9 +128,13 @@ export class WebController {
         this.scene.onPointerDown = (evt, state) => {
             if (evt.pointerType == "mouse") {
                 if (evt.shiftKey) {
-                    setMenuPosition(this.referencePlane, this.scene, new Vector3(0, 0, 5));
+                    //setMenuPosition(this.referencePlane, this.scene, new Vector3(0, 0, 5));
                     //this.referencePlane.rotation = scene.activeCamera.absoluteRotation.toEulerAngles();
-                    this.pickedMesh = state.pickedMesh.clone('pickedMesh', null, true);
+                    this.pickedMesh = state.pickedMesh;
+                    if (this.pickedMesh) {
+                        this.referencePlane.position = this.pickedMesh.position;
+                        this.referencePlane.rotation = scene.activeCamera.absoluteRotation.toEulerAngles();
+                    }
                     this.pickedMesh.rotation = scene.activeCamera.absoluteRotation.toEulerAngles();
                     this.referencePlane.setEnabled(true);
                 } else {
@@ -137,6 +143,9 @@ export class WebController {
             }
         };
         this.scene.onPointerMove = (evt) => {
+            if (evt.pointerType != "mouse") {
+                return;
+            }
             if (this.mouseDown) {
                 this.rig.turn(evt.movementX);
             }
@@ -156,6 +165,12 @@ export class WebController {
                     }
                 }
             } else {
+                if (this.mesh) {
+                    this.diagramManager.onDiagramEventObservable.notifyObservers({
+                        type: DiagramEventType.MODIFY,
+                        entity: toDiagramEntity(this.mesh)
+                    }, -1);
+                }
                 this.mesh = null;
             }
             if (this.pickedMesh && planePickInfo.hit) {

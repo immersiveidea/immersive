@@ -27,7 +27,10 @@ export function toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
     if (mesh.material) {
         entity.color = (mesh.material as any).diffuseColor.toHexString();
     } else {
-        logger.error("toDiagramEntity: mesh.material is null");
+        if (entity.template != "#object-template") {
+            logger.error("toDiagramEntity: mesh.material is null");
+        }
+
     }
     return entity;
 }

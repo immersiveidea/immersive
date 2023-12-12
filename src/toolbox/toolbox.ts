@@ -1,4 +1,14 @@
-import {Color3, Mesh, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {
+    AssetContainer,
+    Color3,
+    Mesh,
+    MeshBuilder,
+    Observable,
+    Scene,
+    SceneLoader,
+    TransformNode,
+    Vector3
+} from "@babylonjs/core";
 
 import {Button3D, GUI3DManager, StackPanel3D, TextBlock} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
@@ -59,6 +69,7 @@ export class Toolbox {
 
     }
 
+    private readonly objectObservable: Observable<AssetContainer> = new Observable();
     private buildToolbox() {
 
         const color = "#7777FF";
@@ -69,7 +80,26 @@ export class Toolbox {
         this.addPanel.addControl(addButton);
         this.addPanel.node.scaling = new Vector3(.1, .1, .1);
         this.addPanel.position = new Vector3(-.25, 0, 0);
+        //@TODO: move this somewhere else, just to prototype loading objects.
+        //loadObject(this.scene, this.objectObservable);
+        this.objectObservable.add((container) => {
+            this.logger.debug("loaded object");
+            const data = container.instantiateModelsToScene(undefined, false, {doNotInstantiate: true});
+            const mesh = (data.rootNodes[0] as Mesh);
+            const bounds = data.rootNodes[0].getHierarchyBoundingVectors(true);
+            console.log(bounds);
+            const size = bounds.max.subtract(bounds.min);
+            const top = MeshBuilder.CreateBox("container", {width: size.x, height: size.y, depth: size.z}, this.scene);
+            top.position.y = 1.5;
+            top.metadata = {template: "#object-template", grabbable: true, tool: true};
+            mesh.parent = top;
+            mesh.position.y = -size.y / 2;
+            top.position = new Vector3(-.6, .2, 0);
+            //top.scaling = new Vector3(.1, .1, .1);
+            top.visibility = 0;
+            console.log(data.rootNodes.length);
 
+        });
         addButton.onPointerClickObservable.add(() => {
             buildColor(Color3.Random(), this.scene, this.node, this.index++, this.colorChangeObservable);
         });
@@ -77,10 +107,20 @@ export class Toolbox {
         this.node.parent.setEnabled(false);
         setMenuPosition(this.node.parent as Mesh, this.scene,
             Vector3.Zero());
-
+//
     }
 }
 
+function loadObject(scene: Scene, observable: Observable<AssetContainer>) {
+    SceneLoader.LoadAssetContainer("/assets/models/",
+        "server_racking_system.glb",
+        scene,
+        (container: AssetContainer) => {
+            observable.notifyObservers(container);
+        });
+
+
+}
 function createButton(): Button3D {
     const addButton = new Button3D("add-button");
     const text = new TextBlock("add-button-text", "Add Color");

@@ -1,4 +1,5 @@
 import {
+    AxesViewer,
     Mesh,
     MeshBuilder,
     PhysicsAggregate,
@@ -29,6 +30,7 @@ export function buildRig(scene: Scene, appConfig: AppConfig): Mesh {
     });
     rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
     rigMesh.setAbsolutePosition(new Vector3(0, .01, 3));
+    const home = new AxesViewer(scene, .5);
     rigMesh.lookAt(new Vector3(0, 0.01, 0));
     rigMesh.visibility = 0;
     const rigAggregate =
