@@ -129,6 +129,7 @@ export default async (req: Request): Promise<Response> => {
     try {
         if (req.method == 'OPTIONS') {
             const origin = req.headers.get('Origin');
+            const headers = req.headers.get('Access-Control-Request-Headers');
             console.log(origin);
             return new Response(
                 'OK',
@@ -138,7 +139,8 @@ export default async (req: Request): Promise<Response> => {
                         'Max-Age': '30',
                         'Access-Control-Allow-Methods': 'POST',
                         'Access-Control-Allow-Origin': origin ? origin : 'https://cameras.immersiveidea.com',
-                        'Access-Control-Allow-Credentials': 'true'
+                        'Access-Control-Allow-Credentials': 'true',
+                        'Access-Control-Allow-Headers': headers ? headers : 'Content-Type'
                     },
                     status: 200
                 });
