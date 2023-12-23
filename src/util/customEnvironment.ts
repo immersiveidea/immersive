@@ -103,7 +103,7 @@ export class CustomEnvironment {
 
         ground.material = groundMaterial;
         new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, scene);
-
+        //buildAvatar(scene);
         return ground;
     }
 }

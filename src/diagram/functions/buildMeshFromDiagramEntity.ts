@@ -1,4 +1,4 @@
-import {DiagramEntity} from "../types/diagramEntity";
+import {DiagramEntity, DiagramEntityType} from "../types/diagramEntity";
 import {AbstractMesh, InstancedMesh, Mesh, Quaternion, Scene, Vector3} from "@babylonjs/core";
 import {DiagramConnection} from "../diagramConnection";
 import {TextLabel} from "../../objects/textLabel";
@@ -13,9 +13,19 @@ export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene):
         logger.error("buildMeshFromDiagramEntity: entity is null");
         return null;
     }
-    if (!entity.id) {
-        entity.id = "id" + uuidv4();
+    switch (entity.type) {
+        case DiagramEntityType.USER:
+            logger.debug("buildMeshFromDiagramEntity: entity is user");
+            break;
+        default:
     }
+    generateId(entity);
+
+    const newMesh: AbstractMesh = createNewInstanceIfNecessary(entity, scene);
+    return mapMetadata(entity, newMesh, scene);
+}
+
+function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): AbstractMesh {
     const oldMesh: AbstractMesh = scene.getMeshById(entity.id);
     let newMesh: AbstractMesh;
     if (oldMesh) {
@@ -33,10 +43,20 @@ export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene):
                 newMesh.metadata = {template: entity.template, exportable: true, tool: false};
             } else {
                 logger.warn('no tool mesh found for ' + entity.template + "-" + entity.color);
+
             }
         }
     }
+    return newMesh;
+}
 
+function generateId(entity: DiagramEntity) {
+    if (!entity.id) {
+        entity.id = "id" + uuidv4();
+    }
+}
+
+function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene): AbstractMesh {
     if (newMesh) {
         if (entity.position) {
             newMesh.position = xyztovec(entity.position);
@@ -73,8 +93,6 @@ export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene):
     }
     return newMesh;
 }
-
-
 function xyztovec(xyz: { x, y, z }): Vector3 {
     return new Vector3(xyz.x, xyz.y, xyz.z);
 }

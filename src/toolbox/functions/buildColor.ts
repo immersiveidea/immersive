@@ -1,15 +1,21 @@
-import {Color3, MeshBuilder, Observable, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
+import {Color3, MeshBuilder, Observable, PBRMaterial, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {enumKeys} from "../../util/functions/enumKeys";
 import {ToolType} from "../types/toolType";
 import {buildTool} from "./buildTool";
 import {AdvancedDynamicTexture, ColorPicker} from "@babylonjs/gui";
+import {MarbleProceduralTexture} from "@babylonjs/procedural-textures";
 
 export function buildColor(color: Color3, scene: Scene, parent: TransformNode, index: number,
                            colorChangeObservable: Observable<{ oldColor: string, newColor: string }>) {
     const width = 1;
     const depth = .2;
-    const material = new StandardMaterial("material-" + color.toHexString(), scene);
-    material.diffuseColor = color;
+    const material = new PBRMaterial("material-" + color.toHexString(), scene);
+
+    //const material = new StandardMaterial("material-" + color.toHexString(), scene);
+    material.albedoColor = color;
+    material.metallic = 1;
+    material.bumpTexture = new MarbleProceduralTexture("marble", 1024, scene);
+    material.bumpTexture.level = 5;
     const mesh = MeshBuilder.CreateBox("toolbox-color-" + color.toHexString(), {
         width: width,
         height: .01,
@@ -42,9 +48,9 @@ export function buildColor(color: Color3, scene: Scene, parent: TransformNode, i
     colorPicker.scaleX = 5;
     colorPicker.value = color;
     colorPicker.onValueChangedObservable.add((value) => {
-        const oldColor = material.diffuseColor.clone();
+        const oldColor = material.albedoColor.clone();
         const newColor = value.clone();
-        material.diffuseColor = newColor;
+        material.albedoColor = newColor;
         const newColorHex = newColor.toHexString();
         material.id = "material-" + newColorHex;
         material.name = "material-" + newColorHex;

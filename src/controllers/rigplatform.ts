@@ -21,7 +21,7 @@ export class Rigplatform {
     private readonly xr: WebXRDefaultExperience;
     private yRotation: number = 0;
     public rigMesh: Mesh;
-
+    public flyMode: boolean = true;
     private turning: boolean = false;
     private velocity: Vector3 = Vector3.Zero();
     private turnVelocity: number = 0;
@@ -43,6 +43,7 @@ export class Rigplatform {
         this.fixRotation();
         this.initializeControllers();
         this.registerVelocityObserver();
+
     }
     public forwardback(val: number) {
         this.velocity.z = (val * this.velocityArray[this.velocityIndex])*-1;

@@ -23,7 +23,7 @@ export class TextLabel {
         }
 
         //Set font
-        const height = 0.125;
+        const height = 0.05;
         const font_size = 24;
         const font = "bold " + font_size + "px Arial";
         //Set height for dynamic texture
@@ -65,10 +65,11 @@ export class TextLabel {
 
         const yOffset = mesh.getBoundingInfo().boundingSphere.maximum.y;
         plane.parent = mesh;
-        plane.position.y = yOffset + height;
-        //plane.scaling.y = mesh.scaling.y;
-        //plane.scaling.x = mesh.scaling.x;
-        //plane.scaling.z = mesh.scaling.z;
+
+        plane.scaling.y = (1 / mesh.scaling.y);
+        plane.scaling.x = (1 / mesh.scaling.x);
+        plane.scaling.z = (1 / mesh.scaling.z);
+        plane.position.y = yOffset + (height * plane.scaling.y);
         return plane;
     }
 }

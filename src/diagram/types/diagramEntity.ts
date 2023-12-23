@@ -13,6 +13,10 @@ export enum DiagramEventType {
     RESET
 }
 
+export enum DiagramEntityType {
+    USER = "user"
+}
+
 export enum DiagramEventMask {
     LOCAL = 1,
     REMOTE = 2,
@@ -37,6 +41,7 @@ export type DiagramEntity = {
     position?: { x: number, y: number, z: number };
     rotation?: { x: number, y: number, z: number };
     template?: string;
+    type?: DiagramEntityType;
     text?: string;
     scale?: { x: number, y: number, z: number };
     parent?: string;

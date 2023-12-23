@@ -25,7 +25,15 @@ export function toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
     entity.to = mesh?.metadata?.to;
     entity.scale = vectoxys(mesh.scaling);
     if (mesh.material) {
-        entity.color = (mesh.material as any).diffuseColor.toHexString();
+        switch (mesh.material.getClassName()) {
+            case "StandardMaterial":
+                entity.color = (mesh.material as any).diffuseColor.toHexString();
+                break;
+            case "PBRMaterial":
+                entity.color = (mesh.material as any).albedoColor.toHexString();
+                break;
+        }
+
     } else {
         if (entity.template != "#object-template") {
             logger.error("toDiagramEntity: mesh.material is null");
