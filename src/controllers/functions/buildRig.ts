@@ -9,10 +9,10 @@ import {
     TransformNode,
     Vector3
 } from "@babylonjs/core";
-import {AppConfig} from "../../util/appConfig";
+
 import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
 
-export function buildRig(scene: Scene, appConfig: AppConfig): Mesh {
+export function buildRig(scene: Scene): Mesh {
     const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: 1.6}, scene);
 
     const cameratransform = new TransformNode("cameraTransform", scene);
@@ -57,14 +57,6 @@ export function buildRig(scene: Scene, appConfig: AppConfig): Mesh {
     rightFoot.position.z= 2;
 
      */
-
-
     rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
-    if (appConfig.current.flyMode) {
-        rigAggregate.body.setGravityFactor(.02);
-    } else {
-        rigAggregate.body.setGravityFactor(1);
-    }
-
     return rigMesh;
 }

@@ -10,19 +10,14 @@ import {
 import {Base} from "./base";
 import {ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
-import {ConfigMenu} from "../menus/configMenu";
 import {DiagramManager} from "../diagram/diagramManager";
 import {RoundButton} from "../objects/roundButton";
 
 
 export class Left extends Base {
-    public configMenu: ConfigMenu;
-
     constructor(controller:
                     WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
-
         super(controller, scene, xr, controllers, diagramManager);
-        this.configMenu = new ConfigMenu(this.scene, xr, this.controllers, this.diagramManager.config);
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
@@ -41,7 +36,6 @@ export class Left extends Base {
                     transform.scaling = new Vector3(.2, .2, .2);
                     const xbutton = new RoundButton(transform, 'X', 'toggle toolbox menu', new Vector2(-.5, -.1));
                     const ybutton = new RoundButton(transform, 'Y', 'toggle settings menu', new Vector2(-.4, .1));
-
                 }
                 this.initXButton(init.components['x-button']);
                 this.initYButton(init.components['y-button']);

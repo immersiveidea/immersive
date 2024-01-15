@@ -1,6 +1,9 @@
 import {WebXRDefaultExperience, WebXRState} from "@babylonjs/core";
 import log from "loglevel";
 import {WebController} from "../../controllers/webController";
+import {EditMenu} from "../../menus/editMenu";
+import {ControllerEventType} from "../../controllers/controllers";
+import {ConfigMenu} from "../../menus/configMenu";
 
 export async function groundMeshObserver(ground, scene, diagramManager, controllers, spinner) {
     const xr = await WebXRDefaultExperience.CreateAsync(scene, {
@@ -41,6 +44,22 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
     });
     import('../../controllers/rigplatform').then((rigmodule) => {
         const rig = new rigmodule.Rigplatform(scene, xr, diagramManager, controllers);
+        const currentConfig = diagramManager.config.current;
+        rig.flyMode = currentConfig.flyMode;
+        rig.turnSnap = currentConfig.turnSnap;
+        diagramManager.config.onConfigChangedObservable.add((config) => {
+            rig.flyMode = config.flyMode;
+            rig.turnSnap = config.turnSnap;
+        });
+        const menu = new EditMenu(scene, xr, diagramManager, controllers);
+        controllers.controllerObserver.add((event) => {
+            if (event.type == ControllerEventType.MENU) {
+                menu.toggle();
+            }
+        });
+        const config = new ConfigMenu(scene, xr, controllers, diagramManager.config);
+
+
         const webController = new WebController(scene, rig, diagramManager, controllers);
     });
 }

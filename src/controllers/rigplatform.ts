@@ -20,15 +20,8 @@ export class Rigplatform {
     private leftController: Left;
     private readonly xr: WebXRDefaultExperience;
     private yRotation: number = 0;
+    public turnSnap: number = 0;
     public rigMesh: Mesh;
-    public flyMode: boolean = true;
-    private turning: boolean = false;
-    private velocity: Vector3 = Vector3.Zero();
-    private turnVelocity: number = 0;
-    private logger = log.getLogger('Rigplatform');
-    private readonly diagramManager: DiagramManager;
-    private readonly controllers: Controllers;
-    private registered = false;
 
     constructor(scene: Scene, xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager,
@@ -38,12 +31,32 @@ export class Rigplatform {
         this.diagramManager = diagramManager;
         this.controllers = controllers;
         this.xr = xr;
-        this.bMenu = new EditMenu(scene, xr, this.diagramManager, controllers);
-        this.rigMesh = buildRig(scene, this.diagramManager.config);
+        this.rigMesh = buildRig(scene);
+
         this.fixRotation();
         this.initializeControllers();
         this.registerVelocityObserver();
 
+    }
+    private turning: boolean = false;
+    private velocity: Vector3 = Vector3.Zero();
+    private turnVelocity: number = 0;
+    private logger = log.getLogger('Rigplatform');
+    private readonly diagramManager: DiagramManager;
+    private readonly controllers: Controllers;
+    private registered = false;
+
+    private _flyMode: boolean = true;
+
+    public set flyMode(value: boolean) {
+        this._flyMode = value;
+        if (this._flyMode) {
+            this.rigMesh.physicsBody.setGravityFactor(.01);
+            console.log('flymode');
+        } else {
+            this.rigMesh.physicsBody.setGravityFactor(1);
+            console.log('walkmode');
+        }
     }
     public forwardback(val: number) {
         this.velocity.z = (val * this.velocityArray[this.velocityIndex])*-1;
@@ -54,8 +67,10 @@ export class Rigplatform {
     public updown(val: number) {
         this.velocity.y = (val * this.velocityArray[this.velocityIndex])*-1;
     }
+
     public turn(val: number) {
-        const snap = this.diagramManager.config.current?.turnSnap;
+        const snap = this.turnSnap;
+
         if (snap && snap > 0) {
             if (!this.turning) {
                 if (Math.abs(val) > .1) {
@@ -79,7 +94,7 @@ export class Rigplatform {
     private registerVelocityObserver() {
         this.scene.onBeforeRenderObservable.add(() => {
             const vel = this.velocity.applyRotationQuaternion(this.scene.activeCamera.absoluteRotation);
-            if (!this.diagramManager.config.current.flyMode) {
+            if (!this._flyMode) {
                 vel.y = 0;
             }
             if (vel.length() > 0) {
@@ -118,14 +133,10 @@ export class Rigplatform {
                         this.leftright(event.value);
                         break;
                     case ControllerEventType.UP_DOWN:
-                        if (this.diagramManager.config.current.flyMode) {
+                        if (this._flyMode) {
                             this.updown(event.value);
                         }
                         break;
-                    case ControllerEventType.MENU:
-                        this.bMenu.toggle();
-                        break;
-
                     case ControllerEventType.MOTION:
                         this.logger.debug(JSON.stringify(event));
 
@@ -160,7 +171,7 @@ export class Rigplatform {
     }
     private fixRotation() {
         this.scene.onAfterPhysicsObservable.add(() => {
-            const turnSnap = this.diagramManager.config.current?.turnSnap;
+            const turnSnap = this.turnSnap;
             if (turnSnap && turnSnap > 0) {
                 const q = this.rigMesh.rotationQuaternion;
                 this.rigMesh.physicsBody.setAngularVelocity(Vector3.Zero());

@@ -8,8 +8,6 @@ import {setMenuPosition} from "../util/functions/setMenuPosition";
 
 export class ConfigMenu extends AbstractMenu {
     private sounds: DiaSounds;
-
-    private yObserver;
     private config: AppConfig;
     private gridSnaps: Array<{ label: string, value: number }> = [
         {label: "Off", value: 0},
@@ -31,16 +29,15 @@ export class ConfigMenu extends AbstractMenu {
         super(scene, xr, controllers);
         this.config = config;
         this.sounds = new DiaSounds(scene);
-        if (!this.yObserver) {
-            this.controllers.controllerObserver.add((event) => {
-                if (event.type == ControllerEventType.Y_BUTTON) {
-                    this.toggle();
-                }
-            });
-        }
+
+        this.controllers.controllerObserver.add((event) => {
+            if (event.type == ControllerEventType.Y_BUTTON) {
+                this.toggle();
+            }
+        });
+
 
     }
-
 
 
     public toggle() {
