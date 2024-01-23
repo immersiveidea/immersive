@@ -14,6 +14,7 @@ import {groundMeshObserver} from "./util/functions/groundMeshObserver";
 import {MainMenu} from "./menus/mainMenu";
 import {Introduction} from "./tutorial/introduction";
 import {buildQuestLink} from "./util/functions/buildQuestLink";
+import {exportGltf} from "./util/functions/exportGltf";
 
 export class VrApp {
     private scene: Scene;
@@ -105,7 +106,12 @@ export class VrApp {
          */
         addSceneInspector(scene);
         const mainMenu = new MainMenu(scene);
-
+        const el = document.querySelector('#download');
+        if (el) {
+            el.addEventListener('click', () => {
+                exportGltf(scene);
+            })
+        }
         /*
         const base = new TransformNode("chart");
         base.position.y = .25;
