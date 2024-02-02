@@ -7,56 +7,60 @@ import {
     PhysicsShapeType,
     Scene,
     TransformNode,
-    Vector3
+    Vector3,
+    WebXRDefaultExperience
 } from "@babylonjs/core";
 
 import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
 
-export function buildRig(scene: Scene): Mesh {
-    const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: 1.6}, scene);
-
+export function buildRig(scene: Scene, xr: WebXRDefaultExperience): Mesh {
+    const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: .2}, scene);
     const cameratransform = new TransformNode("cameraTransform", scene);
     cameratransform.parent = rigMesh;
-    cameratransform.position = new Vector3(0, -.8, 0);
+    xr.baseExperience.onInitialXRPoseSetObservable.add((state) => {
+
+        xr.baseExperience.camera.parent = cameratransform;
+        xr.baseExperience.camera.position = new Vector3(0, 0, 0);
+
+
+    });
     for (const cam of scene.cameras) {
         cam.parent = cameratransform;
-        console.log(cam.absoluteRotation);
+        if (cam.getClassName() == "FreeCamera") {
+            //cameratransform.position = new Vector3(0, 1.6, 0);
+            //cam.position.set(0, 1.6, 0);
+        } else {
+            //cameratransform.position = new Vector3(0, 1.6, 0);
+            //cam.position.set(0, 0, 0);
+        }
     }
 
-
-    scene.onActiveCameraChanged.add((s) => {
+    scene.onActiveCameraChanged.add(() => {
+        for (const cam of scene.cameras) {
+            cam.parent = cameratransform;
+            if (cam.getClassName() == "FreeCamera") {
+                //cameratransform.position = new Vector3(0, 1.6, 0);
+                //cam.position.set(0, 1.6, 0);
+            } else {
+                //cameratransform.position = new Vector3(0, 0, 0);
+                //cam.position.set(0, 0, 0);
+            }
+        }
         cameratransform.rotation.set(0, Math.PI, 0);
-        s.activeCamera.parent = cameratransform;
+        //s.activeCamera.parent = cameratransform;
     });
     rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
     rigMesh.setAbsolutePosition(new Vector3(0, .01, 3));
-    const home = new AxesViewer(scene, .5);
+    rigMesh.isPickable = false;
+    new AxesViewer(scene, .25);
     rigMesh.lookAt(new Vector3(0, 0.01, 0));
-    rigMesh.visibility = 0;
+    rigMesh.visibility = 1;
     const rigAggregate =
         new PhysicsAggregate(
             rigMesh,
             PhysicsShapeType.CYLINDER,
-            {friction: 0, center: Vector3.Zero(), mass: 50, restitution: .1},
+            {friction: 0, center: Vector3.Zero(), mass: 50, restitution: .01},
             scene);
-
-
-    /*const rightFoot = MeshBuilder.CreateBox("rightFoot", {width: .1, height: .1, depth: .2}, scene);
-    const rightFootAggregate =
-        new PhysicsAggregate(
-            rightFoot,
-            PhysicsShapeType.BOX,
-            { friction: 0, center: Vector3.Zero(),  radius: .2, pointA: new Vector3(0, 0, 0),
-                pointB: new Vector3(0, 1.5, 0), mass: 50, restitution: .1},
-            scene);
-    rightFootAggregate.body.setMotionType(PhysicsMotionType.ANIMATED);
-    rightFoot.parent= rigAggregate.transformNode;
-    rightFoot.material = rigMaterial;
-    rightFoot.position.y=.05;
-    rightFoot.position.x=.2;
-    rightFoot.position.z= 2;
-
-     */
     rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
     return rigMesh;
 }

@@ -28,8 +28,6 @@
     "events": "^3.3.0",
     "@typed-mxgraph/typed-mxgraph": "^1.0.8",
     "@types/node": "^18.14.0",
-    "dexie": "^3.2.4",
-    "dexie-observable": "^4.0.1-beta.13",
     "earcut": "^2.2.4",
     "file-saver": "^2.0.5",
     "@types/file-saver": "^2.0.6",
@@ -37,15 +35,11 @@
     "loglevel": "^1.8.1",
     "mxgraph": "^4.2.2",
     "niceware": "^4.0.0",
-    "p2p-data-channel": "^1.10.7",
     "pouchdb": "^8.0.1",
     "pouchdb-find": "^7.2.2",
     "query-string": "^8.1.0",
-    "recordrtc": "^5.6.2",
-    "ring-client-api": "11.7.7",
     "round": "^2.0.1",
-    "uuid": "^9.0.0",
-    "material-components-web": "^11.0.0"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "typescript": "^4.9.5",

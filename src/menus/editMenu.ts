@@ -18,7 +18,7 @@ import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import log from "loglevel";
 import {InputTextView} from "../information/inputTextView";
 import {DiaSounds} from "../util/diaSounds";
-import {TextLabel} from "../objects/textLabel";
+import {updateTextNode} from "../util/functions/updateTextNode";
 import {DiagramConnection} from "../diagram/diagramConnection";
 
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
@@ -29,6 +29,7 @@ import {SoccerMenu} from "../soccer/soccerMenu";
 import {CameraMenu} from "./cameraMenu";
 import {exportGltf} from "../util/functions/exportGltf";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
+import {ScaleMenu} from "./scaleMenu";
 
 export class EditMenu extends AbstractMenu {
     private state: EditMenuState = EditMenuState.NONE;
@@ -161,8 +162,10 @@ export class EditMenu extends AbstractMenu {
         this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
     }
 
+    private scaleMenu: ScaleMenu;
     constructor(scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
         super(scene, xr, controllers);
+        //this.scaleMenu = new ScaleMenu(this.scene, this.xr, this.controllers);
         this.sounds = new DiaSounds(scene);
         this.diagramManager = diagramManager;
         this.gizmoManager = new GizmoManager(scene);
@@ -177,16 +180,16 @@ export class EditMenu extends AbstractMenu {
 
         panel.columns = 4;
         this.manager.addControl(panel);
-        panel.addControl(this.makeButton("Cameras", "camera"));
-        panel.addControl(this.makeButton("Modify", "modify"));
+        //panel.addControl(this.makeButton("Cameras", "camera"));
+        //panel.addControl(this.makeButton("Modify", "modify"));
         panel.addControl(this.makeButton("Remove", "remove"));
-        panel.addControl(this.makeButton("Add Label", "label"));
+        panel.addControl(this.makeButton("Label", "label"));
         panel.addControl(this.makeButton("Copy", "copy"));
         panel.addControl(this.makeButton("Connect", "connect"));
-        panel.addControl(this.makeButton("Export GLTF", "exportgltf"));
-        panel.addControl(this.makeButton("Recolor", "recolor"));
-        panel.addControl(this.makeButton("New Relic", "newrelic"));
-        panel.addControl(this.makeButton("Soccer", "soccer"));
+        //panel.addControl(this.makeButton("Export GLTF", "exportgltf"));
+        //panel.addControl(this.makeButton("Recolor", "recolor"));
+        //panel.addControl(this.makeButton("New Relic", "newrelic"));
+        //panel.addControl(this.makeButton("Soccer", "soccer"));
         //panel.addControl(this.makeButton("Add Ring Cameras", "addRingCameras"));
         this.manager.controlScaling = .1;
         this.scene.onPointerObservable.add((pointerInfo) => {
@@ -240,7 +243,7 @@ export class EditMenu extends AbstractMenu {
         textInput.show();
         textInput.onTextObservable.addOnce((value) => {
             this.persist(mesh, value.text);
-            TextLabel.updateTextNode(mesh, value.text);
+            updateTextNode(mesh, value.text);
         });
 
 
@@ -267,19 +270,7 @@ export class EditMenu extends AbstractMenu {
     private modifyMesh(mesh: AbstractMesh) {
         if (isDiagramEntity(mesh) &&
             mesh.parent?.parent?.id != "toolbox") {
-            if (this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh?.id == mesh.id) {
-                this.gizmoManager.gizmos.boundingBoxGizmo.attachedMesh = null;
-            } else {
-                this.gizmoManager.attachToMesh(mesh);
-                this.gizmoManager.gizmos.boundingBoxGizmo.onScaleBoxDragObservable.add(() => {
-                    this.diagramManager.onDiagramEventObservable.notifyObservers({
-                            type: DiagramEventType.MODIFY,
-                            entity: toDiagramEntity(mesh),
-                        }, -1
-                    )
-                    this.logger.debug(mesh.scaling);
-                });
-            }
+            this.scaleMenu.changeMesh(mesh);
         }
     }
 

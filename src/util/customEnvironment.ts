@@ -1,20 +1,24 @@
 import {
+    Color3,
     GroundMesh,
     HemisphericLight,
+    Material,
     MeshBuilder,
     Observable,
     PBRMaterial,
-    PhotoDome,
     PhysicsAggregate,
     PhysicsShapeType,
+    PointsCloudSystem,
     Scene,
     Sound,
     Texture,
+    TransformNode,
     Vector3
 } from "@babylonjs/core";
 import {CustomPhysics} from "./customPhysics";
 import {DiaSounds} from "./diaSounds";
 import {AppConfig} from "./appConfig";
+import {GridMaterial} from "@babylonjs/materials";
 
 
 export class CustomEnvironment {
@@ -25,8 +29,13 @@ export class CustomEnvironment {
     constructor(scene: Scene, name: string = "default", config: AppConfig) {
         this.scene = scene;
         this.name = name;
-        new HemisphericLight("light1", new Vector3(1, 1, 0), scene);
-        new HemisphericLight("light2", new Vector3(-1, 1, 0), scene);
+        const loading = document.querySelector('#loadingGrid');
+        if (loading) {
+            loading.remove();
+        }
+        const light = new HemisphericLight("light1", new Vector3(.1, 1, 0), scene);
+        light.groundColor = new Color3(.1, .1, .1)
+        light.intensity = .6;
 
         const physics = new CustomPhysics(this.scene, config);
         physics
@@ -35,15 +44,11 @@ export class CustomEnvironment {
                 const ground = this.createGround();
                 this._groundMeshObservable.notifyObservers(ground);
             });
+    }
 
-
-        const photo = new PhotoDome('sky',
-            '/assets/textures/outdoor_field4.jpeg', {},
-            scene);
-
-
+    private initSounds() {
         try {
-            const sounds = new DiaSounds(scene);
+            const sounds = new DiaSounds(this.scene);
             window.setTimeout((sound) => {
                 sound.play()
             }, 2000, sounds.background);
@@ -72,38 +77,104 @@ export class CustomEnvironment {
         } catch (error) {
 
         }
-
-
     }
-
     public get groundMeshObservable() {
         return this._groundMeshObservable;
     }
 
     private createGround() {
         const scene = this.scene;
-        const groundMaterial = new PBRMaterial("groundMaterial", scene);
-        const gText = new Texture("/assets/textures/grass1.jpeg", scene);
-        gText.uScale = 30;
-        gText.vScale = 30;
-        groundMaterial.albedoTexture = gText;
-        groundMaterial.metallic = 0;
-        groundMaterial.roughness = 1;
-        const grassBump = new Texture("/assets/textures/grassnormal.png", scene);
-        grassBump.uScale = 20;
-        grassBump.vScale = 20;
-        groundMaterial.bumpTexture =
-            grassBump;
 
         const ground: GroundMesh = MeshBuilder.CreateGround("ground", {
-            width: 100,
-            height: 100,
+            width: 20,
+            height: 20,
             subdivisions: 1
         }, scene);
+        createPoints(scene, 20, 20);
+        ground.material = createGridMaterial(scene, Color3.FromHexString("#aaffaa"), Color3.FromHexString("#111511"));
+        const color1 = Color3.FromHexString("#ff9999");
+        const color2 = Color3.FromHexString("#221111");
+        const color3 = Color3.FromHexString("#9999ff");
+        const color4 = Color3.FromHexString("#111115");
 
-        ground.material = groundMaterial;
+
+        this.createWall(new Vector3(0, 10, 10), new Vector3(0, 0, 0), color3, color4);
+        this.createWall(new Vector3(0, 10, -10), new Vector3(0, Math.PI, 0), color3, color4);
+        this.createWall(new Vector3(10, 10, 0), new Vector3(0, Math.PI / 2, 0), color1, color2);
+        this.createWall(new Vector3(-10, 10, 0), new Vector3(0, -Math.PI / 2, 0), color1, color2);
+
         new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, scene);
         //buildAvatar(scene);
         return ground;
     }
+
+    private createWall(position: Vector3, rotation: Vector3, color1: Color3, color2: Color3) {
+        const scene = this.scene;
+        const wall = MeshBuilder.CreatePlane("wall", {width: 20, height: 20}, scene);
+        wall.position = position;
+        wall.rotation = rotation;
+        wall.material = createGridMaterial(scene, color1, color2);
+        return wall;
+    }
+}
+
+async function createPoints(scene: Scene, divisions: number = 10, scale: number = 80) {
+    const half = .5;
+    const increment = 1 / divisions;
+    let x = -half;
+    let y = -half;
+    let z = -half;
+    const baseTransform = new TransformNode("baseTransform", scene);
+    baseTransform.scaling = new Vector3(scale, scale, scale);
+    baseTransform.position = new Vector3(0, scale / 2, 0);
+    const pcs = new PointsCloudSystem("pcs", 1, scene);
+
+    pcs.addPoints((divisions + 1) ** 3, function (particle) {
+        particle.position.x = x;
+        particle.position.y = y;
+        particle.position.z = z;
+
+        x += increment;
+        if (x > half) {
+            x = -half
+            y += increment;
+            if (y > half) {
+                y = -half;
+                z += increment;
+                if (z > half) {
+
+                }
+            }
+        }
+    });
+    const mesh = await pcs.buildMeshAsync();
+    mesh.visibility = .5;
+    mesh.parent = baseTransform;
+}
+
+function createGridMaterial(scene: Scene, lineColor: Color3, mainColor: Color3): Material {
+    const material = new GridMaterial("gridMaterial", scene);
+    material.minorUnitVisibility = .1;
+    material.gridRatio = .1;
+    material.majorUnitFrequency = 10;
+    material.mainColor = mainColor;
+    material.lineColor = lineColor;
+
+    return material;
+}
+
+function createGrassGround(scene: Scene): Material {
+    const groundMaterial = new PBRMaterial("groundMaterial", scene);
+    const gText = new Texture("/assets/textures/grass1.jpeg", scene);
+    gText.uScale = 10;
+    gText.vScale = 10;
+    groundMaterial.albedoTexture = gText;
+    groundMaterial.metallic = 0;
+    groundMaterial.roughness = 1;
+    const grassBump = new Texture("/assets/textures/grassnormal.png", scene);
+    grassBump.uScale = 20;
+    grassBump.vScale = 20;
+    groundMaterial.bumpTexture =
+        grassBump;
+    return groundMaterial;
 }

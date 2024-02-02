@@ -20,6 +20,9 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
         }
 
     });
+    xr.baseExperience.onInitialXRPoseSetObservable.add((camera) => {
+        //camera.position = new Vector3(0, -1.6, 0);
+    });
 
     if (spinner) {
         spinner.hide();
@@ -30,17 +33,23 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
             this.logger.debug(ev);
         });
     });
+
     xr.baseExperience.onStateChangedObservable.add((state) => {
-        if (state == WebXRState.IN_XR) {
-            scene.audioEnabled = true;
-            //xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
-            //xr.baseExperience.camera.setTarget(new Vector3(0, 1.6, 3));
-            window.addEventListener(('pa-button-state-change'), (event: any) => {
-                if (event.detail) {
-                    log.debug('App', event.detail);
-                }
-            });
+        switch (state) {
+            case WebXRState.IN_XR:
+                scene.audioEnabled = true;
+
+                //xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
+                //xr.baseExperience.camera.setTarget(new Vector3(0, 1.6, 3));
+                window.addEventListener(('pa-button-state-change'), (event: any) => {
+                    if (event.detail) {
+                        log.debug('App', event.detail);
+                    }
+                });
+                break;
+
         }
+
     });
     import('../../controllers/rigplatform').then((rigmodule) => {
         const rig = new rigmodule.Rigplatform(scene, xr, diagramManager, controllers);
@@ -58,8 +67,6 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
             }
         });
         const config = new ConfigMenu(scene, xr, controllers, diagramManager.config);
-
-
         const webController = new WebController(scene, rig, diagramManager, controllers);
     });
 }

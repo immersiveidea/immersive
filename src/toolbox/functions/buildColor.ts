@@ -11,6 +11,10 @@ export function buildColor(color: Color3, scene: Scene, parent: TransformNode, i
     //const material = new PBRMaterial("material-" + color.toHexString(), scene);
     const material = new StandardMaterial("material-" + color.toHexString(), scene);
     material.diffuseColor = color;
+    material.roughness = 1;
+    material.specularPower = 1;
+    //material.emissiveColor = color;
+
     //const material = new StandardMaterial("material-" + color.toHexString(), scene);
     //material.albedoColor = color;
     //material.metallic = 1;

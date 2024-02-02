@@ -45,7 +45,7 @@ export class Ball {
 
     private buildBall() {
         SceneLoader.ImportMesh(null, "/assets/models/", "ball.gltf", this.scene,
-            (meshes, particleSystems, skeletons, animationGroups) => {
+            (meshes) => {
                 this.logger.debug('ball loaded');
                 this.mesh = meshes[0];
                 this.parent = MeshBuilder.CreateSphere("ballParent", {diameter: .17}, this.scene);

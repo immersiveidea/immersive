@@ -1,10 +1,6 @@
 const VERSION = '0';
 const CACHE = "pwabuilder-offline";
-const PRECACHE_ASSETS = [
-    '/grass1.jpeg',
-    '/loading-loading-forever.gif',
-    '/outdoor_field2.jpeg'
-]
+const PRECACHE_ASSETS = []
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
 self.addEventListener("message", (event) => {

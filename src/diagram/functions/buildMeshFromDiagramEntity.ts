@@ -1,7 +1,7 @@
 import {DiagramEntity, DiagramEntityType} from "../types/diagramEntity";
 import {AbstractMesh, InstancedMesh, Mesh, Quaternion, Scene, Vector3} from "@babylonjs/core";
 import {DiagramConnection} from "../diagramConnection";
-import {TextLabel} from "../../objects/textLabel";
+import {updateTextNode} from "../../util/functions/updateTextNode";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
 import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
@@ -80,7 +80,7 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
         }
         if (entity.text) {
             newMesh.metadata.text = entity.text;
-            TextLabel.updateTextNode(newMesh, entity.text);
+            updateTextNode(newMesh, entity.text);
         }
         if (entity.from) {
             newMesh.metadata.from = entity.from;

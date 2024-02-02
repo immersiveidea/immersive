@@ -2,7 +2,7 @@ import {DiagramEvent, DiagramEventType} from "../types/diagramEntity";
 import log from "loglevel";
 import {applyPhysics} from "./diagramShapePhysics";
 import {ActionManager, PhysicsMotionType, Scene} from "@babylonjs/core";
-import {TextLabel} from "../../objects/textLabel";
+import {updateTextNode} from "../../util/functions/updateTextNode";
 import {Toolbox} from "../../toolbox/toolbox";
 import {DiaSounds} from "../../util/diaSounds";
 
@@ -51,7 +51,7 @@ export function diagramEventHandler(event: DiagramEvent,
             break;
         case DiagramEventType.DROP:
             if (isDiagramEntity(mesh) && (mesh.metadata.template.indexOf('#') > -1)) {
-                TextLabel.updateTextNode(mesh, entity.text);
+                updateTextNode(mesh, entity.text);
             }
             break;
         case DiagramEventType.ADD:

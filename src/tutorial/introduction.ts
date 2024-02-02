@@ -17,7 +17,6 @@ import {AppConfig} from "../util/appConfig";
 import Hls from "hls.js";
 import log, {Logger} from "loglevel";
 
-
 export class Introduction {
     private readonly scene: Scene;
     private manager: GUI3DManager;

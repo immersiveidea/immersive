@@ -31,7 +31,7 @@ export class Rigplatform {
         this.diagramManager = diagramManager;
         this.controllers = controllers;
         this.xr = xr;
-        this.rigMesh = buildRig(scene);
+        this.rigMesh = buildRig(scene, xr);
 
         this.fixRotation();
         this.initializeControllers();
@@ -163,7 +163,7 @@ export class Rigplatform {
                     }
                     break;
             }
-            this.xr.baseExperience.camera.position = new Vector3(0, 1.6, 0);
+            //this.xr.baseExperience.camera.position = new Vector3(0, 0, 0);
             if (controller) {
                 controller.setRig(this);
             }

@@ -11,6 +11,9 @@ export function buildQuestLink() {
     a.target = "_blank";
     a.innerText = "Launch On Quest";
     div.appendChild(a);
-    document.body.appendChild(div);
+    const main = document.querySelector('#main');
+    if (main) {
+        //main.appendChild(div);
+    }
 
 }

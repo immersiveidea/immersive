@@ -271,9 +271,8 @@ export class PouchdbPersistenceManager {
 
     private async beginSync(remoteDbName: string) {
         try {
-
             //const remoteDbName = "db1";
-            const remoteUserName = "user1";
+            const remoteUserName = remoteDbName;
             const password = "password";
             const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT + '_all_dbs');
             if (dbs.data.indexOf(remoteDbName) == -1) {

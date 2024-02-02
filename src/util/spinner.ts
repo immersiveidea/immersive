@@ -19,7 +19,6 @@ export class Spinner {
     constructor(scene: Scene) {
         this.scene = scene;
         this.build();
-
     }
 
     public show() {
@@ -33,7 +32,7 @@ export class Spinner {
     }
 
     private build() {
-        const spinner: AbstractMesh = MeshBuilder.CreateSphere("spinner", {diameter: 1}, this.scene);
+        const spinner: AbstractMesh = MeshBuilder.CreateSphere("spinner", {diameter: 2}, this.scene);
         const material = new StandardMaterial("spinner", this.scene);
         const text = new DynamicTexture("spinner", {width: 1024, height: 1024}, this.scene, false);
         text.drawText("Please Wait", 250, 500, "bold 150px Segoe UI", "white", "transparent", true, true);
@@ -82,6 +81,8 @@ export class Spinner {
         particleSystem.emitter = spinner;
         particleSystem.parent = spinner;
         spinner.position.y = 1;
+        spinner.position.z = 6;
+
         this.spinner = spinner;
         this.spinner.setEnabled(false);
         this.particleSystem = particleSystem;

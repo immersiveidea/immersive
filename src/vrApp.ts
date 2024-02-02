@@ -12,9 +12,10 @@ import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager
 import {addSceneInspector} from "./util/functions/sceneInspctor";
 import {groundMeshObserver} from "./util/functions/groundMeshObserver";
 import {MainMenu} from "./menus/mainMenu";
-import {Introduction} from "./tutorial/introduction";
 import {buildQuestLink} from "./util/functions/buildQuestLink";
 import {exportGltf} from "./util/functions/exportGltf";
+import {Tutorial} from "./tutorial/tutorial";
+
 
 export class VrApp {
     private scene: Scene;
@@ -23,16 +24,11 @@ export class VrApp {
     private logger: Logger = log.getLogger('App');
 
     constructor() {
-
         log.setDefaultLevel('warn');
-
         log.getLogger('App').setLevel('debug');
         log.getLogger('DiagramManager').setLevel('debug');
-
         const canvas = document.querySelector('#gameCanvas');
-
         this.logger.debug('App', 'gameCanvas created');
-
     }
 
     public async initialize(canvas: HTMLCanvasElement) {
@@ -46,6 +42,7 @@ export class VrApp {
         const spinner = new Spinner(scene);
         spinner.show();
         const config = new AppConfig();
+        const tutorial = new Tutorial(scene, config);
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
@@ -54,18 +51,16 @@ export class VrApp {
         db.setDiagramManager(diagramManager);
         db.configObserver.add((newConfig) => {
             if (!newConfig.demoCompleted) {
-                const demo = new Introduction(scene, config);
+                const main = document.querySelector('#main');
+            } else {
+                const create = document.querySelector('#create');
             }
             config.onConfigChangedObservable.notifyObservers(newConfig, 1);
         });
         config.onConfigChangedObservable.add((newConfig) => {
             db.setConfig(newConfig);
         }, 2, false, this);
-
-
         await db.initialize();
-
-
         const camera: FreeCamera = new FreeCamera("Main Camera",
             new Vector3(0, 1.6, 0), scene);
         //camera.setTarget(new Vector3(0, 1.6, -3));
@@ -112,15 +107,6 @@ export class VrApp {
                 exportGltf(scene);
             })
         }
-        /*
-        const base = new TransformNode("chart");
-        base.position.y = .25;
-        base.position.z = -5;
-        const chart = new Timeseries(base);
-        chart.setData(genData());
-*/
-        //const newRelic = new NewRelicQuery(scene);
-        //newRelic.getSales();
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
         let i = 0;
         this.engine.runRenderLoop(() => {

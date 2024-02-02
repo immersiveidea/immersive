@@ -1,4 +1,4 @@
-import {AbstractMesh, MeshBuilder, Scene} from "@babylonjs/core";
+import {AbstractMesh, KeyboardEventTypes, MeshBuilder, Scene} from "@babylonjs/core";
 import {Rigplatform} from "./rigplatform";
 import {ControllerEventType, Controllers} from "./controllers";
 import {DiagramManager} from "../diagram/diagramManager";
@@ -40,19 +40,37 @@ export class WebController {
 
         this.scene.onKeyboardObservable.add((kbInfo) => {
             this.logger.debug(kbInfo);
+            const canvas = document.querySelector('#gameCanvas');
+
+            if (canvas && kbInfo.event.target != canvas) {
+                return;
+            }
+            if (kbInfo.type == KeyboardEventTypes.KEYUP) {
+                this.rig.turn(0);
+            }
             if (kbInfo.type == 1) {
                 switch (kbInfo.event.key) {
                     case "ArrowUp":
+                    case "w":
                         this.rig.forwardback(-this.speed);
                         break;
                     case "ArrowDown":
+                    case "s":
                         this.rig.forwardback(this.speed);
                         break;
                     case "ArrowLeft":
+                    case "a":
                         this.rig.leftright(-this.speed);
                         break;
+                    case "A":
+                        this.rig.turn(-this.speed);
+                        break;
                     case "ArrowRight":
+                    case "d":
                         this.rig.leftright(this.speed);
+                        break;
+                    case "D":
+                        this.rig.turn(this.speed);
                         break;
                     case "]":
                         this.speed *= 1.5;
@@ -70,6 +88,7 @@ export class WebController {
                         }
                         break;
                     default:
+
                         this.logger.debug(kbInfo.event);
                 }
 
