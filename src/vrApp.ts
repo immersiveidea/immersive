@@ -1,5 +1,3 @@
-import {createRoot} from 'react-dom/client';
-import WebApp from './react/webApp';
 import {Engine, FreeCamera, Scene, Vector3} from "@babylonjs/core";
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
@@ -25,8 +23,7 @@ export class VrApp {
     private logger: Logger = log.getLogger('App');
 
     constructor() {
-        const root = createRoot(document.getElementById('webApp'));
-        root.render(WebApp());
+
         log.setDefaultLevel('warn');
         log.getLogger('App').setLevel('debug');
         log.getLogger('DiagramManager').setLevel('debug');
