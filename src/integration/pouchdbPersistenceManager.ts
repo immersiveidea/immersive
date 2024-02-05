@@ -24,6 +24,9 @@ export class PouchdbPersistenceManager {
         this.diagramListings = new PouchDB("diagramListings");
     }
 
+    public async getDiagramListings() {
+        return this.diagramListings.allDocs({include_docs: true});
+    }
     public setDiagramManager(diagramManager: DiagramManager) {
         diagramManager.onDiagramEventListingObservable.add((evt) => {
             if (evt.type == DiagramListingEventType.GETALL) {

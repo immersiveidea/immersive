@@ -15,6 +15,7 @@
     "havok": "cp ./node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm ./node_modules/.vite/deps"
   },
   "dependencies": {
+    "axios": "^0.24.0",
     "@babylonjs/core": "^6.21.3",
     "@babylonjs/gui": "^6.21.3",
     "@babylonjs/havok": "1.1.4",
@@ -38,6 +39,9 @@
     "pouchdb": "^8.0.1",
     "pouchdb-find": "^7.2.2",
     "query-string": "^8.1.0",
+    "react-dom": "^18.2.0",
+    "@types/react-dom": "^18.2.18",
+    "@types/react": "^18.2.52",
     "round": "^2.0.1",
     "uuid": "^9.0.0"
   },

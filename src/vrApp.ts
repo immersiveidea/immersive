@@ -1,3 +1,5 @@
+import {createRoot} from 'react-dom/client';
+import WebApp from './react/webApp';
 import {Engine, FreeCamera, Scene, Vector3} from "@babylonjs/core";
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
@@ -16,7 +18,6 @@ import {buildQuestLink} from "./util/functions/buildQuestLink";
 import {exportGltf} from "./util/functions/exportGltf";
 import {Tutorial} from "./tutorial/tutorial";
 
-
 export class VrApp {
     private scene: Scene;
     private engine: Engine;
@@ -24,6 +25,8 @@ export class VrApp {
     private logger: Logger = log.getLogger('App');
 
     constructor() {
+        const root = createRoot(document.getElementById('webApp'));
+        root.render(WebApp());
         log.setDefaultLevel('warn');
         log.getLogger('App').setLevel('debug');
         log.getLogger('DiagramManager').setLevel('debug');
@@ -61,6 +64,7 @@ export class VrApp {
             db.setConfig(newConfig);
         }, 2, false, this);
         await db.initialize();
+
         const camera: FreeCamera = new FreeCamera("Main Camera",
             new Vector3(0, 1.6, 0), scene);
         //camera.setTarget(new Vector3(0, 1.6, -3));
