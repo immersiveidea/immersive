@@ -11,11 +11,9 @@ import {
 import {ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
-import {DiagramListingMenu} from "../menus/diagramListingMenu";
 import {RoundButton} from "../objects/roundButton";
 
 export class Right extends Base {
-    private listingMenu: DiagramListingMenu;
 
     private startPosition: Vector3 = null;
 
@@ -42,7 +40,6 @@ export class Right extends Base {
                 controllers: Controllers,
     ) {
         super(controller, scene, xr, controllers, diagramManager);
-        this.listingMenu = new DiagramListingMenu(this.scene, xr, this.controllers, diagramManager);
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
             if (init.components['a-button']) {

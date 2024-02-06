@@ -6,8 +6,6 @@ import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
 import {DiagramManager} from "../diagram/diagramManager";
 import log, {Logger} from "loglevel";
-import {DiagramListing, DiagramListingEventType} from "../diagram/types/diagramListing";
-
 
 export class PouchdbPersistenceManager {
     configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
@@ -16,30 +14,14 @@ export class PouchdbPersistenceManager {
     //implement IPersistenceManager interface with pouchdb apis
     private db: PouchDB;
     private remote: PouchDB;
-    private config: PouchDB;
+
     private diagramListings: PouchDB;
     private readonly logger: Logger = log.getLogger('PouchdbPersistenceManager');
     constructor() {
-        this.config = new PouchDB("config");
         this.diagramListings = new PouchDB("diagramListings");
     }
 
-    public async getDiagramListings() {
-        return this.diagramListings.allDocs({include_docs: true});
-    }
     public setDiagramManager(diagramManager: DiagramManager) {
-        diagramManager.onDiagramEventListingObservable.add((evt) => {
-            if (evt.type == DiagramListingEventType.GETALL) {
-                this.diagramListings.allDocs({include_docs: true}).then((all) => {
-                    for (const entity of all.rows) {
-                        diagramManager.onDiagramEventListingObservable.notifyObservers({
-                            type: DiagramListingEventType.ADD,
-                            listing: {id: entity.doc._id, name: entity.doc.name}
-                        }, -1, false, this);
-                    }
-                });
-            }
-        }, -1, false, this);
         diagramManager.onDiagramEventObservable.add((evt) => {
             switch (evt.type) {
                 case DiagramEventType.CHANGECOLOR:
@@ -125,34 +107,6 @@ export class PouchdbPersistenceManager {
             this.logger.error(err);
         }
     }
-
-    public async addDiagram(diagram: DiagramListing) {
-        try {
-            const doc = await this.diagramListings.get(diagram.id);
-
-        } catch (err) {
-            this.diagramListings.put({...diagram, _id: diagram.id});
-        }
-    }
-
-    public async removeDiagram(diagram: DiagramListing) {
-        try {
-            this.diagramListings.delete(diagram.id);
-        } catch (err) {
-            this.logger.error(err);
-        }
-    }
-
-    public async modifyDiagram(diagram: DiagramListing) {
-        try {
-            const doc = await this.db.get(diagram.id);
-            this.db.put({...doc, ...diagram});
-        } catch (err) {
-            this.logger.error(err);
-        }
-
-    }
-
     public async getNewRelicData(): Promise<any[]> {
         return [];
     }
@@ -161,25 +115,23 @@ export class PouchdbPersistenceManager {
         return data;
     }
 
-    public async setConfig(config: any, initial: boolean = false): Promise<any> {
+    public async setConfig(config: AppConfigType, initial: boolean = false) {
         if (!initial) {
-            const doc = await this.config.get('1');
-            const newConf = {...config, _id: '1', _rev: doc._rev};
-            return this.config.put(newConf);
+            localStorage.setItem('config', JSON.stringify(config));
         } else {
-            const newConf = {...config, _id: '1'};
-            return this.config.put(newConf);
+            localStorage.setItem('config', JSON.stringify(config));
         }
     }
 
-    public async getConfig(): Promise<any> {
-        return this.config.get('1');
+    public getConfig(): AppConfigType {
+        return JSON.parse(localStorage.getItem('config')) as AppConfigType;
     }
 
     public async initialize() {
         try {
             let current = this.getPath();
-            const config = await this.config.get('1');
+            const configString = localStorage.getItem('config');
+            const config = JSON.parse(configString) as AppConfigType;
 
             if (!current && config.currentDiagramId) {
                 this.db = new PouchDB(config.currentDiagramId);
@@ -192,7 +144,7 @@ export class PouchdbPersistenceManager {
                 }
                 this.db = new PouchDB(config.currentDiagramId);
                 await this.beginSync(config.currentDiagramId);
-                await this.config.put(config);
+                localStorage.setItem('config', JSON.stringify(config));
             }
             this.configObserver.notifyObservers(config);
         } catch (err) {
@@ -262,10 +214,6 @@ export class PouchdbPersistenceManager {
                 this.db.put({...entity.doc, _rev: entity.doc._rev});
             }
         }
-    }
-
-    setCurrentDiagram(diagram: DiagramListing) {
-        this.currentDiagramId = diagram.id;
     }
 
     sync() {

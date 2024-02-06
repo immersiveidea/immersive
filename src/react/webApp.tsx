@@ -1,26 +1,34 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 function MainMenu({onClick}) {
     return (
-        <div className="overlay mini" id="main" onClick={onClick}>
+        <div className="overlay mini" id="main">
             <img height="120" src="/assets/ddd.svg" width="320"/>
-            <div id="startCreate"><a href="#" id="startCreateLink">Start</a></div>
+            <div id="diagrams"><a href="#" id="diagramsLink" onClick={onClick}>Diagrams</a></div>
+            <div id="enterXR"><a href="#" id="enterVRLink">Enter VR</a></div>
             <div id="download"><a href="#" id="downloadLink">Download Model</a></div>
         </div>
     )
 }
 
-function CreateMenu({display}) {
+function CreateMenu({display, toggleCreateMenu}) {
+    const onCreateClick = (evt) => {
+        evt.preventDefault();
+        const name = (document.querySelector('#createName') as HTMLInputElement).value;
+        if (name && name.length > 4) {
+            document.location.href = '/db/' + name;
+        } else {
+            window.alert('Name must be longer than 4 characters');
+        }
+    }
     return (
         <div className="overlay" id="create" style={{'display': display}}>
-
             <div>
                 <div><input id="createName" placeholder="Enter a name for your diagram" type="text"/></div>
                 <div><input id="createPassword" placeholder="Enter a password (optional)" type="text"/></div>
-                <div><a href="#" id="createActionLink">Create</a></div>
-                <div><a className="cancel" href="#" id="cancelCreateLink">Cancel</a></div>
+                <div><a href="#" id="createActionLink" onClick={onCreateClick}>Create</a></div>
+                <div><a className="cancel" onClick={toggleCreateMenu} href="#" id="cancelCreateLink">Cancel</a></div>
             </div>
-
         </div>
     )
 }
@@ -30,7 +38,6 @@ function TutorialMenu({onClick}) {
         <div className="overlay" id="tutorial">
             <h1>Help</h1>
             <div id="desktopTutorial"><a href="#" id="desktopLink" onClick={onClick}>Desktop</a></div>
-            <div id="questTutorial"><a href="#" id="questLink">Quest</a></div>
         </div>
     )
 }
@@ -45,15 +52,26 @@ function KeyboardHelp({display, onClick}) {
     )
 }
 
-function DiagramList() {
+function DiagramList({display, onClick}) {
+    const [dbList, setDbList] = useState([]);
+    useEffect(() => {
+        const listDb = async () => {
+            const data = await indexedDB.databases();
+            setDbList(data.filter((item) => item.name.indexOf('_pouch_') > -1).map((item) => {
+                return {name: item.name.replace('_pouch_', '')}
+            }));
+        };
+        listDb();
+    }, []);
+
+
     return (
-        <div className="overlay" id="diagramList" style={{'left': '500px'}}>
-            <h1>Existing Diagrams</h1>
+        <div className="overlay" id="diagramList" style={{'display': display}}>
+            <h1>Diagrams</h1>
+            <div id="startCreate"><a href="#" id="startCreateLink" onClick={onClick}>New</a></div>
             <div id="diagramListContent">
                 <ul>
-                    <li><a href="/db/ddd">ddd</a></li>
-                    <li><a href="/db/ddd2">ddd2</a></li>
-                    <li><a href="/db/ddd3">ddd3</a></li>
+                    {dbList.map((item) => <li><a href={`/db/${item.name}`}>{item.name}</a></li>)}
                 </ul>
             </div>
         </div>
@@ -64,21 +82,30 @@ function Menu() {
 
     const [createState, setCreateState] = useState('none');
     const [desktopTutorialState, setDesktopTutorialState] = useState('none');
+    const [diagramListState, setDiagramListState] = useState('none');
 
-    function handleCreateClick() {
+    function handleCreateClick(evt: React.MouseEvent<HTMLAnchorElement>) {
+        evt.preventDefault();
         setCreateState(createState == 'none' ? 'block' : 'none');
     }
 
-    function handleDesktopTutorialClick() {
+    function handleDesktopTutorialClick(evt: React.MouseEvent<HTMLAnchorElement>) {
+        evt.preventDefault();
         setDesktopTutorialState(desktopTutorialState == 'none' ? 'block' : 'none');
+    }
+
+    function handleDiagramListClick(evt: React.MouseEvent<HTMLAnchorElement>) {
+        evt.preventDefault();
+        setDiagramListState(diagramListState == 'none' ? 'block' : 'none');
     }
 
     return (
         <div>
-            <MainMenu onClick={handleCreateClick}/>
+            <MainMenu onClick={handleDiagramListClick}/>
             <TutorialMenu onClick={handleDesktopTutorialClick}/>
-            <CreateMenu display={createState}/>
+            <CreateMenu display={createState} toggleCreateMenu={handleCreateClick}/>
             <KeyboardHelp display={desktopTutorialState} onClick={handleDesktopTutorialClick}/>
+            <DiagramList onClick={handleCreateClick} display={diagramListState}/>
         </div>
     )
 }
@@ -89,8 +116,6 @@ export default function WebApp() {
             <Menu/>
         </div>
     )
-
-
 }
 /*
 const create = document.querySelector('#startCreateLink');

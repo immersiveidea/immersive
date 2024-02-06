@@ -14,12 +14,11 @@ import {toDiagramEntity} from "./functions/toDiagramEntity";
 import {v4 as uuidv4} from 'uuid';
 import {buildEntityActionManager} from "./functions/buildEntityActionManager";
 import {isDiagramEntity} from "./functions/isDiagramEntity";
-import {DiagramListingEvent} from "./types/diagramListing";
 
 
 export class DiagramManager {
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
-    public readonly onDiagramEventListingObservable: Observable<DiagramListingEvent> = new Observable();
+
     private readonly logger = log.getLogger('DiagramManager');
     private readonly toolbox: Toolbox;
     private readonly scene: Scene;
@@ -68,12 +67,6 @@ export class DiagramManager {
         });
     }
 
-    //@TODO Refactor
-    /*public setPersistenceManager(persistenceManager: IPersistenceManager) {
-        this.persistenceManager = persistenceManager;
-        this._config = new AppConfig(persistenceManager);
-        this.persistenceManager.updateObserver.add(this.onRemoteEvent, -1, true, this);
-    }*/
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
         let newMesh;
         if (!mesh.isAnInstance) {
@@ -97,13 +90,6 @@ export class DiagramManager {
         if (this.config.current?.physicsEnabled) {
             applyPhysics(this.sounds, newMesh, this.scene);
         }
-        //@TODO Refactor
-        /*this.onDiagramEventObservable.notifyObservers({
-            type: DiagramEventType.ADD,
-            entity: toDiagramEntity(newMesh)
-        }, 2);*/
-        //this.persistenceManager.add(toDiagramEntity(newMesh));
-
         return newMesh;
     }
 

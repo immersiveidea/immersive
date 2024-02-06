@@ -1,0 +1,188 @@
+body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0px;
+    padding: 0px;
+    aspect-ratio: auto;
+    font-family: Roboto, sans-serif;
+    font-size: large;
+    color: #4444ee;
+}
+
+.scene {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    margin: 0px;
+    padding: 0px;
+    background: transparent;
+}
+
+
+div.overlay {
+    position: absolute;
+    background: #000;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 12;
+    width: 320px;
+    height: 120px;
+}
+
+div.overlay div {
+    background-color: #000000;
+    color: #FFD700;
+    padding: 15px 25px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+}
+
+div.overlay div a {
+    display: inline-block;
+    text-decoration: none;
+    border-color: #FFD700;
+    border-style: solid;
+    border-width: 1px;
+    padding: 10px;
+    width: 200px;
+}
+
+div.overlay div a:visited, div.overlay div a:link {
+    color: white;
+}
+
+div.overlay div a:hover {
+    background-color: #FFD700;
+    color: #000000;
+}
+
+div.overlay div a {
+
+}
+
+div.overlay input {
+    display: inline-block;
+    margin: 10px auto;
+    text-decoration: none;
+    border-color: #FFD700;
+    border-style: solid;
+    border-width: 1px;
+    padding: 10px;
+    width: 200px;
+}
+
+div#create {
+    left: 600px;
+    top: 400px;
+    transform: translate(-50%, -50%);
+    z-index: 14;
+    width: 320px;
+    height: 344px;
+    border: 3px inset #FFD700;
+    display: none;
+}
+
+div.overlay div a.cancel {
+    font-size: small;
+    font-weight: lighter;
+    font-style: italic;
+    background-color: #222211;
+    color: #EEC755;
+}
+
+#diagramListContent ul {
+    list-style-type: none;
+    text-align: left;
+    padding: 0;
+    padding-inline-start: 0;
+
+}
+
+#diagramList {
+    overflow: scroll;
+}
+
+#diagramList > h1 {
+    width: 100%;
+    text-align: center;
+}
+
+#diagramListContent li {
+    margin: 12px;
+}
+
+#diagramListContent li a {
+    width: 90%;
+}
+
+div.overlay div a.cancel:hover {
+    background-color: #EEC700;
+    color: #000000;
+}
+
+
+#main.mini {
+    left: 100px;
+    top: 200px;
+    width: 160px;
+}
+
+#main.mini img, #tutorial img {
+    width: 160px;
+    height: 60px;
+}
+
+#main.mini div a, #tutorial div a {
+    width: 80px;
+}
+
+h1 {
+    font-size: x-large;
+    font-weight: bolder;
+    text-align: center;
+    color: #F9F9E9;
+}
+
+#tutorial {
+    z-index: 15;
+    left: 100px;
+    top: 560px;
+    width: 160px;
+    height: 210px;
+}
+
+#diagramList {
+    left: 340px;
+    top: 240px;
+    height: 300px;
+}
+
+#create {
+    left: 500px;
+    top: 340px;
+}
+
+
+#closekey, #closekey a:active, #closekey a:visited, #closekey a:link {
+    position: relative;
+    color: #ffffff;
+}
+
+#enterXR {
+    display: none;
+}
+
+#loadingGrid {
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+}
