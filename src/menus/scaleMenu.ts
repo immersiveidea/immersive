@@ -20,7 +20,7 @@ export class ScaleMenu extends AbstractMenu {
     constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
         super(scene, xr, controllers);
 
-        this.sounds = new DiaSounds(scene);
+
         this.transformNode = new TransformNode("scaleMenu", scene);
         this.xTransformNode = new TransformNode("xTransformNode", scene);
         this.xTransformNode.parent = this.transformNode;

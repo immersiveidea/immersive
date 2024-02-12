@@ -181,7 +181,7 @@ export class EditMenu extends AbstractMenu {
         panel.columns = 4;
         this.manager.addControl(panel);
         //panel.addControl(this.makeButton("Cameras", "camera"));
-        //panel.addControl(this.makeButton("Modify", "modify"));
+        panel.addControl(this.makeButton("Modify", "modify"));
         panel.addControl(this.makeButton("Remove", "remove"));
         panel.addControl(this.makeButton("Label", "label"));
         panel.addControl(this.makeButton("Copy", "copy"));

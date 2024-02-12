@@ -9,6 +9,7 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
     const xr = await WebXRDefaultExperience.CreateAsync(scene, {
         floorMeshes: [ground],
         disableTeleportation: true,
+        disableDefaultUI: true,
         outputCanvasOptions: {
             canvasOptions: {
                 framebufferScaleFactor: 1
@@ -19,10 +20,23 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
             enablePointerSelectionOnAllControllers: true
         }
 
+
     });
     xr.baseExperience.onInitialXRPoseSetObservable.add((camera) => {
         //camera.position = new Vector3(0, -1.6, 0);
     });
+    const enterButton = (document.querySelector('#enterXR') as HTMLAnchorElement);
+    if (enterButton) {
+        const vrSupported = await xr.baseExperience.sessionManager.isSessionSupportedAsync('immersive-vr');
+        if (vrSupported) {
+            enterButton.style.display = "block";
+            enterButton.addEventListener('click', (evt) => {
+                evt.preventDefault();
+                xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
+            });
+        }
+
+    }
 
     if (spinner) {
         spinner.hide();

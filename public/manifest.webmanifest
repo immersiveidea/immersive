@@ -6,7 +6,7 @@
   "short_name": "Deep Diagram",
   "theme_color": "#000000",
   "background_color": "#000000",
-  "description": "Immersive diagraming tool to dig into deeper meaning behind your ideas",
+  "description": "An immersive mind mapping and diagramming tool that lets you create, share, and visualize data on the Oculus Quest and desktop browsers.",
   "icons": [
     {
       "src": "/Android.png",
@@ -28,22 +28,22 @@
   ],
   "screenshots": [
     {
-      "src": "/assets/com.oculus.browser-20230121-110512.jpg",
+      "src": "/assets/screenshot1.png",
       "sizes": "1024x1024",
-      "type": "image/jpeg",
-      "label": "Example 1"
+      "type": "image/png",
+      "label": "Example of a few boxes on the web"
     },
     {
-      "src": "/assets/com.oculus.browser-20230121-110746.jpg",
+      "src": "/assets/screenshot2.png",
       "sizes": "1024x1024",
-      "type": "image/jpeg",
-      "label": "Example 2"
+      "type": "image/png",
+      "label": "Example of menus on the web"
     },
     {
-      "src": "/assets/com.oculus.browser-20230121-111323.jpg",
+      "src": "/assets/screenshots3.png",
       "sizes": "1024x1024",
-      "type": "image/jpeg",
-      "label": "Complex Architecture Diagram"
+      "type": "image/jpg",
+      "label": "Example showing the web app on the Oculus Quest"
     }
   ]
 }

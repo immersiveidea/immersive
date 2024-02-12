@@ -21,13 +21,17 @@ export class WebController {
     private readonly controllers: Controllers;
     private upDownWheel: boolean = false;
     private fowardBackWheel: boolean = false;
+    private canvas: HTMLCanvasElement;
 
-    constructor(scene: Scene, rig: Rigplatform, diagramManager: DiagramManager, controllers: Controllers) {
+    constructor(scene: Scene,
+                rig: Rigplatform,
+                diagramManager: DiagramManager,
+                controllers: Controllers) {
         this.scene = scene;
         this.rig = rig;
         this.diagramManager = diagramManager;
         this.controllers = controllers;
-
+        this.canvas = document.querySelector('#gameCanvas');
         this.referencePlane = MeshBuilder.CreatePlane('referencePlane', {size: 10}, this.scene);
         this.referencePlane.setEnabled(false);
         this.referencePlane.visibility = 0.5;
@@ -40,9 +44,9 @@ export class WebController {
 
         this.scene.onKeyboardObservable.add((kbInfo) => {
             this.logger.debug(kbInfo);
-            const canvas = document.querySelector('#gameCanvas');
 
-            if (canvas && kbInfo.event.target != canvas) {
+
+            if (this.canvas && kbInfo.event.target != this.canvas) {
                 return;
             }
             if (kbInfo.type == KeyboardEventTypes.KEYUP) {
@@ -100,7 +104,6 @@ export class WebController {
                 if (kbInfo.type == 1) {
                     //this.referencePlane.setEnabled(true);
                 } else {
-
                     this.referencePlane.setEnabled(false);
                     if (this.pickedMesh) {
                         this.pickedMesh.showBoundingBox = false;
@@ -113,10 +116,18 @@ export class WebController {
         this.scene.onPointerUp = () => {
             this.mouseDown = false;
             this.rig.turn(0);
+            if (this.pickedMesh) {
+                this.referencePlane.setEnabled(false);
+                this.pickedMesh.showBoundingBox = false;
+                this.pickedMesh = null;
+            }
         };
 
 
         window.addEventListener('wheel', (evt) => {
+            if (this.canvas && evt.target != this.canvas) {
+                return;
+            }
             switch (evt.buttons) {
                 case 0:
                     if (this.fowardBackWheel == false) {

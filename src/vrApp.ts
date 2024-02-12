@@ -14,7 +14,6 @@ import {groundMeshObserver} from "./util/functions/groundMeshObserver";
 import {MainMenu} from "./menus/mainMenu";
 import {buildQuestLink} from "./util/functions/buildQuestLink";
 import {exportGltf} from "./util/functions/exportGltf";
-import {Tutorial} from "./tutorial/tutorial";
 
 export class VrApp {
     private scene: Scene;
@@ -42,7 +41,6 @@ export class VrApp {
         const spinner = new Spinner(scene);
         spinner.show();
         const config = new AppConfig();
-        const tutorial = new Tutorial(scene, config);
         const controllers = new Controllers();
         const toolbox = new Toolbox(scene, controllers);
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
