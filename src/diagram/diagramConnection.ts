@@ -107,6 +107,7 @@ export class DiagramConnection {
         this._mesh = MeshBuilder.CreateCylinder(this.id + "_connection", {diameter: .02, height: 1}, this.scene);
         this._mesh.material = buildStandardMaterial(this.id + "_material", this.scene, "#000000");
         this.transformNode = new TransformNode(this.id + "_transform", this.scene);
+        this.transformNode.metadata = {exportable: true};
         this._mesh.setParent(this.transformNode);
         this.recalculate();
         this._mesh.id = this.id;
@@ -117,8 +118,10 @@ export class DiagramConnection {
             this._mesh.metadata.from = this._from;
         }
         if (this._to) {
-            this.mesh.metadata.to = this.to;
+            this._mesh.metadata.to = this.to;
+
         }
+        this._mesh.metadata.exportable = true;
         this.setPoints();
         this.scene.onBeforeRenderObservable.add(this.beforeRender, -1, true, this);
         this.scene.onNewMeshAddedObservable.add(this.onMeshAdded, -1, true, this);
