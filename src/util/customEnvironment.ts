@@ -33,9 +33,10 @@ export class CustomEnvironment {
         if (loading) {
             loading.remove();
         }
-        const light = new HemisphericLight("light1", new Vector3(.1, 1, 0), scene);
+        const light = new HemisphericLight("light1", new Vector3(1, 2, 1), scene);
         light.groundColor = new Color3(.1, .1, .1)
-        light.intensity = .6;
+        light.diffuse = new Color3(1, 1, 1);
+        light.intensity = .8;
 
         const physics = new CustomPhysics(this.scene, config);
         physics

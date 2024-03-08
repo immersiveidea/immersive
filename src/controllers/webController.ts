@@ -51,9 +51,16 @@ export class WebController {
             }
             if (kbInfo.type == KeyboardEventTypes.KEYUP) {
                 this.rig.turn(0);
+                this.rig.updown(0);
             }
             if (kbInfo.type == 1) {
                 switch (kbInfo.event.key) {
+                    case "W":
+                        this.rig.updown(-this.speed);
+                        break;
+                    case "S":
+                        this.rig.updown(this.speed);
+                        break;
                     case "ArrowUp":
                     case "w":
                         this.rig.forwardback(-this.speed);

@@ -57,8 +57,9 @@ function DiagramList({display, onClick}) {
     useEffect(() => {
         const listDb = async () => {
             const data = await indexedDB.databases();
+            let i = 0;
             setDbList(data.filter((item) => item.name.indexOf('_pouch_') > -1).map((item) => {
-                return {name: item.name.replace('_pouch_', '')}
+                return {key: i++, name: item.name.replace('_pouch_', '')}
             }));
         };
         listDb();
@@ -71,7 +72,7 @@ function DiagramList({display, onClick}) {
             <div id="startCreate"><a href="#" id="startCreateLink" onClick={onClick}>New</a></div>
             <div id="diagramListContent">
                 <ul>
-                    {dbList.map((item) => <li><a href={`/db/${item.name}`}>{item.name}</a></li>)}
+                    {dbList.map((item) => <li key={item.key}><a href={`/db/${item.name}`}>{item.name}</a></li>)}
                 </ul>
             </div>
         </div>

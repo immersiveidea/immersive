@@ -1,4 +1,4 @@
-import {Engine, FreeCamera, Scene, Vector3} from "@babylonjs/core";
+import {Color3, Engine, FreeCamera, Scene, Vector3} from "@babylonjs/core";
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
 import {Toolbox} from "./toolbox/toolbox";
@@ -6,7 +6,7 @@ import log, {Logger} from "loglevel";
 import {AppConfig} from "./util/appConfig";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
-import {Controllers} from "./controllers/controllers";
+import {ControllerEventType, Controllers} from "./controllers/controllers";
 import {Spinner} from "./util/spinner";
 import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager";
 import {addSceneInspector} from "./util/functions/sceneInspctor";
@@ -38,13 +38,21 @@ export class VrApp {
         }
         const scene = new Scene(this.engine);
         this.scene = scene;
+        this.scene.ambientColor = new Color3(.1, .1, .1);
+
         const spinner = new Spinner(scene);
         spinner.show();
         const config = new AppConfig();
         const controllers = new Controllers();
-        const toolbox = new Toolbox(scene, controllers);
+        const toolbox = new Toolbox(scene);
+        controllers.controllerObserver.add((evt) => {
+            if (evt.type == ControllerEventType.X_BUTTON) {
+                if (evt.value == 1) {
+                    toolbox.toggle();
+                }
+            }
+        })
         const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
-
         const db = new PouchdbPersistenceManager();
         db.setDiagramManager(diagramManager);
         db.configObserver.add((newConfig) => {

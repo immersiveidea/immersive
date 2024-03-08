@@ -7,11 +7,16 @@ export function buildMesh(type: ToolType, toolname: string, scene: Scene): Mesh 
             return MeshBuilder.CreateBox(toolname, {width: 1, height: 1, depth: 1}, scene);
 
         case ToolType.SPHERE:
-            return MeshBuilder.CreateIcoSphere(toolname, {subdivisions: 5, radius: .5}, scene);
+            return MeshBuilder.CreateIcoSphere(toolname, {subdivisions: 6, radius: .5, flat: false}, scene);
         //return MeshBuilder.CreateSphere(toolname, {diameter: 1}, scene);
 
         case ToolType.CYLINDER:
-            return MeshBuilder.CreateCylinder(toolname, {height: 1, diameter: 1, subdivisions: 1, tessellation: 12}, scene);
+            return MeshBuilder.CreateCylinder(toolname, {
+                height: 1,
+                diameter: 1,
+                subdivisions: 1,
+                tessellation: 24
+            }, scene);
 
         case ToolType.CONE:
             return MeshBuilder.CreateCylinder(toolname, {
@@ -19,7 +24,7 @@ export function buildMesh(type: ToolType, toolname: string, scene: Scene): Mesh 
                 subdivisions: 1,
                 height: 1,
                 diameterBottom: 1,
-                tessellation: 12
+                tessellation: 24
             }, scene);
 
         case ToolType.PLANE:

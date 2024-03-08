@@ -1,5 +1,5 @@
 import {AdvancedDynamicTexture, CheckboxGroup, RadioGroup, SelectionPanel, StackPanel} from "@babylonjs/gui";
-import {MeshBuilder, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {MeshBuilder, Scene, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {AppConfig} from "../util/appConfig";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
@@ -9,6 +9,7 @@ import {setMenuPosition} from "../util/functions/setMenuPosition";
 export class ConfigMenu extends AbstractMenu {
     private sounds: DiaSounds;
     private config: AppConfig;
+    private readonly baseTransform: TransformNode;
     private gridSnaps: Array<{ label: string, value: number }> = [
         {label: "Off", value: 0},
         {label: "0.01", value: 0.01},
@@ -22,11 +23,11 @@ export class ConfigMenu extends AbstractMenu {
         {label: "22.5", value: 22.5},
         {label: "45", value: 45},
         {label: "90", value: 90},
-
     ]
 
     constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers, config: AppConfig) {
         super(scene, xr, controllers);
+        this.baseTransform = new TransformNode("configMenuBase", scene);
         this.config = config;
         this.sounds = new DiaSounds(scene);
 
@@ -35,56 +36,72 @@ export class ConfigMenu extends AbstractMenu {
                 this.toggle();
             }
         });
+        this.buildMenu();
+    }
 
+    public toggle() {
+
+        if (this.baseTransform.parent.isEnabled()) {
+            this.sounds.exit.play();
+            this.baseTransform.parent.setEnabled(false);
+        } else {
+            this.sounds.enter.play();
+            this.baseTransform.parent.setEnabled(true);
+        }
+        setMenuPosition(this.handle.mesh, this.scene, new Vector3(.6, .1, 0));
 
     }
 
-
-    public toggle() {
-        if (this.handle) {
-            this.handle.mesh.dispose(false, true);
-            this.sounds.exit.play();
-            this.handle = null;
-            return;
-        }
-        this.sounds.enter.play();
+    private buildMenu() {
         const configPlane = MeshBuilder
-            .CreatePlane("gridSizePlane",
+            .CreatePlane("configMenuPlane",
                 {
                     width: .6,
                     height: .3
                 }, this.scene);
-        this.createHandle(configPlane);
+        configPlane.rotation.y = Math.PI;
+        configPlane.setParent(this.baseTransform);
+        this.createHandle(this.baseTransform);
+        this.baseTransform.position.set(0, .2, 0);
         const configTexture = AdvancedDynamicTexture.CreateForMesh(configPlane, 2048, 1024);
-
-        configTexture.background = "white";
+        //configTexture.background = "#00ffff";
         const columnPanel = new StackPanel('columns');
-        columnPanel.fontSize = "48px";
         columnPanel.isVertical = false;
+
+        //columnPanel.width = 1;
+        columnPanel.fontSize = "48px";
+        //columnPanel.background = "#ff0000";
+        //
         configTexture.addControl(columnPanel);
         const selectionPanel1 = new SelectionPanel("selectionPanel1");
-        selectionPanel1.width = .3;
+        selectionPanel1.width = "500px";
+        //selectionPanel1.width = .3;
         columnPanel.addControl(selectionPanel1);
         this.buildGridSizeControl(selectionPanel1);
         this.buildCreateScaleControl(selectionPanel1);
+
         const selectionPanel2 = new SelectionPanel("selectionPanel2");
-        selectionPanel2.width = .3;
+        selectionPanel2.width = "500px";
+
         columnPanel.addControl(selectionPanel2);
         this.buildRotationSnapControl(selectionPanel2);
         this.buildTurnSnapControl(selectionPanel2);
 
         const selectionPanel3 = new SelectionPanel("selectionPanel3");
-        selectionPanel3.width = .3;
+        selectionPanel3.width = "768px";
         columnPanel.addControl(selectionPanel3);
 
         this.buildFlyModeControl(selectionPanel3);
 
-        configPlane.position.set(0, .2, 0);
-        setMenuPosition(this.handle.mesh, this.scene, new Vector3(.6, .4, 0));
+        setMenuPosition(this.handle.mesh, this.scene, new Vector3(.6, .1, 0));
+        this.baseTransform.parent.setEnabled(false);
+
     }
 
     private adjustRadio(radio: RadioGroup | CheckboxGroup) {
         radio.groupPanel.height = "512px";
+        radio.groupPanel.background = "#cccccc";
+        radio.groupPanel.color = "#000000";
         radio.groupPanel.fontSize = "64px";
         radio.groupPanel.children[0].height = "70px";
         radio.groupPanel.paddingLeft = "16px";
@@ -100,16 +117,15 @@ export class ConfigMenu extends AbstractMenu {
 
     private buildCreateScaleControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Create Scale");
-
         selectionPanel.addGroup(radio);
         for (const [index, snap] of this.gridSnaps.entries()) {
             const selected = (this.config.current.createSnap == snap.value);
+            console.log(selected);
             radio.addRadio(snap.label, this.createVal.bind(this), selected);
         }
         this.adjustRadio(radio);
         return radio;
     }
-
     private buildFlyModeControl(selectionPanel: SelectionPanel): CheckboxGroup {
         const checkbox = new CheckboxGroup("Fly Mode");
         selectionPanel.addGroup(checkbox);
@@ -117,7 +133,6 @@ export class ConfigMenu extends AbstractMenu {
         this.adjustRadio(checkbox);
         return checkbox;
     }
-
     private buildRotationSnapControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Rotation Snap");
         selectionPanel.addGroup(radio);
@@ -128,15 +143,11 @@ export class ConfigMenu extends AbstractMenu {
         this.adjustRadio(radio);
         return radio;
     }
-
     private buildGridSizeControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Grid Snap");
-
         selectionPanel.addGroup(radio);
-
         for (const [index, snap] of this.gridSnaps.entries()) {
             const selected = (this.config.current.gridSnap == snap.value);
-
             radio.addRadio(snap.label, this.gridVal.bind(this), selected);
         }
         this.adjustRadio(radio);

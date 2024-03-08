@@ -17,6 +17,7 @@ export class Handle {
         handle.metadata = {handle: true};
         if (this.transformNode) {
             this.transformNode.setParent(handle);
+            //this.transformNode.rotation.y = Math.PI;
         }
         this.mesh = handle;
     }
@@ -30,9 +31,9 @@ function getHandleMesh(name: string, scene: Scene): InstancedMesh {
         return instance;
     }
     const handle = MeshBuilder.CreateCapsule("base-handle-mesh", {
-        radius: .05,
+        radius: .04,
         orientation: Vector3.Right(),
-        height: .4
+        height: .3
     }, scene);
     handle.setEnabled(false);
     handle.material = buildStandardMaterial('base-handle-material', scene, "#CCCCDD");

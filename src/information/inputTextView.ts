@@ -1,4 +1,4 @@
-import {MeshBuilder, Observable, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {MeshBuilder, Observable, Scene, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import log, {Logger} from "loglevel";
 import {AdvancedDynamicTexture, Control, InputText, VirtualKeyboard} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
@@ -37,8 +37,10 @@ export class InputTextView {
 
     public showVirtualKeyboard() {
 
-
+        const inputBaseNode = new TransformNode("inputBase", this.scene);
         const inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
+        inputMesh.parent = inputBaseNode;
+        inputMesh.rotation.y = Math.PI;
         const advancedTexture = AdvancedDynamicTexture.CreateForMesh(inputMesh, 2048, 1024, false);
 
         const input = new InputText();
@@ -96,7 +98,7 @@ export class InputTextView {
                 this.sounds.exit.play();
             }
         });
-        setMenuPosition(inputMesh, this.scene, new Vector3(0, .4, 0));
+        setMenuPosition(inputBaseNode, this.scene, new Vector3(0, .4, 0));
         this.sounds.enter.play();
     }
 

@@ -168,20 +168,21 @@ export class EditMenu extends AbstractMenu {
         //this.scaleMenu = new ScaleMenu(this.scene, this.xr, this.controllers);
         this.sounds = new DiaSounds(scene);
         this.diagramManager = diagramManager;
-        this.gizmoManager = new GizmoManager(scene);
+        /*this.gizmoManager = new GizmoManager(scene);
         this.gizmoManager.boundingBoxGizmoEnabled = true;
         this.gizmoManager.gizmos.boundingBoxGizmo.scaleBoxSize = .020;
         this.gizmoManager.gizmos.boundingBoxGizmo.rotationSphereSize = .020;
         this.gizmoManager.gizmos.boundingBoxGizmo.scaleDragSpeed = 2;
         this.gizmoManager.clearGizmoOnEmptyPointerEvent = true;
-        this.gizmoManager.usePointerToAttachGizmos = false;
+        this.gizmoManager.usePointerToAttachGizmos = false;*/
         this.manager = new GUI3DManager(this.scene);
-        const panel = new PlanePanel();
 
+        const panel = new PlanePanel();
+        panel.orientation = PlanePanel.FACEFORWARDREVERSED_ORIENTATION;
         panel.columns = 4;
         this.manager.addControl(panel);
         //panel.addControl(this.makeButton("Cameras", "camera"));
-        panel.addControl(this.makeButton("Modify", "modify"));
+        //panel.addControl(this.makeButton("Modify", "modify"));
         panel.addControl(this.makeButton("Remove", "remove"));
         panel.addControl(this.makeButton("Label", "label"));
         panel.addControl(this.makeButton("Copy", "copy"));
@@ -218,7 +219,7 @@ export class EditMenu extends AbstractMenu {
         });
         this.panel = panel;
         this.createHandle(this.manager.rootContainer.children[0].node);
-        this.manager.rootContainer.children[0].node.position.y = .2;
+        this.manager.rootContainer.children[0].node.position.y = .15;
         this.isVisible = false;
 
     }

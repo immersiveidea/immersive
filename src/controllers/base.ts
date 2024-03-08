@@ -143,7 +143,7 @@ export class Base {
         this.previousScaling = mesh?.scaling.clone();
         this.previousPosition = mesh?.position.clone();
 
-        if (("toolbox" != mesh?.parent?.parent?.id) || player) {
+        if (!mesh.metadata?.grabClone || player) {
             if (mesh.physicsBody) {
                 const transformNode = setupTransformNode(mesh, this.controller.motionController.rootMesh);
                 mesh.physicsBody.setMotionType(PhysicsMotionType.ANIMATED);
@@ -155,6 +155,8 @@ export class Base {
             this.grabbedMesh = mesh;
         } else {
             const clone = grabAndClone(this.diagramManager, mesh, this.controller.motionController.rootMesh);
+            clone.newMesh.metadata.grabClone = false;
+            clone.newMesh.metadata.tool = false;
             this.grabbedMeshParentId = clone.transformNode.id;
             this.grabbedMesh = clone.newMesh;
             this.previousParentId = null;
