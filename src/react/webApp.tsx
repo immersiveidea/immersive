@@ -6,6 +6,7 @@ function MainMenu({onClick}) {
             <img height="120" src="/assets/ddd.svg" width="320"/>
             <div id="diagrams"><a href="#" id="diagramsLink" onClick={onClick}>Diagrams</a></div>
             <div id="enterXR"><a href="#" id="enterVRLink">Enter VR</a></div>
+            <QuestLink/>
             <div id="download"><a href="#" id="downloadLink">Download Model</a></div>
         </div>
     )
@@ -48,6 +49,15 @@ function KeyboardHelp({display, onClick}) {
             <div id="closekey"><a href="#" onClick={onClick}>X</a></div>
             <img height="240" src="/assets/textures/keyboardhelp2.jpg" width="480"/>
             <img height="240" src="/assets/textures/mousehelp.jpg" width="180"/>
+        </div>
+    )
+}
+
+function QuestLink() {
+    const link = "https://www.oculus.com/open_url/?url=https://www.deepdiagram.com" + document.location.pathname;
+    return (
+        <div id="questLaunch">
+            <a href={link} target="_blank">Launch On Quest</a>
         </div>
     )
 }
