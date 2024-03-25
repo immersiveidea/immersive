@@ -17,5 +17,5 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: 20.x
-    - run: npm build
-    - run: pm2 restart immersive
+    - run: npm ci
+    - run: npm run build
