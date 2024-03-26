@@ -19,3 +19,4 @@ jobs:
         node-version: 20.x
     - run: npm ci
     - run: npm run build
+    - run: cp -r ./dist /var/www/deepdiagram
