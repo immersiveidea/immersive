@@ -16,13 +16,10 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: 20.x
-      env:
-        VITE_SYNCDB_ENDPOINT: ${{ secrets.VITE_SYNCDB_ENDPOINT }}
-        VITE_USER_ENDPOINT: ${{ secrets.VITE_USER_ENDPOINT }}
-    - run: echo "$A"
-      env:
-        A: ${{ secrets.VITE_SYNCDB_ENDPOINT }}
     - run: echo "test"
     - run: npm ci
     - run: npm run build
+      env:
+        VITE_SYNCDB_ENDPOINT: ${{ secrets.VITE_SYNCDB_ENDPOINT }}
+        VITE_USER_ENDPOINT: ${{ secrets.VITE_USER_ENDPOINT }}
     - run: cp -r ./dist/* /var/www/deepdiagram
