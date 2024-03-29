@@ -19,18 +19,13 @@ export class ScaleMenu extends AbstractMenu {
 
     constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
         super(scene, xr, controllers);
-
-
         this.transformNode = new TransformNode("scaleMenu", scene);
         this.xTransformNode = new TransformNode("xTransformNode", scene);
         this.xTransformNode.parent = this.transformNode;
-
         this.yTransformNode = new TransformNode("yTransformNode", scene);
         this.yTransformNode.parent = this.transformNode;
-
         this.zTransformNode = new TransformNode("zTransformNode", scene);
         this.zTransformNode.parent = this.transformNode;
-
         //super.createHandle(this.transformNode);
         this.transformNode.position.y = 0;
         this.transformNode.position.z = 0;
@@ -59,8 +54,8 @@ export class ScaleMenu extends AbstractMenu {
         //manager.rootContainer.position.y = 2;
         //manager.rootContainer.node.position.y = 2;
         this.xSlider = new Slider3D("xslider");
-        this.ySlider = new Slider3D("xslider");
-        this.zSlider = new Slider3D("xslider");
+        this.ySlider = new Slider3D("yslider");
+        this.zSlider = new Slider3D("zslider");
 
         manager.addControl(this.xSlider);
         manager.addControl(this.ySlider);

@@ -1,7 +1,9 @@
+/// <reference types="vitest" />
 import {defineConfig} from "vite";
 
 /** @type {import('vite').UserConfig} */
 export default defineConfig({
+    test: {},
     define: {},
     optimizeDeps: {
         esbuildOptions: {
@@ -12,10 +14,10 @@ export default defineConfig({
     },
     server: {
         port: 3001,
-
         proxy: {
-            '/.netlify': {
-                target: 'http://localhost:9999/',
+            '^/sync/.*': {
+                target: 'https://www.deepdiagram.com/',
+                changeOrigin: true,
             }
         }
     },

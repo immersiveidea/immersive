@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "cp ./node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm ./node_modules/.vite/deps && vite",
+    "test": "vitest",
     "build": "vite build",
     "preview": "vite preview",
     "serve": "node server.js",
@@ -15,7 +16,7 @@
     "havok": "cp ./node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm ./node_modules/.vite/deps"
   },
   "dependencies": {
-    "axios": "^0.24.0",
+    "axios": "^1.6.8",
     "@babylonjs/core": "^6.45.1",
     "@babylonjs/gui": "^6.45.1",
     "@babylonjs/havok": "1.3.1",
@@ -24,31 +25,33 @@
     "@babylonjs/materials": "^6.45.1",
     "@babylonjs/procedural-textures": "^6.45.1",
     "@babylonjs/serializers": "^6.45.1",
-    "@cloudflare/workers-types": "^4.20230821.0",
-    "@netlify/functions": "^2.3.0",
     "events": "^3.3.0",
     "@typed-mxgraph/typed-mxgraph": "^1.0.8",
     "@types/node": "^18.14.0",
     "earcut": "^2.2.4",
     "file-saver": "^2.0.5",
     "@types/file-saver": "^2.0.6",
+    "@picovoice/eagle-web": "^1.0.0",
+    "@picovoice/web-voice-processor": "^4.0.9",
+    "@picovoice/cobra-web": "^2.0.3",
     "hls.js": "^1.1.4",
     "loglevel": "^1.8.1",
-    "mxgraph": "^4.2.2",
     "niceware": "^4.0.0",
     "pouchdb": "^8.0.1",
-    "pouchdb-find": "^7.2.2",
+    "pouchdb-find": "^8.0.1",
     "query-string": "^8.1.0",
+    "recordrtc": "^5.6.0",
     "react-dom": "^18.2.0",
-    "@types/react-dom": "^18.2.18",
-    "@types/react": "^18.2.52",
+    "rfc4648": "^1.5.3",
+    "@types/react-dom": "^18.2.22",
+    "@types/react": "^18.2.72",
     "round": "^2.0.1",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "typescript": "^4.9.5",
-    "vite": "^4.4.9",
-    "vite-plugin-api": "^0.1.11",
+    "vite": "^5.2.6",
+    "vitest": "^1.4.0",
     "vite-plugin-cp": "^1.0.0"
   }
 }

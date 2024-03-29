@@ -6,7 +6,9 @@ import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
 import {DiagramManager} from "../diagram/diagramManager";
 import log, {Logger} from "loglevel";
+import {syncDoc} from "./functions/syncDoc";
 
+const logger: Logger = log.getLogger('PouchdbPersistenceManager');
 export class PouchdbPersistenceManager {
     configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
     updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
@@ -16,8 +18,12 @@ export class PouchdbPersistenceManager {
     private remote: PouchDB;
 
     private diagramListings: PouchDB;
-    private readonly logger: Logger = log.getLogger('PouchdbPersistenceManager');
+
+
+    private user: string;
+
     constructor() {
+        logger.setLevel('debug');
         this.diagramListings = new PouchDB("diagramListings");
     }
 
@@ -78,7 +84,7 @@ export class PouchdbPersistenceManager {
         try {
             this.db.put(newEntity);
         } catch (err) {
-            this.logger.error(err);
+            logger.error(err);
         }
     }
 
@@ -90,7 +96,7 @@ export class PouchdbPersistenceManager {
             const doc = await this.db.get(id);
             this.db.remove(doc);
         } catch (err) {
-            this.logger.error(err);
+            logger.error(err);
         }
     }
 
@@ -104,9 +110,10 @@ export class PouchdbPersistenceManager {
             this.db.put(newDoc);
 
         } catch (err) {
-            this.logger.error(err);
+            logger.error(err);
         }
     }
+
     public async getNewRelicData(): Promise<any[]> {
         return [];
     }
@@ -161,7 +168,7 @@ export class PouchdbPersistenceManager {
             try {
                 await this.setConfig(defaultConfig, true);
             } catch (err) {
-                this.logger.error(err);
+                logger.error(err);
             }
 
             this.diagramListings.put({_id: defaultConfig.currentDiagramId, name: "New Diagram"});
@@ -171,11 +178,13 @@ export class PouchdbPersistenceManager {
         }
         try {
             const all = await this.db.allDocs({include_docs: true});
+
             for (const entity of all.rows) {
+                logger.debug(entity.doc);
                 this.updateObserver.notifyObservers(entity.doc, 1);
             }
         } catch (err) {
-            this.logger.error(err);
+            logger.error(err);
         }
 
     }
@@ -188,27 +197,12 @@ export class PouchdbPersistenceManager {
             return null;
         }
     }
-    syncDoc = function (info) {
-        this.logger.info(info);
-        if (info.direction == 'pull') {
-            const docs = info.change.docs;
-            for (const doc of docs) {
-                if (doc._deleted) {
-                    this.removeObserver.notifyObservers({id: doc._id, template: doc.template}, 1);
 
-                } else {
-                    this.updateObserver.notifyObservers(doc, 1);
-                }
-
-            }
-        }
-
-    }
 
     async changeColor(oldColor: Color3, newColor: Color3) {
         const all = await this.db.allDocs({include_docs: true});
         for (const entity of all.rows) {
-            this.logger.debug(`comparing ${entity.doc.color} to ${oldColor.toHexString()}`);
+            logger.debug(`comparing ${entity.doc.color} to ${oldColor.toHexString()}`);
             if (entity.doc.color == oldColor.toHexString()) {
                 entity.doc.color = newColor.toHexString();
                 this.db.put({...entity.doc, _rev: entity.doc._rev});
@@ -223,32 +217,71 @@ export class PouchdbPersistenceManager {
     private async beginSync(remoteDbName: string) {
         try {
             //const remoteDbName = "db1";
-            const remoteUserName = remoteDbName;
+            const userHex = remoteDbName.split('-');
+            if (userHex.length < 2) {
+                return;
+            }
+            const username = hex_to_ascii(userHex[1]);
+            const remoteUserName = username;
             const password = "password";
-            const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT + '_all_dbs');
+            const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT + 'list');
+            logger.debug(dbs.data);
             if (dbs.data.indexOf(remoteDbName) == -1) {
-                this.logger.warn('sync target missing');
-                const userEndpoint: string = import.meta.env.VITE_USER_ENDPOINT
-                console.log(userEndpoint);
-                console.log(remoteDbName);
-                const buildTarget = await axios.post(userEndpoint,
-                    {username: remoteUserName, password: password, db: remoteDbName});
-                if (buildTarget.status != 200) {
-                    this.logger.info(buildTarget.statusText);
-                    return;
+                logger.warn('sync target missing');
+                return;
+            }
+            const userEndpoint: string = import.meta.env.VITE_USER_ENDPOINT
+            logger.debug(userEndpoint);
+            logger.debug(remoteDbName);
+            const target = await axios.get(userEndpoint);
+            if (target.status != 200) {
+                logger.info(target.statusText);
+                return;
+            }
+            if (target.data && target.data.userCtx) {
+                if (!target.data.userCtx.name) {
+                    const buildTarget = await axios.post(userEndpoint,
+                        {username: remoteUserName, password: password});
+                    if (buildTarget.status != 200) {
+                        logger.info(buildTarget.statusText);
+                        return;
+                    } else {
+                        this.user = buildTarget.data.userCtx;
+                        logger.debug(this.user);
+                    }
                 }
             }
-            this.logger.debug(dbs);
-            const remoteEndpoint: string = import.meta.env.VITE_SYNCDB_ENDPOINT;
-            console.log(remoteEndpoint);
-            this.remote = new PouchDB(remoteEndpoint + remoteDbName,
-                {auth: {username: remoteUserName, password: password}});
 
-            this.syncDoc = this.syncDoc.bind(this);
+
+            const remoteEndpoint: string = import.meta.env.VITE_SYNCDB_ENDPOINT;
+            console.log(remoteEndpoint + remoteDbName);
+            this.remote = new PouchDB(remoteEndpoint + remoteDbName,
+                {auth: {username: remoteUserName, password: password}, skip_setup: true});
+            const dbInfo = await this.remote.info();
+            console.log(dbInfo);
+            syncDoc.bind(this);
             this.db.sync(this.remote, {live: true, retry: true})
-                .on('change', this.syncDoc);
+                .on('change', syncDoc)
+                .on('active', function (info) {
+                    console.log('sync active', info)
+                })
+                .on('paused', function (info) {
+                    console.log('sync paused', info)
+                })
+                .on('error', function (err) {
+                    console.log('sync error', err)
+                });
         } catch (err) {
-            this.logger.error(err);
+            logger.error(err);
         }
     }
+}
+
+function hex_to_ascii(input) {
+    var hex = input.toString();
+    let output = '';
+    for (var n = 0; n < hex.length; n += 2) {
+        output += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+    }
+    return output;
 }

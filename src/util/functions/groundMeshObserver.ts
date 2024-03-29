@@ -5,9 +5,11 @@ import {EditMenu} from "../../menus/editMenu";
 import {ControllerEventType} from "../../controllers/controllers";
 import {ConfigMenu} from "../../menus/configMenu";
 
+const logger = log.getLogger('groungMeshObserver');
 export async function groundMeshObserver(ground, scene, diagramManager, controllers, spinner) {
     const xr = await WebXRDefaultExperience.CreateAsync(scene, {
         floorMeshes: [ground],
+        disableHandTracking: true,
         disableTeleportation: true,
         disableDefaultUI: true,
         outputCanvasOptions: {
@@ -32,6 +34,7 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
             enterButton.style.display = "block";
             enterButton.addEventListener('click', (evt) => {
                 evt.preventDefault();
+                //const voice = new VoiceRecognizer();
                 xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
             });
         }
@@ -44,7 +47,8 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
 
     xr.baseExperience.sessionManager.onXRSessionInit.add((session) => {
         session.addEventListener('visibilitychange', (ev) => {
-            this.logger.debug(ev);
+            logger.debug(ev);
+            //this.logger.debug(ev);
         });
     });
 
@@ -57,7 +61,7 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
                 //xr.baseExperience.camera.setTarget(new Vector3(0, 1.6, 3));
                 window.addEventListener(('pa-button-state-change'), (event: any) => {
                     if (event.detail) {
-                        log.debug('App', event.detail);
+                        logger.debug(event.detail);
                     }
                 });
                 break;

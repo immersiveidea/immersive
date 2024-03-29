@@ -79,31 +79,7 @@ export class VrApp {
 
         const gamepadManager = new GamepadManager(scene);
         /*
-        const voiceManager = new VoiceManager();
 
-        voiceManager.transcriptionObserver.add((text) => {
-            logger.info('Transcription', text);
-            switch (text.type) {
-                case TranscriptType.PartialTranscript:
-                    if (text.words.length > 0 &&
-                        text.words[0].text.toLowerCase() == 'meta') {
-                        logger.info('Meta command', text.text);
-                    }
-                    break;
-                case TranscriptType.FinalTranscript:
-                    logger.info('Final', text.words[0].text.toLowerCase().substring(0, 4));
-                    if (text.words.length > 0 &&
-                        text.words[0].text.toLowerCase().substring(0, 4) == 'meta' &&
-                        text.words[0].confidence > .8) {
-                        logger.info('Meta Final command',
-                            text.words.map((e) => {
-                                return e.text
-                            }).slice(1).join(' '));
-                    }
-
-            }
-
-        });
 
          */
         addSceneInspector(scene);

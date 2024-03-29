@@ -34,6 +34,7 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
     } else {
         if (entity.template == "#connection-template") {
             const connection: DiagramConnection = new DiagramConnection(entity.from, entity.to, entity.id, scene);
+
             logger.debug(`connection.mesh = ${connection.mesh.id}`);
             newMesh = connection.mesh;
         } else {
@@ -58,6 +59,9 @@ function generateId(entity: DiagramEntity) {
 
 function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene): AbstractMesh {
     if (newMesh) {
+        if (!newMesh.metadata) {
+            newMesh.metadata = {};
+        }
         if (entity.position) {
             newMesh.position = xyztovec(entity.position);
         }
@@ -69,7 +73,12 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
             }
         }
         if (entity.parent) {
-            newMesh.parent = scene.getNodeById(entity.parent);
+            const parent_node = scene.getNodeById(entity.parent);
+            if (parent_node) {
+                newMesh.parent = parent_node;
+                newMesh.metadata.parent = entity.parent;
+            }
+
         }
         if (entity.scale) {
             newMesh.scaling = xyztovec(entity.scale);
