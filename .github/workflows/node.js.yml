@@ -25,4 +25,4 @@ jobs:
       env:
         VITE_SYNCDB_ENDPOINT: ${{ secrets.VITE_SYNCDB_ENDPOINT }}
         VITE_USER_ENDPOINT: ${{ secrets.VITE_USER_ENDPOINT }}
-        NODE_OPTIONS: --max-old-space-size=1024
+        NODE_OPTIONS: --max-old-space-size=4096
