@@ -43,5 +43,5 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: upload-dist
-            
+      - run: cp -r ./immersive/immersive/* /var/www/deepdiagram
     
