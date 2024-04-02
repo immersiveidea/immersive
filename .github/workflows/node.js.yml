@@ -32,8 +32,8 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: upload-dist
-        path: |
-          ./dist
+        path: ./dist
+        overwrite: true
   deploy:
     name: deploy on linode
     needs: build
