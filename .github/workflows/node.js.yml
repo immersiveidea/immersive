@@ -44,5 +44,5 @@ jobs:
         with:
           name: upload-dist
       - run: pwd
-      - run: cp -r ./dist /var/www/deepdiagram
+      - run: cp -r . /var/www/deepdiagram
     
