@@ -33,7 +33,7 @@ jobs:
       with:
         name: upload-dist
         path: |
-          dist
+          ./dist
   deploy:
     name: deploy on linode
     needs: build
@@ -44,5 +44,5 @@ jobs:
         with:
           name: upload-dist
       - run: pwd
-      - run: cp -r ./_work/immersive/immersive/* /var/www/deepdiagram
+      - run: cp -r ./dist /var/www/deepdiagram
     
