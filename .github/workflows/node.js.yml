@@ -43,6 +43,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: upload-dist
+          path: dist
       - run: pwd
-      - run: cp -r ./* /var/www/deepdiagram/
+      - run: cp -r ./dist/* /var/www/deepdiagram/
     
