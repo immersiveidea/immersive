@@ -41,7 +41,7 @@ jobs:
     steps:
       - name: get artifact
         uses: actions/download-artifact@v4
-          with:
-            name: upload-dist
+        with:
+          name: upload-dist
             
     
