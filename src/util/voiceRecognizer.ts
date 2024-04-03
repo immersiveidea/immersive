@@ -54,11 +54,8 @@ export class VoiceRecognizer {
 
 
                                 const profile = await eagleProfiler.export();
-                                //console.log(profile.bytes.buffer);
 
-                                //console.log(profile.bytes);
-                                //console.log(profile.bytes.buffer.toString('base64'));
-                                //console.log(profile);
+
                                 //WebVoiceProcessor.unsubscribe(engine);
                                 //WebVoiceProcessor.unsubscribe(engine);
                                 //eagleProfiler.release();
