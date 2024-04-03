@@ -56,7 +56,7 @@ function setPosition(node: TransformNode, scene: Scene, offset: Vector3 = Vector
     switch (scene.activeCamera.getClassName()) {
         case "WebXRCamera":
             //const oldParent = node.parent;
-            //console.log(oldParent.name);
+
             node.setParent(null);
             const front = getFrontPosition(1, scene).clone();
             const camPos = scene.activeCamera.globalPosition.clone();

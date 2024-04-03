@@ -1,5 +1,5 @@
 import {VuMeterEngine, WebVoiceProcessor} from "@picovoice/web-voice-processor";
-import {EagleProfilerEnrollFeedback, EagleProfilerWorker, EagleWorker} from "@picovoice/eagle-web";
+import {EagleProfilerWorker, EagleWorker} from "@picovoice/eagle-web";
 import {PvEngine} from "@picovoice/web-voice-processor/dist/types/types";
 import {base64} from "rfc4648";
 import {CobraWorker} from "@picovoice/cobra-web";
@@ -49,15 +49,13 @@ export class VoiceRecognizer {
                             data.set(inputData, data.length - inputData.length);
                         }
                         if (data.length > eagleProfiler.minEnrollSamples) {
-                            console.log('enrolling');
-                            console.log(data.length);
                             const result = await eagleProfiler.enroll(data);
                             if (result.percentage >= 100) {
-                                console.log(data);
-                                console.log(EagleProfilerEnrollFeedback[result.feedback]);
+
+
                                 const profile = await eagleProfiler.export();
                                 //console.log(profile.bytes.buffer);
-                                console.log(base64.stringify(profile.bytes));
+
                                 //console.log(profile.bytes);
                                 //console.log(profile.bytes.buffer.toString('base64'));
                                 //console.log(profile);
@@ -69,7 +67,7 @@ export class VoiceRecognizer {
                             }
 
                         }
-                        console.log(inputData.length);
+
                         break;
                 }
             }
@@ -77,11 +75,11 @@ export class VoiceRecognizer {
         const devices = await navigator.mediaDevices.enumerateDevices();
         devices.forEach((device) => {
             if (device.kind === 'audioinput') {
-                console.log(device.label + ' ' + device.kind + ' ' + device.deviceId);
+
             }
         });
         const vuCallback = (db) => {
-            console.log(db);
+
         }
         WebVoiceProcessor.setOptions({deviceId: 'default'});
         const vuEngine = new VuMeterEngine(vuCallback);
