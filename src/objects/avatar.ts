@@ -33,7 +33,7 @@ export function buildAvatar(scene: Scene) {
                             m.skeleton = skel;
                         }
                     });
-                    console.log("simplification done");
+
                 }
             )
             */

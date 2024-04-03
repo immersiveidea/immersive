@@ -5,6 +5,9 @@ import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
 import {AbstractMenu} from "./abstractMenu";
 import {setMenuPosition} from "../util/functions/setMenuPosition";
+import log from "loglevel";
+
+const logger = log.getLogger('ConfigMenu');
 
 export class ConfigMenu extends AbstractMenu {
     private sounds: DiaSounds;
@@ -33,6 +36,7 @@ export class ConfigMenu extends AbstractMenu {
 
         this.controllers.controllerObserver.add((event) => {
             if (event.type == ControllerEventType.Y_BUTTON) {
+                logger.debug('Y Button Pressed');
                 this.toggle();
             }
         });
@@ -120,12 +124,13 @@ export class ConfigMenu extends AbstractMenu {
         selectionPanel.addGroup(radio);
         for (const [index, snap] of this.gridSnaps.entries()) {
             const selected = (this.config.current.createSnap == snap.value);
-            console.log(selected);
+            logger.debug(selected);
             radio.addRadio(snap.label, this.createVal.bind(this), selected);
         }
         this.adjustRadio(radio);
         return radio;
     }
+
     private buildFlyModeControl(selectionPanel: SelectionPanel): CheckboxGroup {
         const checkbox = new CheckboxGroup("Fly Mode");
         selectionPanel.addGroup(checkbox);
@@ -133,6 +138,7 @@ export class ConfigMenu extends AbstractMenu {
         this.adjustRadio(checkbox);
         return checkbox;
     }
+
     private buildRotationSnapControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Rotation Snap");
         selectionPanel.addGroup(radio);
@@ -143,6 +149,7 @@ export class ConfigMenu extends AbstractMenu {
         this.adjustRadio(radio);
         return radio;
     }
+
     private buildGridSizeControl(selectionPanel: SelectionPanel): RadioGroup {
         const radio = new RadioGroup("Grid Snap");
         selectionPanel.addGroup(radio);
