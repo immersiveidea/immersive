@@ -29,6 +29,7 @@ export class PouchdbPersistenceManager {
 
     public setDiagramManager(diagramManager: DiagramManager) {
         diagramManager.onDiagramEventObservable.add((evt) => {
+            logger.debug(evt);
             switch (evt.type) {
                 case DiagramEventType.CHANGECOLOR:
                     this.changeColor(evt.oldColor, evt.newColor);
@@ -48,12 +49,14 @@ export class PouchdbPersistenceManager {
             }
         }, 2);
         this.updateObserver.add((evt) => {
+            logger.debug(evt);
             diagramManager.onDiagramEventObservable.notifyObservers({
                 type: DiagramEventType.ADD,
                 entity: evt
             }, 1);
         });
         this.removeObserver.add((entity) => {
+            logger.debug(entity);
             diagramManager.onDiagramEventObservable.notifyObservers(
                 {type: DiagramEventType.REMOVE, entity: entity}, 1);
         });
@@ -254,22 +257,22 @@ export class PouchdbPersistenceManager {
 
 
             const remoteEndpoint: string = import.meta.env.VITE_SYNCDB_ENDPOINT;
-            console.log(remoteEndpoint + remoteDbName);
+            logger.debug(remoteEndpoint + remoteDbName);
             this.remote = new PouchDB(remoteEndpoint + remoteDbName,
                 {auth: {username: remoteUserName, password: password}, skip_setup: true});
             const dbInfo = await this.remote.info();
-            console.log(dbInfo);
+            logger.debug(dbInfo);
             syncDoc.bind(this);
             this.db.sync(this.remote, {live: true, retry: true})
                 .on('change', syncDoc)
                 .on('active', function (info) {
-                    console.log('sync active', info)
+                    logger.debug('sync active', info)
                 })
                 .on('paused', function (info) {
-                    console.log('sync paused', info)
+                    logger.debug('sync paused', info)
                 })
                 .on('error', function (err) {
-                    console.log('sync error', err)
+                    logger.debug('sync error', err)
                 });
         } catch (err) {
             logger.error(err);
