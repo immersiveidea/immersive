@@ -36,10 +36,10 @@ export class VoiceRecognizer {
 
                         const validation = await eagle.process(inputData);
                         if (validation && validation[0] > .99) {
-                            console.log('verified');
+
 
                         }
-                        console.log(validation);
+
 
                         if (data == null) {
                             data = inputData;

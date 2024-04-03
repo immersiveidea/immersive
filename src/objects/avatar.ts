@@ -40,7 +40,7 @@ export function buildAvatar(scene: Scene) {
 
 
             const bounds = mesh.getHierarchyBoundingVectors(true);
-            console.log(bounds);
+
             const size = bounds.max.subtract(bounds.min);
             const top = MeshBuilder.CreateBox("container", {width: size.x, height: size.y, depth: size.z}, scene);
             top.position.y = 1.6;
@@ -63,7 +63,7 @@ export function buildAvatar(scene: Scene) {
             physicsAggregate.body.setGravityFactor(1);
 
         } catch (err) {
-            console.log(err);
+
         }
         //physicsAggregate.body.setAngularDamping(.5);
 

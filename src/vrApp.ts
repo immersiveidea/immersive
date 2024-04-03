@@ -95,7 +95,7 @@ export class VrApp {
         this.engine.runRenderLoop(() => {
             this.scene.render();
             if (i++ % 60 == 0) {
-                //        console.log(this.engine.getFps());
+
             }
 
         });

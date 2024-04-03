@@ -15,7 +15,7 @@ export class Tutorial {
             });
         }
 
-        console.log('Tutorial');
+
     }
 
     private advance() {

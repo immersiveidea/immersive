@@ -117,8 +117,7 @@ export class Player {
         });
         this.scene.onAfterPhysicsObservable.add(() => {
             if (body.getLinearVelocity().length() > .1) {
-                console.log(this.destination.subtract(new Vector2(body.transformNode.position.x,
-                    body.transformNode.position.z)).length());
+
                 if (this.destination.subtract(new Vector2(body.transformNode.position.x,
                     body.transformNode.position.z)).length() < .1) {
                     body.setLinearVelocity(Vector3.Zero());

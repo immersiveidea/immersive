@@ -71,7 +71,7 @@ export class Toolbox {
         this.scene.onPointerObservable.add((pointerInfo) => {
             if (pointerInfo.type == 1 && pointerInfo.pickInfo.pickedMesh?.metadata?.tool == 'color') {
                 if (this.changing) {
-                    console.log('changing');
+
                     this.colorPicker.setEnabled(true);
                     return;
                 } else {

@@ -24,7 +24,7 @@ export class NewRelicQuery {
             this.buildSeries(s);
         }
         this.buildModel();
-        console.log(this.data.length);
+
     }
 
     //private materials: Material[];

@@ -100,7 +100,7 @@ export class Introduction {
             vid.src = src;
             vid.addEventListener('loadedmetadata', function () {
                 vid.play().then(() => {
-                    console.log("Video Playing");
+
                 });
             });
         }

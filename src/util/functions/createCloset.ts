@@ -61,8 +61,7 @@ export function createCloset(scene: Scene) {
             node.scaling.scaleInPlace(.00098);
             node.position.x -= .42;
             const bounds = node.getHierarchyBoundingVectors(true);
-            console.log((bounds.max.x - bounds.min.x) * 39.37);
-            console.log('here');
+
         });
 
 

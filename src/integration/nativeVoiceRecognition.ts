@@ -5,7 +5,7 @@ export class NativeVoiceRecognition {
     private recognition: SpeechRecognition;
 
     constructor() {
-        console.log('speech created');
+
         this.onTextObservable = new Observable<string>();
         this.setup();
     }
@@ -31,16 +31,16 @@ export class NativeVoiceRecognition {
         this.recognition.maxAlternatives = 1;
         this.recognition.onresult = (event) => {
             this.onTextObservable.notifyObservers(event.results[0][0].transcript);
-            console.log(event.results[0][0].transcript);
+
         }
         this.recognition.onend = () => {
-            console.log("recognition ended");
+
 
         }
         this.recognition.onstart = () => {
-            console.log("recognition started");
+
         }
-        console.log("starting recognition");
+
         this.recognition.start();
 
 
