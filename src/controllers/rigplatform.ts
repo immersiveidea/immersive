@@ -1,7 +1,6 @@
 import {Angle, Mesh, Quaternion, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {Right} from "./right";
 import {Left} from "./left";
-import {EditMenu} from "../menus/editMenu";
 import {ControllerEvent, ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
@@ -10,16 +9,29 @@ import {buildRig} from "./functions/buildRig";
 const RIGHT = "right";
 const LEFT = "left";
 
+const logger = log.getLogger('Rigplatform');
+
 export class Rigplatform {
-    private velocityIndex = 2;
-    private readonly velocityArray = [0.01, 0.1, 1, 2, 5];
-    public bMenu: EditMenu;
+    private readonly controllers: Controllers;
+    private readonly diagramManager: DiagramManager;
     private readonly scene: Scene;
-    public static instance: Rigplatform;
+    private readonly velocityArray = [0.01, 0.1, 1, 2, 5];
+    private readonly xr: WebXRDefaultExperience;
+
     private rightController: Right;
     private leftController: Left;
-    private readonly xr: WebXRDefaultExperience;
+    private turning: boolean = false;
+    private velocity: Vector3 = Vector3.Zero();
+    private velocityIndex: number = 2;
+    private turnVelocity: number = 0;
+
+    private registered = false;
     private yRotation: number = 0;
+
+    private _flyMode: boolean = true;
+
+    public static instance: Rigplatform;
+
     public turnSnap: number = 0;
     public rigMesh: Mesh;
 
@@ -38,34 +50,28 @@ export class Rigplatform {
         this.registerVelocityObserver();
 
     }
-    private turning: boolean = false;
-    private velocity: Vector3 = Vector3.Zero();
-    private turnVelocity: number = 0;
-    private logger = log.getLogger('Rigplatform');
-    private readonly diagramManager: DiagramManager;
-    private readonly controllers: Controllers;
-    private registered = false;
-
-    private _flyMode: boolean = true;
 
     public set flyMode(value: boolean) {
         this._flyMode = value;
         if (this._flyMode) {
             this.rigMesh.physicsBody.setGravityFactor(.01);
-            console.log('flymode');
+            logger.debug('flymode');
         } else {
             this.rigMesh.physicsBody.setGravityFactor(1);
-            console.log('walkmode');
+            logger.debug('walkmode');
         }
     }
+
     public forwardback(val: number) {
-        this.velocity.z = (val * this.velocityArray[this.velocityIndex])*-1;
+        this.velocity.z = (val * this.velocityArray[this.velocityIndex]) * -1;
     }
+
     public leftright(val: number) {
         this.velocity.x = (val * this.velocityArray[this.velocityIndex]);
     }
+
     public updown(val: number) {
-        this.velocity.y = (val * this.velocityArray[this.velocityIndex])*-1;
+        this.velocity.y = (val * this.velocityArray[this.velocityIndex]) * -1;
     }
 
     public turn(val: number) {
@@ -98,7 +104,7 @@ export class Rigplatform {
                 vel.y = 0;
             }
             if (vel.length() > 0) {
-                this.logger.debug('Velocity', this.velocity, vel, this.scene.activeCamera.absoluteRotation);
+                logger.debug('Velocity', this.velocity, vel, this.scene.activeCamera.absoluteRotation);
             }
             this.rigMesh.physicsBody.setLinearVelocity(vel);
         });
@@ -108,6 +114,7 @@ export class Rigplatform {
         if (!this.registered) {
             this.registered = true;
             this.controllers.controllerObserver.add((event: ControllerEvent) => {
+                logger.debug(event);
                 switch (event.type) {
                     case ControllerEventType.INCREASE_VELOCITY:
                         if (this.velocityIndex < this.velocityArray.length - 1) {
@@ -138,8 +145,7 @@ export class Rigplatform {
                         }
                         break;
                     case ControllerEventType.MOTION:
-                        this.logger.debug(JSON.stringify(event));
-
+                        logger.debug(JSON.stringify(event));
                         break;
                 }
             });
@@ -169,6 +175,7 @@ export class Rigplatform {
             }
         });
     }
+
     private fixRotation() {
         this.scene.onAfterPhysicsObservable.add(() => {
             const turnSnap = this.turnSnap;

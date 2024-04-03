@@ -1,5 +1,8 @@
 import {Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {getFrontPosition} from "./getFrontPosition";
+import log from "loglevel";
+
+const logger = log.getLogger('setMenuPosition');
 
 export function setMenuPosition(node: TransformNode, scene: Scene, offset: Vector3 = Vector3.Zero()) {
     /*
@@ -42,7 +45,7 @@ export function setMenuPosition(node: TransformNode, scene: Scene, offset: Vecto
         scene.onActiveCameraChanged.add((scene: Scene) => {
             setPosition(node, scene, offset);
         });
-        console.error("No active camera");
+        logger.error("No active camera");
     }
 
 }
@@ -77,6 +80,6 @@ function setPosition(node: TransformNode, scene: Scene, offset: Vector3 = Vector
             node.position.x = offset.x;
             break;
     }
-    console.log('menu position set');
+    logger.debug('menu position set');
 
 }

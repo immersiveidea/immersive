@@ -7,12 +7,19 @@ export function addSceneInspector(scene) {
             //voiceManager.stopRecording();
         }
         if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-            import("@babylonjs/core/Debug/debugLayer").then(() => {
+            import("@babylonjs/core/Debug").then(() => {
                 import("@babylonjs/inspector").then(() => {
+                    const web = document.querySelector('#webApp');
                     if (scene.debugLayer.isVisible()) {
+                        if (web) {
+                            (web as HTMLDivElement).style.display = 'block';
+                        }
                         scene.debugLayer.hide();
                     } else {
                         scene.debugLayer.show();
+                        if (web) {
+                            (web as HTMLDivElement).style.display = 'none';
+                        }
                     }
                 });
             });

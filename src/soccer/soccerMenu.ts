@@ -137,7 +137,7 @@ export class SoccerMenu extends AbstractMenu {
                 if (mesh) {
                     const meta = mesh?.parent?.parent?.parent
                     if (meta) {
-                        console.log(meta.id);
+                        this.logger.debug(meta.id);
                     }
                 }
                 break;
