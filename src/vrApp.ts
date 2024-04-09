@@ -1,12 +1,9 @@
 import {Color3, Engine, FreeCamera, Scene, Vector3} from "@babylonjs/core";
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
-import {Toolbox} from "./toolbox/toolbox";
 import log, {Logger} from "loglevel";
-import {AppConfig} from "./util/appConfig";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
-import {ControllerEventType, Controllers} from "./controllers/controllers";
 import {Spinner} from "./util/spinner";
 import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager";
 import {addSceneInspector} from "./util/functions/sceneInspctor";
@@ -42,17 +39,9 @@ export class VrApp {
 
         const spinner = new Spinner(scene);
         spinner.show();
-        const config = new AppConfig();
-        const controllers = new Controllers();
-        const toolbox = new Toolbox(scene);
-        controllers.controllerObserver.add((evt) => {
-            if (evt.type == ControllerEventType.X_BUTTON) {
-                if (evt.value == 1) {
-                    toolbox.toggle();
-                }
-            }
-        })
-        const diagramManager = new DiagramManager(scene, controllers, toolbox, config);
+        //const config = new AppConfig();
+
+        const diagramManager = new DiagramManager(scene);
         const db = new PouchdbPersistenceManager();
         db.setDiagramManager(diagramManager);
         db.configObserver.add((newConfig) => {
@@ -61,9 +50,9 @@ export class VrApp {
             } else {
                 const create = document.querySelector('#create');
             }
-            config.onConfigChangedObservable.notifyObservers(newConfig, 1);
+            diagramManager.config.onConfigChangedObservable.notifyObservers(newConfig, 1);
         });
-        config.onConfigChangedObservable.add((newConfig) => {
+        diagramManager.config.onConfigChangedObservable.add((newConfig) => {
             db.setConfig(newConfig);
         }, 2, false, this);
         await db.initialize();
@@ -72,9 +61,9 @@ export class VrApp {
             new Vector3(0, 1.6, 0), scene);
         //camera.setTarget(new Vector3(0, 1.6, -3));
         scene.setActiveCameraByName("Main Camera");
-        const environment = new CustomEnvironment(scene, "default", config);
+        const environment = new CustomEnvironment(scene, "default", diagramManager.config);
         environment.groundMeshObservable.add((ground) => {
-            groundMeshObserver(ground, scene, diagramManager, controllers, spinner);
+            groundMeshObserver(ground, scene, diagramManager, diagramManager.controllers, spinner);
         }, -1, false, this);
 
         const gamepadManager = new GamepadManager(scene);
@@ -97,7 +86,6 @@ export class VrApp {
             if (i++ % 60 == 0) {
 
             }
-
         });
         this.logger.info('Render loop started');
 

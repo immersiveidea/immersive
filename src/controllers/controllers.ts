@@ -16,6 +16,7 @@ export enum ControllerEventType {
     SHOW = 'show',
     PULSE = 'pulse',
     SQUEEZE = 'squeeze',
+    CLICK = 'click',
     Y_BUTTON = 'y-button',
     X_BUTTON = 'x-button',
     A_BUTTON = 'a-button',

@@ -23,7 +23,6 @@ export class Toolbox {
     private readonly addPanel: StackPanel3D;
     public readonly colorChangeObservable: Observable<{ oldColor: string, newColor: string }> =
         new Observable<{ oldColor: string; newColor: string }>()
-    private handle: Handle;
     private axes: AxesViewer;
 
     constructor(scene: Scene) {
@@ -32,7 +31,7 @@ export class Toolbox {
         this.manager = new GUI3DManager(scene);
         this.manager.addControl(this.addPanel);
         this.toolboxBaseNode = new TransformNode("toolbox", this.scene);
-        this.handle = new Handle(this.toolboxBaseNode);
+        new Handle(this.toolboxBaseNode);
         this.toolboxBaseNode.position.y = .2;
         //this.toolboxBaseNode.position.z = .05;
         /**this.axes = new AxesViewer(this.scene);
@@ -71,7 +70,6 @@ export class Toolbox {
         this.scene.onPointerObservable.add((pointerInfo) => {
             if (pointerInfo.type == 1 && pointerInfo.pickInfo.pickedMesh?.metadata?.tool == 'color') {
                 if (this.changing) {
-
                     this.colorPicker.setEnabled(true);
                     return;
                 } else {
@@ -86,9 +84,7 @@ export class Toolbox {
                         }
                     }
                 }
-
             }
-
         });
         let initial = true;
         for (const c of colors) {
@@ -101,9 +97,10 @@ export class Toolbox {
 
             }
         }
-        this.toolboxBaseNode.parent.setEnabled(false);
+        //this.toolboxBaseNode.parent.setEnabled(false);
         setMenuPosition(this.toolboxBaseNode.parent as Mesh, this.scene,
             Vector3.Zero());
+
     }
 }
 

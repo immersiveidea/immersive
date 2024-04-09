@@ -254,14 +254,14 @@ export class EditMenu extends AbstractMenu {
         const inputTextView = new InputTextView('test', this.xr, this.scene, this.controllers);
         inputTextView.show();
         inputTextView.onTextObservable.addOnce((value) => {
-            const config = this.diagramManager.config.current;
+            const config = this.diagramManager._config.current;
             config.newRelicKey = value.text;
-            this.diagramManager.config.current = config;
+            this.diagramManager._config.current = config;
             inputTextView.show();
             inputTextView.onTextObservable.addOnce((value) => {
-                const config = this.diagramManager.config.current;
+                const config = this.diagramManager._config.current;
                 config.newRelicAccount = value.text;
-                this.diagramManager.config.current = config;
+                this.diagramManager._config.current = config;
             });
         });
 

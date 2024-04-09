@@ -17,25 +17,25 @@ import {isDiagramEntity} from "./functions/isDiagramEntity";
 
 
 export class DiagramManager {
-    public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
+    public readonly _config: AppConfig;
+    private readonly _controllers: Controllers;
+    private readonly diagramEntityActionManager: ActionManager;
+    private presentationManager: PresentationManager;
 
+    public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
     private readonly logger = log.getLogger('DiagramManager');
     private readonly toolbox: Toolbox;
     private readonly scene: Scene;
     private readonly sounds: DiaSounds;
-    private readonly controllers: Controllers;
-    private readonly diagramEntityActionManager: ActionManager;
-    private presentationManager: PresentationManager;
-    public readonly config: AppConfig;
 
-    constructor(scene: Scene, controllers: Controllers, toolbox: Toolbox, config: AppConfig) {
+    constructor(scene: Scene) {
+        this._config = new AppConfig();
+        this._controllers = new Controllers();
         this.sounds = new DiaSounds(scene);
         this.scene = scene;
-        this.config = config;
-        this.toolbox = toolbox;
-        this.controllers = controllers;
+        this.toolbox = new Toolbox(scene);
         this.presentationManager = new PresentationManager(this.scene);
-        this.diagramEntityActionManager = buildEntityActionManager(this.scene, this.sounds, this.controllers);
+        this.diagramEntityActionManager = buildEntityActionManager(this.scene, this.sounds, this._controllers);
 
         if (this.onDiagramEventObservable.hasObservers()) {
             this.logger.warn("onDiagramEventObservable already has Observers, you should be careful");
@@ -67,6 +67,13 @@ export class DiagramManager {
         });
     }
 
+    public get controllers(): Controllers {
+        return this._controllers;
+    }
+
+    public get config(): AppConfig {
+        return this._config;
+    }
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
         let newMesh;
         if (!mesh.isAnInstance) {
@@ -84,10 +91,10 @@ export class DiagramManager {
         } else {
             this.logger.error("no rotation quaternion");
         }
-        applyScaling(mesh, newMesh, copy, this.config.current?.createSnap);
+        applyScaling(mesh, newMesh, copy, this._config.current?.createSnap);
         newMesh.material = mesh.material;
         newMesh.metadata = deepCopy(mesh.metadata);
-        if (this.config.current?.physicsEnabled) {
+        if (this._config.current?.physicsEnabled) {
             applyPhysics(this.sounds, newMesh, this.scene);
         }
         return newMesh;
@@ -95,7 +102,7 @@ export class DiagramManager {
 
     private onDiagramEvent(event: DiagramEvent) {
         diagramEventHandler(
-            event, this.scene, this.toolbox, this.config.current.physicsEnabled,
+            event, this.scene, this.toolbox, this._config.current.physicsEnabled,
             this.diagramEntityActionManager, this.sounds);
     }
 }

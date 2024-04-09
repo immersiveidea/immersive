@@ -192,8 +192,8 @@ export class Base {
         this.grabbedMeshParentId = null;
 
         if (!mesh.physicsBody) {
-            mesh.position = snapGridVal(mesh.position, this.diagramManager.config.current.gridSnap);
-            mesh.rotation = snapRotateVal(mesh.rotation, this.diagramManager.config.current.rotateSnap);
+            mesh.position = snapGridVal(mesh.position, this.diagramManager._config.current.gridSnap);
+            mesh.rotation = snapRotateVal(mesh.rotation, this.diagramManager._config.current.rotateSnap);
         }
         this.previousParentId = null;
         this.previousScaling = null;
