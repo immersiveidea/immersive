@@ -18,6 +18,10 @@ export default defineConfig({
             '^/sync/.*': {
                 target: 'https://www.deepdiagram.com/',
                 changeOrigin: true,
+            },
+            '^/create-db': {
+                target: 'https://www.deepdiagram.com/',
+                changeOrigin: true,
             }
         }
     },

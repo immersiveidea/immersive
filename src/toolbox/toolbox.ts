@@ -1,6 +1,5 @@
-import {AxesViewer, Color3, Mesh, Node, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, AxesViewer, Color3, Node, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {GUI3DManager, StackPanel3D,} from "@babylonjs/gui";
-import {setMenuPosition} from "../util/functions/setMenuPosition";
 import {buildColor} from "./functions/buildColor";
 import log from "loglevel";
 import {Handle} from "../objects/handle";
@@ -34,18 +33,12 @@ export class Toolbox {
         new Handle(this.toolboxBaseNode);
         this.toolboxBaseNode.position.y = .2;
         //this.toolboxBaseNode.position.z = .05;
-        /**this.axes = new AxesViewer(this.scene);
+        /*this.axes = new AxesViewer(this.scene);
          this.axes.xAxis.parent = this.toolboxBaseNode;
          this.axes.yAxis.parent = this.toolboxBaseNode;
-         this.axes.zAxis.parent = this.toolboxBaseNode;*/
+         this.axes.zAxis.parent = this.toolboxBaseNode; */
         this.toolboxBaseNode.scaling = new Vector3(0.6, 0.6, 0.6);
         this.buildToolbox();
-    }
-
-    public toggle() {
-        this.toolboxBaseNode.parent.setEnabled(!this.toolboxBaseNode.parent.isEnabled(false));
-        setMenuPosition(this.toolboxBaseNode.parent as Mesh, this.scene,
-            Vector3.Zero());
     }
 
     public updateToolbox(color: string) {
@@ -98,9 +91,27 @@ export class Toolbox {
             }
         }
         //this.toolboxBaseNode.parent.setEnabled(false);
-        setMenuPosition(this.toolboxBaseNode.parent as Mesh, this.scene,
-            Vector3.Zero());
+        const offset = new Vector3(0, 1, 1);
+        if (this.toolboxBaseNode.parent) {
+            const platform = this.scene.getNodeById("platform");
+            if (platform) {
+                const handle = (this.toolboxBaseNode.parent as TransformNode);
+                handle.parent = platform;
+                handle.position = offset;
+            } else {
+                this.scene.onNewMeshAddedObservable.add((mesh: AbstractMesh) => {
+                    if (mesh.id == "platform") {
+                        const handle = (this.toolboxBaseNode.parent as TransformNode);
+                        handle.parent = mesh;
+                        handle.position = offset;
+                    }
+                });
+            }
 
+        }
+
+        /*setMenuPosition(this.toolboxBaseNode.parent as Mesh, this.scene,
+            Vector3.Zero());*/
     }
 }
 

@@ -13,6 +13,7 @@ export class Handle {
     private buildHandle() {
         const scene: Scene = this.transformNode.getScene();
         const handle = getHandleMesh("handle-" + this.transformNode.id + "-mesh", scene);
+
         handle.position = Vector3.Zero();
         handle.metadata = {handle: true};
         if (this.transformNode) {

@@ -6,7 +6,6 @@ import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
 import {DiagramManager} from "../diagram/diagramManager";
 import log, {Logger} from "loglevel";
-import {syncDoc} from "./functions/syncDoc";
 
 const logger: Logger = log.getLogger('PouchdbPersistenceManager');
 export class PouchdbPersistenceManager {
@@ -166,7 +165,7 @@ export class PouchdbPersistenceManager {
                 createSnap: 0,
                 turnSnap: 0,
                 flyMode: true,
-                currentDiagramId: uuidv4()
+                currentDiagramId: 'public'
             }
             try {
                 await this.setConfig(defaultConfig, true);
@@ -217,21 +216,52 @@ export class PouchdbPersistenceManager {
 
     }
 
-    private async beginSync(remoteDbName: string) {
+    private syncDoc(info) {
+        logger.debug(info);
+        if (info.direction == 'pull') {
+            const docs = info.change.docs;
+            for (const doc of docs) {
+                logger.debug(doc);
+                if (doc._deleted) {
+                    logger.debug('Delete', doc);
+                    this.removeObserver.notifyObservers({id: doc._id, template: doc.template}, 1);
+                } else {
+                    this.updateObserver.notifyObservers(doc, 1);
+                }
+
+            }
+        }
+
+    }
+
+    private async beginSync(localName: string) {
         try {
             //const remoteDbName = "db1";
-            const userHex = remoteDbName.split('-');
-            if (userHex.length < 2) {
-                return;
-            }
-            const username = hex_to_ascii(userHex[1]);
-            const remoteUserName = username;
-            const password = "password";
+
+            const userHex = ascii_to_hex(localName);
+            const remoteDbName = 'userdb-' + userHex;
+            const remoteUserName = localName;
+            const password = localName;
             const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT + 'list');
             logger.debug(dbs.data);
             if (dbs.data.indexOf(remoteDbName) == -1) {
-                logger.warn('sync target missing');
-                return;
+                logger.warn('sync target missing attempting to create');
+                const newdb = await axios.post(import.meta.env.VITE_CREATE_ENDPOINT,
+
+                    {
+                        "_id": "org.couchdb.user:" + localName,
+                        "name": localName,
+                        "password": localName,
+                        "roles": ["readers"],
+                        "type": "user"
+                    }
+                );
+                if (newdb.status == 200) {
+                    logger.info('sync target created');
+                } else {
+                    return;
+                }
+
             }
             const userEndpoint: string = import.meta.env.VITE_USER_ENDPOINT
             logger.debug(userEndpoint);
@@ -262,9 +292,11 @@ export class PouchdbPersistenceManager {
                 {auth: {username: remoteUserName, password: password}, skip_setup: true});
             const dbInfo = await this.remote.info();
             logger.debug(dbInfo);
-            syncDoc.bind(this);
+
             this.db.sync(this.remote, {live: true, retry: true})
-                .on('change', syncDoc)
+                .on('change', (info) => {
+                    this.syncDoc(info)
+                })
                 .on('active', function (info) {
                     logger.debug('sync active', info)
                 })
@@ -272,7 +304,7 @@ export class PouchdbPersistenceManager {
                     logger.debug('sync paused', info)
                 })
                 .on('error', function (err) {
-                    logger.debug('sync error', err)
+                    logger.error('sync error', err)
                 });
         } catch (err) {
             logger.error(err);
@@ -283,8 +315,17 @@ export class PouchdbPersistenceManager {
 function hex_to_ascii(input) {
     var hex = input.toString();
     let output = '';
-    for (var n = 0; n < hex.length; n += 2) {
+    for (let n = 0; n < hex.length; n += 2) {
         output += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
     }
     return output;
+}
+
+function ascii_to_hex(str) {
+    const arr1 = [];
+    for (let n = 0, l = str.length; n < l; n++) {
+        var hex = Number(str.charCodeAt(n)).toString(16);
+        arr1.push(hex);
+    }
+    return arr1.join('');
 }

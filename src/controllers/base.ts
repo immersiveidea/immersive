@@ -20,7 +20,9 @@ import {snapGridVal} from "../util/functions/snapGridVal";
 import {snapRotateVal} from "../util/functions/snapRotateVal";
 import {grabAndClone} from "./functions/grab";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
+import {ClickMenu} from "../menus/clickMenu";
 
+const CLICK_TIME = 300;
 export class Base {
     static stickVector = Vector3.Zero();
     protected controller: WebXRInputSource;
@@ -32,7 +34,7 @@ export class Base {
     protected previousRotation: Vector3 = null;
     protected previousScaling: Vector3 = null;
     protected previousPosition: Vector3 = null;
-
+    private clickStart: number = 0;
     protected readonly xr: WebXRDefaultExperience;
     protected readonly diagramManager: DiagramManager;
     private logger: log.Logger;
@@ -45,6 +47,7 @@ export class Base {
                 controllers: Controllers,
                 diagramManager: DiagramManager) {
         this.logger = log.getLogger('Base');
+        this.logger.setLevel(this.logger.levels.DEBUG);
         this.controller = controller;
         this.controllers = controllers;
         this.scene = scene;
@@ -71,9 +74,14 @@ export class Base {
         this.diagramManager = diagramManager;
 
         this.controller.onMotionControllerInitObservable.add((init) => {
+            this.logger.debug(init.components);
             if (init.components['xr-standard-squeeze']) {
                 this.initGrip(init.components['xr-standard-squeeze'])
             }
+            if (init.components['xr-standard-trigger']) {
+                this.initClicker(init.components['xr-standard-trigger']);
+            }
+
         }, -1, false, this);
         this.controllers.controllerObserver.add((event) => {
             this.logger.debug(event);
@@ -108,7 +116,33 @@ export class Base {
         this.controller.pointer.setEnabled(true)
     }
 
-    private grab() {
+    protected initClicker(trigger: WebXRControllerComponent) {
+        this.logger.debug("initTrigger");
+        trigger.onButtonStateChangedObservable.add(() => {
+            if (trigger.changes.pressed) {
+                if (trigger.pressed) {
+                    if (this.clickStart == 0) {
+                        this.clickStart = Date.now();
+                        window.setTimeout(() => {
+                            if (this.clickStart > 0) {
+                                this.logger.debug("grabbing and cloning");
+                                this.grab(true);
+                            }
+                        }, 300, this);
+                    }
+                } else {
+                    const clickEnd = Date.now();
+                    if (this.clickStart > 0 && (clickEnd - this.clickStart) < CLICK_TIME) {
+                        this.click();
+                    }
+                    this.drop();
+                    this.clickStart = 0;
+                }
+            }
+        }, -1, false, this);
+    }
+
+    private grab(cloneEntity: boolean = false) {
         let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
         if (!mesh) {
             return;
@@ -116,7 +150,7 @@ export class Base {
         let player = false;
 
         if (!isDiagramEntity(mesh)) {
-            if (mesh?.metadata?.handle == true) {
+            if (this.handleWasGrabbed(mesh)) {
                 mesh && mesh.setParent(this.controller.motionController.rootMesh);
                 this.grabbedMesh = mesh;
             } else {
@@ -132,7 +166,6 @@ export class Base {
 
             }
         } else {
-
             if (mesh?.metadata?.template == '#connection-template') {
                 return;
             }
@@ -143,7 +176,7 @@ export class Base {
         this.previousScaling = mesh?.scaling.clone();
         this.previousPosition = mesh?.position.clone();
 
-        if (!mesh.metadata?.grabClone || player) {
+        if ((!mesh.metadata?.grabClone || player) && !cloneEntity) {
             if (mesh.physicsBody) {
                 const transformNode = setupTransformNode(mesh, this.controller.motionController.rootMesh);
                 mesh.physicsBody.setMotionType(PhysicsMotionType.ANIMATED);
@@ -151,9 +184,9 @@ export class Base {
             } else {
                 mesh.setParent(this.controller.motionController.rootMesh);
             }
-
             this.grabbedMesh = mesh;
         } else {
+            this.logger.debug("cloning " + mesh?.id);
             const clone = grabAndClone(this.diagramManager, mesh, this.controller.motionController.rootMesh);
             clone.newMesh.metadata.grabClone = false;
             clone.newMesh.metadata.tool = false;
@@ -168,29 +201,25 @@ export class Base {
         }
     }
 
-    private toolboxHandleWasGrabbed(mesh: AbstractMesh): boolean {
+    private handleWasGrabbed(mesh: AbstractMesh): boolean {
         if (isDiagramEntity(mesh)) {
-            this.grabbedMesh = null;
-            this.previousParentId = null;
-            mesh.setParent(null);
             return false;
         } else {
             return (mesh?.metadata?.handle == true);
         }
     }
+
     private drop() {
         const mesh = this.grabbedMesh;
         if (!mesh) {
             return;
         }
-        if (this.toolboxHandleWasGrabbed(mesh)) {
+        if (this.handleWasGrabbed(mesh)) {
             mesh.setParent(this.scene.getMeshByName("platform"))
             return;
         }
-
         reparent(mesh, this.previousParentId, this.grabbedMeshParentId);
         this.grabbedMeshParentId = null;
-
         if (!mesh.physicsBody) {
             mesh.position = snapGridVal(mesh.position, this.diagramManager._config.current.gridSnap);
             mesh.rotation = snapRotateVal(mesh.rotation, this.diagramManager._config.current.rotateSnap);
@@ -224,15 +253,32 @@ export class Base {
         this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
     }
 
+    private click() {
+        let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
+        if (pointable(mesh)) {
+            this.logger.debug("click on " + mesh.id);
+            const menu = new ClickMenu(mesh, this.diagramManager);
+        } else {
+            this.logger.debug("click on nothing");
+        }
+
+
+    }
+
     private initGrip(grip: WebXRControllerComponent) {
         grip.onButtonStateChangedObservable.add(() => {
             if (grip.changes.pressed) {
                 if (grip.pressed) {
                     this.grab();
                 } else {
+
                     this.drop();
                 }
             }
         });
     }
+}
+
+function pointable(mesh: AbstractMesh): boolean {
+    return (mesh && mesh.metadata?.template && !mesh.metadata?.tool && !mesh.metadata?.handle && !mesh.metadata?.grabbable && !mesh.metadata?.grabClone);
 }

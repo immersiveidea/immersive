@@ -37,8 +37,6 @@ export class InputTextView {
     }
 
     public showVirtualKeyboard() {
-
-
         const inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
         const handle = new Handle(inputMesh);
         setMenuPosition(handle.mesh, this.scene, new Vector3(0, .4, 0));
