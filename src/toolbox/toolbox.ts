@@ -11,6 +11,7 @@ const colors: string[] = [
     "#1e90ff", "#98fb98", "#ffe4b5", "#ff69b4"
 ]
 
+
 export class Toolbox {
     private readonly logger = log.getLogger('Toolbox');
     private index = 0;
@@ -18,6 +19,7 @@ export class Toolbox {
     private readonly scene: Scene;
     private colorPicker: TransformNode;
     private changing = false;
+    private readonly handle: Handle;
     private readonly manager: GUI3DManager;
     private readonly addPanel: StackPanel3D;
     public readonly colorChangeObservable: Observable<{ oldColor: string, newColor: string }> =
@@ -30,7 +32,7 @@ export class Toolbox {
         this.manager = new GUI3DManager(scene);
         this.manager.addControl(this.addPanel);
         this.toolboxBaseNode = new TransformNode("toolbox", this.scene);
-        new Handle(this.toolboxBaseNode);
+        this.handle = new Handle(this.toolboxBaseNode);
         this.toolboxBaseNode.position.y = .2;
         //this.toolboxBaseNode.position.z = .05;
         /*this.axes = new AxesViewer(this.scene);
@@ -91,19 +93,36 @@ export class Toolbox {
             }
         }
         //this.toolboxBaseNode.parent.setEnabled(false);
-        const offset = new Vector3(0, 1, 1);
+        let offset = new Vector3(-.50, 1.6, .38);
+        let rotation = new Vector3(.5, -.6, .18);
+
         if (this.toolboxBaseNode.parent) {
             const platform = this.scene.getNodeById("platform");
+
             if (platform) {
-                const handle = (this.toolboxBaseNode.parent as TransformNode);
-                handle.parent = platform;
-                handle.position = offset;
+                const handle = this.handle;
+                if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
+                    offset = handle.mesh.position;
+                }
+                if (handle.mesh.rotation.x != 0 && handle.mesh.rotation.y != 0 && handle.mesh.rotation.z != 0) {
+                    rotation = handle.mesh.rotation;
+                }
+                handle.mesh.parent = platform;
+                handle.mesh.position = offset;
+                handle.mesh.rotation = rotation;
             } else {
                 this.scene.onNewMeshAddedObservable.add((mesh: AbstractMesh) => {
                     if (mesh.id == "platform") {
-                        const handle = (this.toolboxBaseNode.parent as TransformNode);
-                        handle.parent = mesh;
-                        handle.position = offset;
+                        const handle = this.handle;
+                        if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
+                            offset = handle.mesh.position;
+                        }
+                        if (handle.mesh.rotation.x != 0 && handle.mesh.rotation.y != 0 && handle.mesh.rotation.z != 0) {
+                            rotation = handle.mesh.rotation;
+                        }
+                        handle.mesh.parent = mesh;
+                        handle.mesh.position = offset;
+                        handle.mesh.rotation = rotation;
                     }
                 });
             }

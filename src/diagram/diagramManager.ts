@@ -14,6 +14,7 @@ import {toDiagramEntity} from "./functions/toDiagramEntity";
 import {v4 as uuidv4} from 'uuid';
 import {buildEntityActionManager} from "./functions/buildEntityActionManager";
 import {isDiagramEntity} from "./functions/isDiagramEntity";
+import {InputTextView} from "../information/inputTextView";
 
 
 export class DiagramManager {
@@ -21,6 +22,7 @@ export class DiagramManager {
     private readonly _controllers: Controllers;
     private readonly diagramEntityActionManager: ActionManager;
     private presentationManager: PresentationManager;
+    private readonly inputTextView: InputTextView;
 
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
     private readonly logger = log.getLogger('DiagramManager');
@@ -31,6 +33,21 @@ export class DiagramManager {
     constructor(scene: Scene) {
         this._config = new AppConfig();
         this._controllers = new Controllers();
+        this.inputTextView = new InputTextView(scene, this._controllers);
+        this.inputTextView.onTextObservable.add((evt) => {
+            const mesh = scene.getMeshById(evt.id);
+            if (mesh) {
+                const entity = toDiagramEntity(mesh);
+                entity.text = evt.text;
+                this.onDiagramEventObservable.notifyObservers({
+                    type: DiagramEventType.MODIFY,
+                    entity: entity
+                }, -1);
+            } else {
+                this.logger.error("mesh not found", evt.id);
+            }
+        });
+
         this.sounds = new DiaSounds(scene);
         this.scene = scene;
         this.toolbox = new Toolbox(scene);
@@ -65,6 +82,10 @@ export class DiagramManager {
                 }
             }
         });
+    }
+
+    public editText(mesh: AbstractMesh) {
+        this.inputTextView.show(mesh);
     }
 
     public get controllers(): Controllers {

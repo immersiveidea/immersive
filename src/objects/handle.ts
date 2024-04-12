@@ -13,13 +13,23 @@ export class Handle {
     private buildHandle() {
         const scene: Scene = this.transformNode.getScene();
         const handle = getHandleMesh("handle-" + this.transformNode.id + "-mesh", scene);
-
-        handle.position = Vector3.Zero();
-        handle.metadata = {handle: true};
         if (this.transformNode) {
             this.transformNode.setParent(handle);
-            //this.transformNode.rotation.y = Math.PI;
         }
+        const stored = localStorage.getItem(handle.id);
+        if (stored) {
+            try {
+                const locationdata = JSON.parse(stored);
+                handle.position = new Vector3(locationdata.position.x, locationdata.position.y, locationdata.position.z);
+                handle.rotation = new Vector3(locationdata.rotation.x, locationdata.rotation.y, locationdata.rotation.z);
+            } catch (e) {
+                console.error(e);
+                handle.position = Vector3.Zero();
+            }
+        } else {
+            handle.position = Vector3.Zero();
+        }
+        handle.metadata = {handle: true};
         this.mesh = handle;
     }
 }
@@ -40,6 +50,6 @@ function getHandleMesh(name: string, scene: Scene): InstancedMesh {
     handle.material = buildStandardMaterial('base-handle-material', scene, "#CCCCDD");
     handle.id = "base-handle-mesh";
     const instance = new InstancedMesh(name, (handle as Mesh));
-    instance.setParent(scene.getMeshByName("platform"));
+    instance.setParent(scene.getMeshById("platform"));
     return instance;
 }

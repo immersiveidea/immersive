@@ -21,6 +21,7 @@ import {snapRotateVal} from "../util/functions/snapRotateVal";
 import {grabAndClone} from "./functions/grab";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 import {ClickMenu} from "../menus/clickMenu";
+import {displayDebug} from "../util/displayDebug";
 
 const CLICK_TIME = 300;
 export class Base {
@@ -144,11 +145,12 @@ export class Base {
 
     private grab(cloneEntity: boolean = false) {
         let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
+
         if (!mesh) {
             return;
         }
         let player = false;
-
+        displayDebug(mesh);
         if (!isDiagramEntity(mesh)) {
             if (this.handleWasGrabbed(mesh)) {
                 mesh && mesh.setParent(this.controller.motionController.rootMesh);
@@ -215,7 +217,12 @@ export class Base {
             return;
         }
         if (this.handleWasGrabbed(mesh)) {
-            mesh.setParent(this.scene.getMeshByName("platform"))
+            mesh.setParent(this.scene.getMeshByName("platform"));
+            const location = {
+                position: {x: mesh.position.x, y: mesh.position.y, z: mesh.position.z},
+                rotation: {x: mesh.rotation.x, y: mesh.rotation.y, z: mesh.rotation.z}
+            }
+            localStorage.setItem(mesh.id, JSON.stringify(location));
             return;
         }
         reparent(mesh, this.previousParentId, this.grabbedMeshParentId);

@@ -63,6 +63,9 @@ export class ClickMenu {
                     this.dispose();
                     break;
                 case "label":
+                    this.diagramManager.editText(this.entity);
+                    this.dispose();
+                    break;
 
 
             }
