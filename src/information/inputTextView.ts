@@ -20,6 +20,7 @@ export class InputTextView {
     private readonly handle: Handle;
     private inputText: InputText;
     private diagramMesh: AbstractMesh;
+    private keyboard: VirtualKeyboard;
 
     constructor(scene: Scene, controllers: Controllers) {
         this.controllers = controllers;
@@ -31,41 +32,49 @@ export class InputTextView {
     }
 
     public show(mesh: AbstractMesh) {
-        this.inputText.text = mesh.metadata?.label || "";
         this.handle.mesh.setEnabled(true);
+        if (mesh.metadata?.label) {
+            this.inputText.text = mesh.metadata?.label;
+        }
         this.diagramMesh = mesh;
+        this.keyboard.isVisible = true;
+        this.inputText.focus();
         console.log(mesh.metadata);
     }
 
     public createKeyboard() {
         const platform = this.scene.getMeshById('platform');
-        let position = new Vector3(0, 1.66, .5);
-        let rotation = new Vector3(0, .9, 0);
+        const position = new Vector3(0, 1.66, .5);
+        const rotation = new Vector3(.9, 0, 0);
         const handle = this.handle;
-        if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
+        /*if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
             position = handle.mesh.position;
         }
         if (handle.mesh.rotation.x != 0 && handle.mesh.rotation.y != 0 && handle.mesh.rotation.z != 0) {
             rotation = handle.mesh.rotation;
-        }
+        }*/
         if (!platform) {
             this.scene.onNewMeshAddedObservable.add((mesh) => {
                 if (mesh.id == 'platform') {
                     this.logger.debug("platform added");
-                    handle.mesh.setParent(platform);
-
-                    handle.mesh.position = position;
-                    handle.mesh.rotation = rotation;
+                    handle.mesh.parent = mesh;
+                    if (!handle.idStored) {
+                        handle.mesh.position = position;
+                        handle.mesh.rotation = rotation;
+                    }
                 }
-            });
+            }, -1, false, this, false);
         } else {
-            handle.mesh.parent = platform;
-            handle.mesh.position = position;
-            handle.mesh.rotation = rotation;
+            handle.mesh.setParent(platform);
+            if (!handle.idStored) {
+                handle.mesh.position = position;
+                handle.mesh.rotation = rotation;
+            }
         }
 
         //setMenuPosition(handle.mesh, this.scene, new Vector3(0, .4, 0));
         const advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.inputMesh, 2048, 1024, false);
+
         const input = new InputText();
         input.width = 0.5;
         input.maxWidth = 0.5;
@@ -110,11 +119,17 @@ export class InputTextView {
         });
         keyboard.onKeyPressObservable.add((key) => {
             if (key === '↵') {
-                this.logger.error(this.inputText.text);
-                this.onTextObservable.notifyObservers({id: this.diagramMesh.id, text: this.inputText.text});
+                if (this.inputText.text && this.inputText.text.length > 0) {
+                    this.logger.error(this.inputText.text);
+                    this.onTextObservable.notifyObservers({id: this.diagramMesh.id, text: this.inputText.text});
+                } else {
+                    this.onTextObservable.notifyObservers({id: this.diagramMesh.id, text: null});
+                }
+
                 this.hide();
             }
         }, -1, false, this, false);
+        this.keyboard = keyboard;
         this.handle.mesh.setEnabled(false);
     }
 

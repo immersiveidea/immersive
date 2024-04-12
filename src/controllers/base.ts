@@ -41,6 +41,7 @@ export class Base {
     private logger: log.Logger;
     private lastPosition: Vector3 = null;
     protected controllers: Controllers;
+    private clickMenu: ClickMenu;
 
     constructor(controller: WebXRInputSource,
                 scene: Scene,
@@ -262,9 +263,18 @@ export class Base {
 
     private click() {
         let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
+
         if (pointable(mesh)) {
             this.logger.debug("click on " + mesh.id);
-            const menu = new ClickMenu(mesh, this.diagramManager);
+            if (this.clickMenu && !this.clickMenu.isDisposed) {
+                if (this.clickMenu.isConnecting) {
+                    this.clickMenu.connect(mesh);
+                    this.clickMenu = null;
+                }
+            } else {
+                this.clickMenu = new ClickMenu(mesh, this.diagramManager, this.controller.grip);
+            }
+
         } else {
             this.logger.debug("click on nothing");
         }

@@ -93,38 +93,40 @@ export class Toolbox {
             }
         }
         //this.toolboxBaseNode.parent.setEnabled(false);
-        let offset = new Vector3(-.50, 1.6, .38);
-        let rotation = new Vector3(.5, -.6, .18);
+        const offset = new Vector3(-.50, 1.6, .38);
+        const rotation = new Vector3(.5, -.6, .18);
 
         if (this.toolboxBaseNode.parent) {
             const platform = this.scene.getNodeById("platform");
 
             if (platform) {
                 const handle = this.handle;
-                if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
+                handle.mesh.parent = platform;
+                /*if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
                     offset = handle.mesh.position;
                 }
                 if (handle.mesh.rotation.x != 0 && handle.mesh.rotation.y != 0 && handle.mesh.rotation.z != 0) {
                     rotation = handle.mesh.rotation;
+                }*/
+                //handle.mesh.parent = platform;
+                if (!handle.idStored) {
+                    handle.mesh.position = offset;
+                    handle.mesh.rotation = rotation;
                 }
-                handle.mesh.parent = platform;
-                handle.mesh.position = offset;
-                handle.mesh.rotation = rotation;
+
             } else {
                 this.scene.onNewMeshAddedObservable.add((mesh: AbstractMesh) => {
-                    if (mesh.id == "platform") {
+                    if (mesh && mesh.id == "platform") {
                         const handle = this.handle;
-                        if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
-                            offset = handle.mesh.position;
-                        }
-                        if (handle.mesh.rotation.x != 0 && handle.mesh.rotation.y != 0 && handle.mesh.rotation.z != 0) {
-                            rotation = handle.mesh.rotation;
-                        }
                         handle.mesh.parent = mesh;
-                        handle.mesh.position = offset;
-                        handle.mesh.rotation = rotation;
+                        if (!handle.idStored) {
+                            handle.mesh.position = offset;
+                            handle.mesh.rotation = rotation;
+                        }
+                        //handle.mesh.parent = mesh;
+
                     }
-                });
+                }, -1, false, this, false);
             }
 
         }

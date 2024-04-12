@@ -3,6 +3,8 @@ import {AbstractMesh, TransformNode} from "@babylonjs/core";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {DiagramManager} from "../diagram/diagramManager";
+import {DiagramConnection} from "../diagram/diagramConnection";
+import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 
 export class ClickMenu {
     private static readonly sounds;
@@ -11,7 +13,10 @@ export class ClickMenu {
     private readonly transform: TransformNode;
     private readonly diagramManager: DiagramManager;
 
-    constructor(entity: AbstractMesh, diagramManager: DiagramManager) {
+
+    private connection: DiagramConnection = null;
+
+    constructor(entity: AbstractMesh, diagramManager: DiagramManager, grip: TransformNode) {
         this.entity = entity;
         this.diagramManager = diagramManager;
         const scene = entity.getScene();
@@ -29,17 +34,39 @@ export class ClickMenu {
         manager.controlScaling = .1;
         manager.addControl(panel);
 
-        panel.addControl(this.makeButton("Remove", "remove"));
-        panel.addControl(this.makeButton("Label", "label"));
-        panel.addControl(this.makeButton("Connect", "connect"));
-        panel.addControl(this.makeButton("Close", "close"));
+        panel.addControl(this.makeButton("Remove", "remove", grip));
+        panel.addControl(this.makeButton("Label", "label", grip));
+        panel.addControl(this.makeButton("Connect", "connect", grip));
+        panel.addControl(this.makeButton("Close", "close", grip));
 
         panel.linkToTransformNode(transform);
         this.transform = transform;
         this.manager = manager;
     }
 
-    private makeButton(name: string, id: string) {
+    public get isConnecting() {
+        return this.connection != null;
+    }
+
+    public get isDisposed(): boolean {
+        return this.transform.isDisposed();
+    }
+
+    public connect(mesh: AbstractMesh) {
+        if (this.connection) {
+            if (mesh && isDiagramEntity(mesh)) {
+                this.connection.to = mesh.id;
+                this.diagramManager.onDiagramEventObservable.notifyObservers({
+                    type: DiagramEventType.ADD,
+                    entity: toDiagramEntity(this.connection.mesh)
+                }, -1);
+                this.connection = null;
+                this.dispose();
+            }
+        }
+    }
+
+    private makeButton(name: string, id: string, grip: TransformNode) {
         const button = new Button3D(name);
         //button.scaling = new Vector3(.1, .1, .1);
         button.name = id;
@@ -66,7 +93,8 @@ export class ClickMenu {
                     this.diagramManager.editText(this.entity);
                     this.dispose();
                     break;
-
+                case "connect":
+                    this.createMeshConnection(this.entity, grip);
 
             }
 
@@ -74,8 +102,13 @@ export class ClickMenu {
         return button;
     }
 
+    private createMeshConnection(mesh: AbstractMesh, grip: TransformNode) {
+        this.connection = new DiagramConnection(mesh.id, null, null, this.transform.getScene(), grip);
+    }
+
     private dispose() {
         this.manager.dispose();
         this.transform.dispose();
+
     }
 }

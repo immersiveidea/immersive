@@ -1,4 +1,4 @@
-import {AbstractMesh, MeshBuilder, PointerInfo, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {v4 as uuidv4} from 'uuid';
 import log, {Logger} from "loglevel";
 import {buildStandardMaterial} from "../materials/functions/buildStandardMaterial";
@@ -8,7 +8,7 @@ export class DiagramConnection {
     private logger: Logger = log.getLogger('DiagramConnection');
     private readonly id: string;
 
-    constructor(from: string, to: string, id: string, scene?: Scene, pointerInfo?: PointerInfo) {
+    constructor(from: string, to: string, id: string, scene?: Scene, gripTransform?: TransformNode) {
         this.logger.debug('buildConnection constructor');
         if (id) {
             this.id = id;
@@ -34,8 +34,8 @@ export class DiagramConnection {
                 to.ignoreNonUniformScaling = true;
                 to.id = this.id + "_to";
                 to.position = fromMesh.absolutePosition.clone();
-                if (pointerInfo) {
-                    to.setParent(pointerInfo.pickInfo.gripTransform);
+                if (gripTransform) {
+                    to.setParent(gripTransform);
                 }
 
                 this.toAnchor = to;
@@ -105,7 +105,7 @@ export class DiagramConnection {
     private buildConnection() {
         this.logger.debug(`buildConnection from ${this._from} to ${this._to}`);
         this._mesh = MeshBuilder.CreateCylinder(this.id + "_connection", {diameter: .02, height: 1}, this.scene);
-        this._mesh.material = buildStandardMaterial(this.id + "_material", this.scene, "#000000");
+        this._mesh.material = buildStandardMaterial(this.id + "_material", this.scene, "#FFFFFF");
         this.transformNode = new TransformNode(this.id + "_transform", this.scene);
         this.transformNode.metadata = {exportable: true};
         this._mesh.setParent(this.transformNode);

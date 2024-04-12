@@ -4,12 +4,16 @@ import {buildStandardMaterial} from "../materials/functions/buildStandardMateria
 export class Handle {
     public mesh: AbstractMesh;
     private readonly transformNode: TransformNode;
+    private _isStored: boolean = false;
 
     constructor(mesh: TransformNode) {
         this.transformNode = mesh;
         this.buildHandle();
     }
 
+    public get idStored() {
+        return this._isStored;
+    }
     private buildHandle() {
         const scene: Scene = this.transformNode.getScene();
         const handle = getHandleMesh("handle-" + this.transformNode.id + "-mesh", scene);
@@ -22,6 +26,7 @@ export class Handle {
                 const locationdata = JSON.parse(stored);
                 handle.position = new Vector3(locationdata.position.x, locationdata.position.y, locationdata.position.z);
                 handle.rotation = new Vector3(locationdata.rotation.x, locationdata.rotation.y, locationdata.rotation.z);
+                this._isStored = true;
             } catch (e) {
                 console.error(e);
                 handle.position = Vector3.Zero();

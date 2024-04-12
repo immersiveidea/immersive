@@ -66,6 +66,7 @@ export function diagramEventHandler(event: DiagramEvent,
             if (physicsEnabled) {
                 applyPhysics(sounds, mesh, scene);
             }
+            updateTextNode(mesh, entity.text);
             break;
         case DiagramEventType.REMOVE:
             if (mesh) {
