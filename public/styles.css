@@ -178,7 +178,18 @@ h1 {
 }
 
 #enterXR {
-    display: none;
+
+}
+
+#enterXR.inactive a {
+    background-color: #222222;
+    color: #555555;
+    border-color: #222222;
+    cursor: not-allowed;
+}
+
+#enterXR.inactive {
+
 }
 
 #loadingGrid {

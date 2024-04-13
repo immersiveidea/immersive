@@ -58,17 +58,22 @@ export function updateTextNode(mesh: AbstractMesh, text: string) {
 
 function createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth: number, height: number): AbstractMesh {
     const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
-
-    plane.material = mat;
-    //plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
-    plane.metadata = {exportable: true, label: true};
-
     const yOffset = mesh.getBoundingInfo().boundingSphere.maximum.y;
     plane.parent = mesh;
 
     plane.scaling.y = (1 / mesh.scaling.y);
     plane.scaling.x = (1 / mesh.scaling.x);
     plane.scaling.z = (1 / mesh.scaling.z);
-    plane.position.y = yOffset + (height * plane.scaling.y);
+    plane.material = mat;
+    //plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+    plane.metadata = {exportable: true, label: true};
+    if (mesh.metadata?.template == "#connection-template") {
+        plane.billboardMode = AbstractMesh.BILLBOARDMODE_Y;
+        plane.position.y = mesh.absolutePosition.y + .1;
+
+    } else {
+        plane.position.y = yOffset + (height * plane.scaling.y);
+    }
+
     return plane;
 }

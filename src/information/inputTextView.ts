@@ -9,14 +9,14 @@ export type TextEvent = {
     id: string;
     text: string;
 }
-
+const logger: Logger = log.getLogger('InputTextView');
 export class InputTextView {
     public readonly onTextObservable: Observable<TextEvent> = new Observable<TextEvent>();
     private readonly scene: Scene;
     private readonly inputMesh: AbstractMesh;
     private sounds: DiaSounds;
     private readonly controllers: Controllers;
-    private readonly logger: Logger = log.getLogger('InputTextView');
+
     private readonly handle: Handle;
     private inputText: InputText;
     private diagramMesh: AbstractMesh;
@@ -33,13 +33,15 @@ export class InputTextView {
 
     public show(mesh: AbstractMesh) {
         this.handle.mesh.setEnabled(true);
-        if (mesh.metadata?.label) {
-            this.inputText.text = mesh.metadata?.label;
+        if (mesh.metadata?.text) {
+            this.inputText.text = mesh.metadata?.text;
+        } else {
+            this.inputText.text = "";
         }
         this.diagramMesh = mesh;
         this.keyboard.isVisible = true;
         this.inputText.focus();
-        console.log(mesh.metadata);
+        logger.debug(mesh.metadata);
     }
 
     public createKeyboard() {
@@ -56,7 +58,7 @@ export class InputTextView {
         if (!platform) {
             this.scene.onNewMeshAddedObservable.add((mesh) => {
                 if (mesh.id == 'platform') {
-                    this.logger.debug("platform added");
+                    logger.debug("platform added");
                     handle.mesh.parent = mesh;
                     if (!handle.idStored) {
                         handle.mesh.position = position;
@@ -102,7 +104,7 @@ export class InputTextView {
         keyboard.isEnabled = true;
         keyboard.children.forEach((key) => {
             key.onPointerEnterObservable.add((eventData, eventState) => {
-                this.logger.debug(eventData);
+                logger.debug(eventData);
                 const gripId = eventState?.userInfo?.pickInfo?.gripTransform?.id;
                 if (gripId) {
                     this.controllers.controllerObserver.notifyObservers({
@@ -120,7 +122,7 @@ export class InputTextView {
         keyboard.onKeyPressObservable.add((key) => {
             if (key === '↵') {
                 if (this.inputText.text && this.inputText.text.length > 0) {
-                    this.logger.error(this.inputText.text);
+                    logger.error(this.inputText.text);
                     this.onTextObservable.notifyObservers({id: this.diagramMesh.id, text: this.inputText.text});
                 } else {
                     this.onTextObservable.notifyObservers({id: this.diagramMesh.id, text: null});

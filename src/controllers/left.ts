@@ -13,7 +13,7 @@ import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 import {RoundButton} from "../objects/roundButton";
 
-
+const logger = log.getLogger('Left');
 export class Left extends Base {
     constructor(controller:
                     WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
@@ -22,7 +22,7 @@ export class Left extends Base {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
                     .onAxisValueChangedObservable.add((value) => {
-                    log.trace('Left', `thumbstick moved ${value.x}, ${value.y}`);
+                    logger.trace(`thumbstick moved ${value.x}, ${value.y}`);
                     if (!this.controllers.movable) {
                         this.moveRig(value);
                     } else {
@@ -41,13 +41,10 @@ export class Left extends Base {
                 this.initYButton(init.components['y-button']);
                 const buttonhome = new TransformNode('buttons', scene)
 
-                //const xbutton = new Button(buttonhome, 'X', 'open edit menu', new Vector2(0,0));
-                //const ybutton = new Button(buttonhome, 'Y', 'open edit menu', new Vector2(.4,0));
-
                 this.initTrigger(init.components['xr-standard-trigger']);
                 init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
                     if (value.pressed) {
-                        log.trace('Left', 'thumbstick changed');
+                        logger.trace('Left', 'thumbstick changed');
                         this.controllers.controllerObserver.notifyObservers({
                             type: ControllerEventType.DECREASE_VELOCITY,
                             value: value.value
@@ -64,6 +61,7 @@ export class Left extends Base {
             trigger
                 .onButtonStateChangedObservable
                 .add((button) => {
+                    logger.trace('trigger pressed');
                     this.controllers.controllerObserver.notifyObservers({
                         type: ControllerEventType.TRIGGER,
                         value: button.value,
@@ -75,9 +73,9 @@ export class Left extends Base {
 
     private initXButton(xbutton: WebXRControllerComponent) {
         if (xbutton) {
-
             xbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
+                    logger.trace('X button pressed');
                     this.controllers.controllerObserver.notifyObservers({
                         type: ControllerEventType.X_BUTTON,
                         value: button.value
@@ -91,6 +89,7 @@ export class Left extends Base {
         if (ybutton) {
             ybutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
+                    logger.trace('Y button pressed');
                     this.controllers.controllerObserver.notifyObservers({
                         type: ControllerEventType.Y_BUTTON,
                         value: button.value

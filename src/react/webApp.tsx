@@ -4,9 +4,9 @@ function MainMenu({onClick}) {
     return (
         <div className="overlay mini" id="main">
             <img height="120" src="/assets/ddd.svg" width="320"/>
-            <div id="diagrams"><a href="#" id="diagramsLink" onClick={onClick}>Diagrams</a></div>
-            <div id="enterXR"><a href="#" id="enterVRLink">Enter VR</a></div>
+            <div id="enterXR" className="inactive"><a href="#" id="enterVRLink">Enter VR</a></div>
             <QuestLink/>
+            <div id="diagrams"><a href="#" id="diagramsLink" onClick={onClick}>Diagrams</a></div>
             <div id="download"><a href="#" id="downloadLink">Download Model</a></div>
         </div>
     )

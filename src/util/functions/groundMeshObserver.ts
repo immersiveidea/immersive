@@ -31,7 +31,8 @@ export async function groundMeshObserver(ground, scene, diagramManager, controll
     if (enterButton) {
         const vrSupported = await xr.baseExperience.sessionManager.isSessionSupportedAsync('immersive-vr');
         if (vrSupported) {
-            enterButton.style.display = "block";
+            //enterButton.style.display = "block";
+            enterButton.classList.remove('inactive');
             enterButton.addEventListener('click', (evt) => {
                 evt.preventDefault();
                 //const voice = new VoiceRecognizer();

@@ -9,10 +9,12 @@ import {
     WebXRInputSource
 } from "@babylonjs/core";
 import {ControllerEventType, Controllers} from "./controllers";
-import log from "loglevel";
+
 import {DiagramManager} from "../diagram/diagramManager";
 import {RoundButton} from "../objects/roundButton";
+import log from "loglevel";
 
+const logger = log.getLogger("Right");
 export class Right extends Base {
 
     private startPosition: Vector3 = null;
@@ -21,6 +23,7 @@ export class Right extends Base {
         if (bbutton) {
             bbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
+                    logger.debug('B Button Pressed');
                     this.controllers.controllerObserver.notifyObservers({
                         type: ControllerEventType.B_BUTTON,
                         value: button.value
@@ -62,6 +65,7 @@ export class Right extends Base {
             trigger
                 .onButtonStateChangedObservable
                 .add((button) => {
+                    logger.debug("right trigger pressed");
                     this.controllers.controllerObserver.notifyObservers({
                         type: ControllerEventType.TRIGGER,
                         value: button.value,
@@ -75,7 +79,7 @@ export class Right extends Base {
         if (abutton) {
             abutton.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
-                    log.getLogger("right").debug("a-button pressed");
+                    logger.debug('A button pressed');
                     this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.MENU});
                 }
             });
@@ -85,12 +89,12 @@ export class Right extends Base {
     private initThumbstick(thumbstick: WebXRControllerComponent) {
         if (thumbstick) {
             thumbstick.onAxisValueChangedObservable.add((value) => {
-                log.trace('Right', `thumbstick moved ${value.x}, ${value.y}`);
+                logger.trace(`thumbstick moved ${value.x}, ${value.y}`);
                 this.moveRig(value);
             });
             thumbstick.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
-                    log.trace('Right', `thumbstick changed ${value.value}`);
+                    logger.trace('Right', `thumbstick changed ${value.value}`);
                     this.controllers.controllerObserver.notifyObservers({
                         type: ControllerEventType.INCREASE_VELOCITY,
                         value: value.value

@@ -36,8 +36,11 @@ export function diagramEventHandler(event: DiagramEvent,
             }
         }
     }
-
+    if (isDiagramEntity(mesh) && (mesh.metadata.template.indexOf('#') > -1)) {
+        updateTextNode(mesh, entity.text);
+    }
     switch (event.type) {
+
         case DiagramEventType.RESET:
             scene.getNodes().forEach((node) => {
                 if (node?.metadata?.template && !node?.metadata?.tool) {
@@ -66,7 +69,7 @@ export function diagramEventHandler(event: DiagramEvent,
             if (physicsEnabled) {
                 applyPhysics(sounds, mesh, scene);
             }
-            updateTextNode(mesh, entity.text);
+
             break;
         case DiagramEventType.REMOVE:
             if (mesh) {

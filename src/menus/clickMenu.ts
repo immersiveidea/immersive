@@ -24,7 +24,7 @@ export class ClickMenu {
         const transform = new TransformNode("transform", scene);
 
         transform.position = entity.absolutePosition.clone();
-        transform.position.y += entity.scaling.y;
+        transform.position.y = entity.getBoundingInfo().boundingBox.maximumWorld.y + .1;
 
         const panel = new PlanePanel();
 
