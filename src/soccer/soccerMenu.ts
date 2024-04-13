@@ -4,7 +4,7 @@ import {ControllerEvent, ControllerEventType, Controllers} from "../controllers/
 import {Control3D, GUI3DManager, PlanePanel, Slider3D} from "@babylonjs/gui";
 import log, {Logger} from "loglevel";
 import {Field} from "./field";
-import {getFrontPosition} from "../util/functions/getFrontPosition";
+
 
 enum SoccerMenuState {
     PLAY,
@@ -180,7 +180,7 @@ export class SoccerMenu extends AbstractMenu {
         //panel.updateLayout();
         //slider.position.x = 1;
         this.createHandle(this.manager.rootContainer.children[0].node);
-        this.handle.mesh.position = getFrontPosition(3, this.scene).add(new Vector3(0, .5, 0));
+        //this.handle.mesh.position = getFrontPosition(3, this.scene).add(new Vector3(0, .5, 0));
     }
 
     private handleClick(_info, state) {

@@ -27,7 +27,6 @@ export type DiagramEvent = {
     type: DiagramEventType;
     menustate?: EditMenuState;
     entity?: DiagramEntity;
-
     oldColor?: Color3;
     newColor?: Color3;
 
