@@ -10,7 +10,7 @@ export function updateTextNode(mesh: AbstractMesh, text: string) {
         return null;
     }
     const textNodes = mesh.getChildren((node) => {
-        return node.metadata?.label == true;
+        return node.metadata?.text == true;
     });
     if (textNodes && textNodes.length > 0) {
         textNodes.forEach((node) => {
@@ -69,7 +69,7 @@ function createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth
     plane.metadata = {exportable: true, label: true};
     if (mesh.metadata?.template == "#connection-template") {
         plane.billboardMode = AbstractMesh.BILLBOARDMODE_Y;
-        plane.position.y = mesh.absolutePosition.y + .1;
+        plane.position.y = mesh.position.y + .1;
 
     } else {
         plane.position.y = yOffset + (height * plane.scaling.y);
