@@ -92,6 +92,7 @@ export class DiagramConnection {
     }
 
     private tick: number = 0;
+
     private recalculate() {
         const start = this.fromAnchor?.absolutePosition;
         const end = this.toAnchor?.absolutePosition;
@@ -100,6 +101,16 @@ export class DiagramConnection {
             this.transformNode.lookAt(end);
             this._mesh.rotation.x = Math.PI / 2;
             this._mesh.scaling.y = Math.abs(start.subtract(end).length());
+            const text = this._mesh.getChildren((node) => {
+                return node.metadata?.label == true;
+            });
+            if (text && text.length > 0) {
+                text.forEach((node) => {
+                    const t: AbstractMesh = node as AbstractMesh;
+                    t.scaling.y = 1 / this._mesh.scaling.y;
+
+                });
+            }
         }
     }
 
@@ -136,7 +147,7 @@ export class DiagramConnection {
 
     private beforeRender = () => {
         this.tick++;
-        if (this.tick % 10 == 0) {
+        if (this.tick % 5 == 0) {
             this.recalculate();
             this.setPoints();
         }
