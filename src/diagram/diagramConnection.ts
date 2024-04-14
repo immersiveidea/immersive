@@ -8,7 +8,7 @@ export class DiagramConnection {
     private logger: Logger = log.getLogger('DiagramConnection');
     private readonly id: string;
 
-    constructor(from: string, to: string, id: string, scene?: Scene, gripTransform?: TransformNode) {
+    constructor(from: string, to: string, id: string, scene?: Scene, gripTransform?: TransformNode, clickPoint?: Vector3) {
         this.logger.debug('buildConnection constructor');
         if (id) {
             this.id = id;
@@ -33,7 +33,12 @@ export class DiagramConnection {
                 const to = new TransformNode(this.id + "_to", this.scene);
                 to.ignoreNonUniformScaling = true;
                 to.id = this.id + "_to";
-                to.position = fromMesh.absolutePosition.clone();
+                if (clickPoint) {
+                    to.position = clickPoint.clone();
+                } else {
+                    to.position = fromMesh.absolutePosition.clone();
+                }
+
                 if (gripTransform) {
                     to.setParent(gripTransform);
                 }

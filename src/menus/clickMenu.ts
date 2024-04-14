@@ -1,5 +1,5 @@
 import {Button3D, GUI3DManager, PlanePanel, TextBlock} from "@babylonjs/gui";
-import {AbstractMesh, TransformNode} from "@babylonjs/core";
+import {AbstractMesh, Tools, TransformNode, Vector3} from "@babylonjs/core";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {DiagramManager} from "../diagram/diagramManager";
@@ -12,7 +12,7 @@ export class ClickMenu {
     private readonly manager: GUI3DManager;
     private readonly transform: TransformNode;
     private readonly diagramManager: DiagramManager;
-
+    private utilityPosition: Vector3;
 
     private connection: DiagramConnection = null;
 
@@ -21,27 +21,32 @@ export class ClickMenu {
         this.diagramManager = diagramManager;
         const scene = entity.getScene();
         const manager = new GUI3DManager(scene);
+        manager.onPickingObservable.add((mesh) => {
+            if (mesh) {
+                this.utilityPosition = mesh.getAbsolutePosition();
+            }
+        });
         const transform = new TransformNode("transform", scene);
-
-        transform.position = entity.absolutePosition.clone();
-        transform.position.y = entity.getBoundingInfo().boundingBox.maximumWorld.y + .1;
-
         const panel = new PlanePanel();
 
-        panel.orientation = PlanePanel.FACEFORWARDREVERSED_ORIENTATION;
+        panel.orientation = PlanePanel.FACEFORWARD_ORIENTATION;
         panel.columns = 4;
-
-        manager.controlScaling = .1;
+        panel.margin = .1;
         manager.addControl(panel);
-
+        panel.linkToTransformNode(transform);
         panel.addControl(this.makeButton("Remove", "remove", grip));
         panel.addControl(this.makeButton("Label", "label", grip));
         panel.addControl(this.makeButton("Connect", "connect", grip));
         panel.addControl(this.makeButton("Close", "close", grip));
-
-        panel.linkToTransformNode(transform);
+        manager.controlScaling = .1;
+        panel.updateLayout();
         this.transform = transform;
         this.manager = manager;
+        Tools.SetImmediate(() => {
+            transform.position = entity.absolutePosition.clone();
+            transform.position.y = entity.getBoundingInfo().boundingBox.maximumWorld.y + .1;
+            transform.billboardMode = TransformNode.BILLBOARDMODE_Y;
+        });
     }
 
     public get isConnecting() {
@@ -68,11 +73,11 @@ export class ClickMenu {
 
     private makeButton(name: string, id: string, grip: TransformNode) {
         const button = new Button3D(name);
-        //button.scaling = new Vector3(.1, .1, .1);
+        button.scaling = new Vector3(.1, .1, .1);
         button.name = id;
         const text = new TextBlock(name, name);
         text.fontSize = "48px";
-        text.color = "#ffffff";
+        text.color = "#ffffee";
         text.alpha = 1;
         button.content = text;
         button.onPointerClickObservable.add(() => {
@@ -97,16 +102,16 @@ export class ClickMenu {
                     this.createMeshConnection(this.entity, grip);
 
             }
-
         }, -1, false, this, true);
         return button;
     }
 
     private createMeshConnection(mesh: AbstractMesh, grip: TransformNode) {
-        this.connection = new DiagramConnection(mesh.id, null, null, this.transform.getScene(), grip);
+        this.connection = new DiagramConnection(mesh.id, null, null, this.transform.getScene(), grip, this.utilityPosition);
     }
 
     private dispose() {
+        this.manager.onPickingObservable.clear();
         this.manager.dispose();
         this.transform.dispose();
 
