@@ -35,14 +35,15 @@ export class Rigplatform {
     public turnSnap: number = 0;
     public rigMesh: Mesh;
 
-    constructor(scene: Scene, xr: WebXRDefaultExperience,
+    constructor(
+        xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager
     ) {
-        this.scene = scene;
+        this.scene = diagramManager.scene;
         this.diagramManager = diagramManager;
         this.controllers = diagramManager.controllers;
         this.xr = xr;
-        this.rigMesh = buildRig(scene, xr);
+        this.rigMesh = buildRig(this.scene, xr);
 
         this.fixRotation();
         this.initializeControllers();

@@ -63,7 +63,7 @@ export async function groundMeshObserver(ground: AbstractMesh,
         }
     });
 
-    const rig = new Rigplatform(ground.getScene(), xr, diagramManager);
+    const rig = new Rigplatform(xr, diagramManager);
     const currentConfig = diagramManager.config.current;
     rig.flyMode = currentConfig.flyMode;
     rig.turnSnap = currentConfig.turnSnap;
