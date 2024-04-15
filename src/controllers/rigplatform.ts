@@ -159,12 +159,12 @@ export class Rigplatform {
             switch (source.inputSource.handedness) {
                 case RIGHT:
                     if (!this.rightController) {
-                        this.rightController = new Right(source, this.xr, this.diagramManager, this.controllers);
+                        this.rightController = new Right(source, this.xr, this.diagramManager);
                     }
                     break;
                 case LEFT:
                     if (!this.leftController) {
-                        this.leftController = new Left(source, this.xr, this.diagramManager, this.controllers);
+                        this.leftController = new Left(source, this.xr, this.diagramManager);
                     }
                     break;
             }

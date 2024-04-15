@@ -2,7 +2,7 @@ import {AbstractMesh, MeshBuilder, Scene, WebXRDefaultExperience} from "@babylon
 import {Controllers} from "../controllers/controllers";
 import {AbstractMenu} from "./abstractMenu";
 import {AdvancedDynamicTexture, Grid, TextBlock} from "@babylonjs/gui";
-import {setMenuPosition} from "../util/functions/setMenuPosition";
+
 
 export class IntegrationMenu extends AbstractMenu {
     private plane: AbstractMesh = null;
@@ -28,6 +28,6 @@ export class IntegrationMenu extends AbstractMenu {
         grid.addControl(labelText1, 0, 0);
         const labelText2 = new TextBlock("labelText1", "New Relic Account");
         grid.addControl(labelText2, 1, 0);
-        setMenuPosition(this.plane, this.scene);
+
     }
 }

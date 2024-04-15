@@ -3,11 +3,15 @@ import {buildStandardMaterial} from "../materials/functions/buildStandardMateria
 
 export class Handle {
     public mesh: AbstractMesh;
-    private readonly transformNode: TransformNode;
+    private readonly menuItem: TransformNode;
     private _isStored: boolean = false;
+    private offset: Vector3;
+    private rotation: Vector3;
 
-    constructor(mesh: TransformNode) {
-        this.transformNode = mesh;
+    constructor(mesh: TransformNode, offset: Vector3 = Vector3.Zero(), rotation: Vector3 = Vector3.Zero()) {
+        this.menuItem = mesh;
+        this.offset = offset;
+        this.rotation = rotation;
         this.buildHandle();
     }
 
@@ -15,10 +19,10 @@ export class Handle {
         return this._isStored;
     }
     private buildHandle() {
-        const scene: Scene = this.transformNode.getScene();
-        const handle = getHandleMesh("handle-" + this.transformNode.id + "-mesh", scene);
-        if (this.transformNode) {
-            this.transformNode.setParent(handle);
+        const scene: Scene = this.menuItem.getScene();
+        const handle = getHandleMesh("handle-" + this.menuItem.id + "-mesh", scene);
+        if (this.menuItem) {
+            this.menuItem.setParent(handle);
         }
         const stored = localStorage.getItem(handle.id);
         if (stored) {
@@ -32,12 +36,48 @@ export class Handle {
                 handle.position = Vector3.Zero();
             }
         } else {
-            handle.position = Vector3.Zero();
+            handle.position = this.offset;
+            handle.rotation = this.rotation;
+            ``
         }
         handle.metadata = {handle: true};
         this.mesh = handle;
     }
+
+    private setPlatformParent() {
+        const platform = this.menuItem.getScene().getNodeById("platform");
+
+        if (platform) {
+
+            this.mesh.parent = platform;
+            /*if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
+                offset = handle.mesh.position;
+            }
+            if (handle.mesh.rotation.x != 0 && handle.mesh.rotation.y != 0 && handle.mesh.rotation.z != 0) {
+                rotation = handle.mesh.rotation;
+            }*/
+            //handle.mesh.parent = platform;
+            if (!this._isStored) {
+                this.mesh.position = this.offset;
+                this.mesh.rotation = this.rotation;
+            }
+
+        } else {
+            this.menuItem.getScene().onNewMeshAddedObservable.add((mesh: AbstractMesh) => {
+                if (mesh && mesh.id == "platform") {
+                    //const handle = this.handle;
+                    this.menuItem.parent = mesh;
+                    if (!this._isStored) {
+                        this.mesh.position = this.offset;
+                        this.mesh.rotation = this.rotation;
+                    }
+                }
+            }, -1, false, this, false);
+        }
+
+    }
 }
+
 
 function getHandleMesh(name: string, scene: Scene): InstancedMesh {
     const existingBase = scene.getMeshById("base-handle-mesh");

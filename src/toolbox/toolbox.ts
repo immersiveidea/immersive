@@ -34,11 +34,6 @@ export class Toolbox {
         this.toolboxBaseNode = new TransformNode("toolbox", this.scene);
         this.handle = new Handle(this.toolboxBaseNode);
         this.toolboxBaseNode.position.y = .2;
-        //this.toolboxBaseNode.position.z = .05;
-        /*this.axes = new AxesViewer(this.scene);
-         this.axes.xAxis.parent = this.toolboxBaseNode;
-         this.axes.yAxis.parent = this.toolboxBaseNode;
-         this.axes.zAxis.parent = this.toolboxBaseNode; */
         this.toolboxBaseNode.scaling = new Vector3(0.6, 0.6, 0.6);
         this.buildToolbox();
     }
@@ -92,7 +87,7 @@ export class Toolbox {
 
             }
         }
-        //this.toolboxBaseNode.parent.setEnabled(false);
+
         const offset = new Vector3(-.50, 1.6, .38);
         const rotation = new Vector3(.5, -.6, .18);
 

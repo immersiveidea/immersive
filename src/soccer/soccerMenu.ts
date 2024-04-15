@@ -4,6 +4,7 @@ import {ControllerEvent, ControllerEventType, Controllers} from "../controllers/
 import {Control3D, GUI3DManager, PlanePanel, Slider3D} from "@babylonjs/gui";
 import log, {Logger} from "loglevel";
 import {Field} from "./field";
+import {makeButton} from "../menus/functions/makeButton";
 
 
 enum SoccerMenuState {
@@ -160,7 +161,7 @@ export class SoccerMenu extends AbstractMenu {
     }
 
     makeButton(name: string, id: string) {
-        const button = super.makeButton(name, id);
+        const button = makeButton(name, id);
         button.onPointerClickObservable.add(this.handleClick, -1, false, this);
         return button;
     }
@@ -169,10 +170,10 @@ export class SoccerMenu extends AbstractMenu {
         const panel = new PlanePanel();
         this.manager.addControl(panel);
         panel.columns = 10;
-        panel.addControl(this.makeButton("Play", "play"));
-        panel.addControl(this.makeButton("Plan", "plan"));
-        panel.addControl(this.makeButton("Train", "Train"));
-        panel.addControl(this.makeButton("Modify", "modify"));
+        panel.addControl(makeButton("Play", "play"));
+        panel.addControl(makeButton("Plan", "plan"));
+        panel.addControl(makeButton("Train", "Train"));
+        panel.addControl(makeButton("Modify", "modify"));
         const slider = panel.addControl(this.makeSlider("force"));
 
         this.manager.rootContainer.children[0].node.position.y = .2;

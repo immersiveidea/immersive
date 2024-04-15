@@ -1,6 +1,5 @@
 import {
     AbstractMesh,
-    HavokPlugin,
     Mesh,
     PhysicsMotionType,
     Scene,
@@ -18,10 +17,15 @@ import {setupTransformNode} from "./functions/setupTransformNode";
 import {reparent} from "./functions/reparent";
 import {snapGridVal} from "../util/functions/snapGridVal";
 import {snapRotateVal} from "../util/functions/snapRotateVal";
-import {grabAndClone} from "./functions/grab";
+import {grabAndClone} from "./functions/grabAndClone";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 import {ClickMenu} from "../menus/clickMenu";
 import {displayDebug} from "../util/displayDebug";
+import {beforeRenderObserver} from "./functions/beforeRenderObserver";
+import {motionControllerObserver} from "./functions/motionControllerObserver";
+import {handleWasGrabbed} from "./functions/handleWasGrabbed";
+import {buildDrop} from "./functions/buildDrop";
+import {pointable} from "./functions/pointable";
 
 const CLICK_TIME = 300;
 export class Base {
@@ -53,37 +57,8 @@ export class Base {
         this.scene = diagramManager.scene;
         this.xr = xr;
         this.diagramManager = diagramManager;
-
-        this.scene.onBeforeRenderObservable.add(() => {
-            if (this?.grabbedMesh?.physicsBody) {
-                const hk = (this.scene.getPhysicsEngine().getPhysicsPlugin() as HavokPlugin);
-                this.lastPosition = this?.grabbedMesh?.physicsBody?.transformNode.absolutePosition.clone();
-                if (this.grabbedMeshParentId) {
-                    const parent = this.scene.getTransformNodeById(this.grabbedMeshParentId);
-                    if (parent) {
-                        hk.setPhysicsBodyTransformation(this.grabbedMesh.physicsBody, parent);
-                        hk.sync(this.grabbedMesh.physicsBody);
-                    } else {
-                        this.logger.error("parent not found for " + this.grabbedMeshParentId);
-                    }
-
-                } else {
-                    this.logger.warn("no parent id");
-                }
-
-            }
-        }, -1, false, this);
-
-        this.controller.onMotionControllerInitObservable.add((init) => {
-            this.logger.debug(init.components);
-            if (init.components['xr-standard-squeeze']) {
-                this.initGrip(init.components['xr-standard-squeeze'])
-            }
-            if (init.components['xr-standard-trigger']) {
-                this.initClicker(init.components['xr-standard-trigger']);
-            }
-
-        }, -1, false, this);
+        this.scene.onBeforeRenderObservable.add(beforeRenderObserver, -1, false, this);
+        this.controller.onMotionControllerInitObservable.add(motionControllerObserver, -1, false, this);
         this.controllers.controllerObserver.add((event) => {
             this.logger.debug(event);
             switch (event.type) {
@@ -152,7 +127,7 @@ export class Base {
         let player = false;
         displayDebug(mesh);
         if (!isDiagramEntity(mesh)) {
-            if (this.handleWasGrabbed(mesh)) {
+            if (handleWasGrabbed(mesh)) {
                 mesh && mesh.setParent(this.controller.motionController.rootMesh);
                 this.grabbedMesh = mesh;
             } else {
@@ -165,13 +140,13 @@ export class Base {
                 } else {
                     return;
                 }
-
             }
         } else {
             if (mesh?.metadata?.template == '#connection-template') {
                 return;
             }
         }
+
         this.previousParentId = mesh?.parent?.id;
         this.logger.warn("grabbed " + mesh?.id + " parent " + this.previousParentId);
         this.previousRotation = mesh?.rotation.clone();
@@ -203,20 +178,12 @@ export class Base {
         }
     }
 
-    private handleWasGrabbed(mesh: AbstractMesh): boolean {
-        if (isDiagramEntity(mesh)) {
-            return false;
-        } else {
-            return (mesh?.metadata?.handle == true);
-        }
-    }
-
     private drop() {
         const mesh = this.grabbedMesh;
         if (!mesh) {
             return;
         }
-        if (this.handleWasGrabbed(mesh)) {
+        if (handleWasGrabbed(mesh)) {
             mesh.setParent(this.scene.getMeshByName("platform"));
             const location = {
                 position: {x: mesh.position.x, y: mesh.position.y, z: mesh.position.z},
@@ -239,12 +206,7 @@ export class Base {
         if (isDiagramEntity(mesh) && (mesh?.metadata?.template.indexOf('#') == -1)) {
             return;
         }
-        const entity = toDiagramEntity(mesh);
-        const event: DiagramEvent = {
-            type: DiagramEventType.DROP,
-            entity: entity
-        }
-
+        const event: DiagramEvent = buildDrop(mesh);
 
         const body = mesh?.physicsBody;
         if (body) {
@@ -293,8 +255,4 @@ export class Base {
             }
         });
     }
-}
-
-function pointable(mesh: AbstractMesh): boolean {
-    return (mesh && mesh.metadata?.template && !mesh.metadata?.tool && !mesh.metadata?.handle && !mesh.metadata?.grabbable && !mesh.metadata?.grabClone);
 }

@@ -1,10 +1,11 @@
-import {Button3D, GUI3DManager, PlanePanel, TextBlock} from "@babylonjs/gui";
+import {GUI3DManager, PlanePanel} from "@babylonjs/gui";
 import {AbstractMesh, Tools, TransformNode, Vector3} from "@babylonjs/core";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramConnection} from "../diagram/diagramConnection";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
+import {makeButton} from "./functions/makeButton";
 
 export class ClickMenu {
     private static readonly sounds;
@@ -34,10 +35,12 @@ export class ClickMenu {
         panel.margin = .1;
         manager.addControl(panel);
         panel.linkToTransformNode(transform);
+
         panel.addControl(this.makeButton("Remove", "remove", grip));
         panel.addControl(this.makeButton("Label", "label", grip));
         panel.addControl(this.makeButton("Connect", "connect", grip));
         panel.addControl(this.makeButton("Close", "close", grip));
+
         manager.controlScaling = .1;
         panel.updateLayout();
         this.transform = transform;
@@ -72,14 +75,7 @@ export class ClickMenu {
     }
 
     private makeButton(name: string, id: string, grip: TransformNode) {
-        const button = new Button3D(name);
-        button.scaling = new Vector3(.1, .1, .1);
-        button.name = id;
-        const text = new TextBlock(name, name);
-        text.fontSize = "48px";
-        text.color = "#ffffee";
-        text.alpha = 1;
-        button.content = text;
+        const button = makeButton(id, name);
         button.onPointerClickObservable.add(() => {
             switch (id) {
                 case "close":
@@ -100,7 +96,6 @@ export class ClickMenu {
                     break;
                 case "connect":
                     this.createMeshConnection(this.entity, grip);
-
             }
         }, -1, false, this, true);
         return button;
@@ -114,6 +109,5 @@ export class ClickMenu {
         this.manager.onPickingObservable.clear();
         this.manager.dispose();
         this.transform.dispose();
-
     }
 }

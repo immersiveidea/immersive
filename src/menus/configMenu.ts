@@ -1,10 +1,9 @@
 import {AdvancedDynamicTexture, CheckboxGroup, RadioGroup, SelectionPanel, StackPanel} from "@babylonjs/gui";
 import {MeshBuilder, Scene, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {AppConfig} from "../util/appConfig";
-import {ControllerEventType, Controllers} from "../controllers/controllers";
+import {Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
 import {AbstractMenu} from "./abstractMenu";
-import {setMenuPosition} from "../util/functions/setMenuPosition";
 import log from "loglevel";
 
 const logger = log.getLogger('ConfigMenu');
@@ -32,30 +31,8 @@ export class ConfigMenu extends AbstractMenu {
         super(scene, xr, controllers);
         this.baseTransform = new TransformNode("configMenuBase", scene);
         this.config = config;
-        this.sounds = new DiaSounds(scene);
-
-        this.controllers.controllerObserver.add((event) => {
-            if (event.type == ControllerEventType.Y_BUTTON) {
-                logger.debug('Y Button Pressed');
-                this.toggle();
-            }
-        });
         this.buildMenu();
     }
-
-    public toggle() {
-
-        if (this.baseTransform.parent.isEnabled()) {
-            this.sounds.exit.play();
-            this.baseTransform.parent.setEnabled(false);
-        } else {
-            this.sounds.enter.play();
-            this.baseTransform.parent.setEnabled(true);
-        }
-        setMenuPosition(this.handle.mesh, this.scene, new Vector3(.6, .1, 0));
-
-    }
-
     private buildMenu() {
         const configPlane = MeshBuilder
             .CreatePlane("configMenuPlane",
@@ -63,23 +40,17 @@ export class ConfigMenu extends AbstractMenu {
                     width: .6,
                     height: .3
                 }, this.scene);
-        configPlane.rotation.y = Math.PI;
         configPlane.setParent(this.baseTransform);
-        this.createHandle(this.baseTransform);
-        this.baseTransform.position.set(0, .2, 0);
+        this.createHandle(this.baseTransform, new Vector3(1, 1.6, .5), new Vector3(Math.PI / 4, Math.PI / 4, 0));
+        configPlane.position.y = .2;
         const configTexture = AdvancedDynamicTexture.CreateForMesh(configPlane, 2048, 1024);
-        //configTexture.background = "#00ffff";
         const columnPanel = new StackPanel('columns');
         columnPanel.isVertical = false;
-
-        //columnPanel.width = 1;
         columnPanel.fontSize = "48px";
-        //columnPanel.background = "#ff0000";
-        //
         configTexture.addControl(columnPanel);
         const selectionPanel1 = new SelectionPanel("selectionPanel1");
         selectionPanel1.width = "500px";
-        //selectionPanel1.width = .3;
+
         columnPanel.addControl(selectionPanel1);
         this.buildGridSizeControl(selectionPanel1);
         this.buildCreateScaleControl(selectionPanel1);
@@ -94,12 +65,8 @@ export class ConfigMenu extends AbstractMenu {
         const selectionPanel3 = new SelectionPanel("selectionPanel3");
         selectionPanel3.width = "768px";
         columnPanel.addControl(selectionPanel3);
-
         this.buildFlyModeControl(selectionPanel3);
-
-        setMenuPosition(this.handle.mesh, this.scene, new Vector3(.6, .1, 0));
-        this.baseTransform.parent.setEnabled(false);
-
+        this.baseTransform.parent.setEnabled(true);
     }
 
     private adjustRadio(radio: RadioGroup | CheckboxGroup) {
