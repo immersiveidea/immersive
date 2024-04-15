@@ -1,22 +1,22 @@
 {
   "name": "Deep Diagram",
   "display": "standalone",
-  "start_url": "https://deepdiagram.com",
-  "scope": "https://deepdiagram.com",
+  "start_url": "https://www.deepdiagram.com",
+  "scope": "https://www.deepdiagram.com",
   "short_name": "Deep Diagram",
   "theme_color": "#000000",
   "background_color": "#000000",
   "description": "An immersive mind mapping and diagramming tool that lets you create, share, and visualize data on the Oculus Quest and desktop browsers.",
   "icons": [
     {
-      "src": "/Android.png",
+      "src": "/assets/Android.png",
       "sizes": "196x196",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/iPhone.png",
-      "sizes": "180x180",
+      "src": "/assets/icon-512x512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ],
