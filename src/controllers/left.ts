@@ -1,5 +1,4 @@
 import {
-    Scene,
     TransformNode,
     Vector2,
     Vector3,
@@ -8,7 +7,7 @@ import {
     WebXRInputSource
 } from "@babylonjs/core";
 import {Base} from "./base";
-import {ControllerEventType, Controllers} from "./controllers";
+import {ControllerEventType} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 import {RoundButton} from "../objects/roundButton";
@@ -16,8 +15,9 @@ import {RoundButton} from "../objects/roundButton";
 const logger = log.getLogger('Left');
 export class Left extends Base {
     constructor(controller:
-                    WebXRInputSource, scene: Scene, xr: WebXRDefaultExperience, diagramManager: DiagramManager, controllers: Controllers) {
-        super(controller, scene, xr, controllers, diagramManager);
+                    WebXRInputSource, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
+        super(controller, xr, diagramManager);
+        const scene = diagramManager.scene;
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']

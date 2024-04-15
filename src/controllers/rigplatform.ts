@@ -44,7 +44,6 @@ export class Rigplatform {
         this.controllers = diagramManager.controllers;
         this.xr = xr;
         this.rigMesh = buildRig(this.scene, xr);
-
         this.fixRotation();
         this.initializeControllers();
         this.registerVelocityObserver();
@@ -160,12 +159,12 @@ export class Rigplatform {
             switch (source.inputSource.handedness) {
                 case RIGHT:
                     if (!this.rightController) {
-                        this.rightController = new Right(source, this.scene, this.xr, this.diagramManager, this.controllers);
+                        this.rightController = new Right(source, this.xr, this.diagramManager, this.controllers);
                     }
                     break;
                 case LEFT:
                     if (!this.leftController) {
-                        this.leftController = new Left(source, this.scene, this.xr, this.diagramManager, this.controllers);
+                        this.leftController = new Left(source, this.xr, this.diagramManager, this.controllers);
                     }
                     break;
             }

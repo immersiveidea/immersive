@@ -1,6 +1,5 @@
 import {Base} from "./base";
 import {
-    Scene,
     TransformNode,
     Vector2,
     Vector3,
@@ -8,7 +7,7 @@ import {
     WebXRDefaultExperience,
     WebXRInputSource
 } from "@babylonjs/core";
-import {ControllerEventType, Controllers} from "./controllers";
+import {ControllerEventType} from "./controllers";
 
 import {DiagramManager} from "../diagram/diagramManager";
 import {RoundButton} from "../objects/roundButton";
@@ -37,12 +36,13 @@ export class Right extends Base {
     private endPosition: Vector3 = null;
 
     constructor(controller: WebXRInputSource,
-                scene: Scene,
                 xr: WebXRDefaultExperience,
-                diagramManager: DiagramManager,
-                controllers: Controllers,
+                diagramManager: DiagramManager
+
     ) {
-        super(controller, scene, xr, controllers, diagramManager);
+        super(controller, xr, diagramManager);
+        const scene = diagramManager.scene;
+
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
             if (init.components['a-button']) {

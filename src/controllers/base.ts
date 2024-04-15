@@ -44,15 +44,16 @@ export class Base {
     private clickMenu: ClickMenu;
 
     constructor(controller: WebXRInputSource,
-                scene: Scene,
                 xr: WebXRDefaultExperience,
-                controllers: Controllers,
                 diagramManager: DiagramManager) {
         this.logger = log.getLogger('Base');
         this.logger.setLevel(this.logger.levels.DEBUG);
         this.controller = controller;
-        this.controllers = controllers;
-        this.scene = scene;
+        this.controllers = diagramManager.controllers;
+        this.scene = diagramManager.scene;
+        this.xr = xr;
+        this.diagramManager = diagramManager;
+
         this.scene.onBeforeRenderObservable.add(() => {
             if (this?.grabbedMesh?.physicsBody) {
                 const hk = (this.scene.getPhysicsEngine().getPhysicsPlugin() as HavokPlugin);
@@ -72,8 +73,6 @@ export class Base {
 
             }
         }, -1, false, this);
-        this.xr = xr;
-        this.diagramManager = diagramManager;
 
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.logger.debug(init.components);
