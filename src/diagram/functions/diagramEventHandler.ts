@@ -66,10 +66,9 @@ export function diagramEventHandler(event: DiagramEvent,
             }
             break;
         case DiagramEventType.MODIFY:
-            if (physicsEnabled) {
+            if (mesh && physicsEnabled) {
                 applyPhysics(sounds, mesh, scene);
             }
-
             break;
         case DiagramEventType.REMOVE:
             if (mesh) {

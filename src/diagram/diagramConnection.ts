@@ -108,7 +108,9 @@ export class DiagramConnection {
                 text.forEach((node) => {
                     const t: AbstractMesh = node as AbstractMesh;
                     t.scaling.y = 1 / this._mesh.scaling.y;
-
+                    t.position.x = .05;
+                    t.position.z = .05;
+                    t.position.y = 0;
                 });
             }
             if (this.fromAnchor && (this.fromAnchor as AbstractMesh).material) {
