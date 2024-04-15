@@ -58,7 +58,7 @@ export function diagramEventHandler(event: DiagramEvent,
             }
             break;
         case DiagramEventType.ADD:
-            if (!mesh.actionManager) {
+            if (mesh && !mesh.actionManager) {
                 mesh.actionManager = actionManager;
             }
             if (physicsEnabled) {

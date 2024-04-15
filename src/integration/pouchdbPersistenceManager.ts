@@ -22,7 +22,6 @@ export class PouchdbPersistenceManager {
     private user: string;
 
     constructor() {
-        logger.setLevel('debug');
         this.diagramListings = new PouchDB("diagramListings");
     }
 

@@ -19,10 +19,11 @@ export class VrApp {
     private logger: Logger = log.getLogger('App');
 
     constructor() {
+        //log.getLogger('App').setLevel('debug');
+        //log.getLogger('DiagramManager').setLevel('debug');
+        log.resetLevel();
+        log.setDefaultLevel('error');
 
-        log.setDefaultLevel('warn');
-        log.getLogger('App').setLevel('debug');
-        log.getLogger('DiagramManager').setLevel('debug');
         const canvas = document.querySelector('#gameCanvas');
         this.logger.debug('App', 'gameCanvas created');
     }

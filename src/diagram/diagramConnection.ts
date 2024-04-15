@@ -1,4 +1,4 @@
-import {AbstractMesh, MeshBuilder, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
 import {v4 as uuidv4} from 'uuid';
 import log, {Logger} from "loglevel";
 import {buildStandardMaterial} from "../materials/functions/buildStandardMaterial";
@@ -45,7 +45,7 @@ export class DiagramConnection {
 
                 this.toAnchor = to;
             } else {
-                this.logger.error("no fromMesh");
+                this.logger.info("no fromMesh yet, will build when toMesh is available");
             }
         }
         this.buildConnection();
@@ -111,6 +111,12 @@ export class DiagramConnection {
 
                 });
             }
+            if (this.fromAnchor && (this.fromAnchor as AbstractMesh).material) {
+                this._mesh.material = (((this.fromAnchor as AbstractMesh).material as StandardMaterial));
+            } else {
+                this._mesh.material = buildStandardMaterial(this.id + "_material", this.scene, "#FFFFFF");
+            }
+
         }
     }
 
@@ -121,7 +127,7 @@ export class DiagramConnection {
     private buildConnection() {
         this.logger.debug(`buildConnection from ${this._from} to ${this._to}`);
         this._mesh = MeshBuilder.CreateCylinder(this.id + "_connection", {diameter: .02, height: 1}, this.scene);
-        this._mesh.material = buildStandardMaterial(this.id + "_material", this.scene, "#FFFFFF");
+
         this.transformNode = new TransformNode(this.id + "_transform", this.scene);
         this.transformNode.metadata = {exportable: true};
         this._mesh.setParent(this.transformNode);
@@ -156,7 +162,6 @@ export class DiagramConnection {
         this.logger.debug("removeConnection");
         this.scene.onBeforeRenderObservable.removeCallback(this.beforeRender);
         this._mesh.onDisposeObservable.removeCallback(this.removeConnection);
-
         this.removeObserver();
         if (this.toAnchor) {
             this.toAnchor = null;
