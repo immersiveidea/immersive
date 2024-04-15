@@ -23,26 +23,18 @@ export function buildRig(scene: Scene, xr: WebXRDefaultExperience): Mesh {
     });
     for (const cam of scene.cameras) {
         cam.parent = cameratransform;
-        if (cam.getClassName() == "FreeCamera") {
-
-        } else {
-
-        }
     }
-
     scene.onActiveCameraChanged.add(() => {
         for (const cam of scene.cameras) {
             cam.parent = cameratransform;
-            if (cam.getClassName() == "FreeCamera") {
-            } else {
-            }
         }
         cameratransform.rotation.set(0, Math.PI, 0);
     });
     rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
     rigMesh.setAbsolutePosition(new Vector3(0, .01, 4));
     rigMesh.isPickable = false;
-    new AxesViewer(scene, .25);
+    const axis = new AxesViewer(scene, .25);
+    axis.zAxis.rotation.y = Math.PI;
     rigMesh.lookAt(new Vector3(0, 0.01, 0));
     rigMesh.visibility = 1;
     const rigAggregate =

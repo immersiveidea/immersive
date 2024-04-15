@@ -1,7 +1,8 @@
 import {AbstractMesh, TransformNode} from "@babylonjs/core";
 import {DiagramManager} from "../../diagram/diagramManager";
 
-export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh) {
+export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh):
+    { transformNode: TransformNode, newMesh: AbstractMesh } {
     const newMesh = diagramManager.createCopy(mesh);
     const transformNode = new TransformNode("grabAnchor, this.scene");
     transformNode.id = "grabAnchor";
