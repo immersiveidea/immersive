@@ -14,24 +14,19 @@ import {
 import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
 
 export function buildRig(scene: Scene, xr: WebXRDefaultExperience): Mesh {
-    const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: .2}, scene);
+    const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: .01}, scene);
     const cameratransform = new TransformNode("cameraTransform", scene);
     cameratransform.parent = rigMesh;
-    xr.baseExperience.onInitialXRPoseSetObservable.add((state) => {
-
+    xr.baseExperience.onInitialXRPoseSetObservable.add(() => {
         xr.baseExperience.camera.parent = cameratransform;
         xr.baseExperience.camera.position = new Vector3(0, 0, 0);
-
-
     });
     for (const cam of scene.cameras) {
         cam.parent = cameratransform;
         if (cam.getClassName() == "FreeCamera") {
-            //cameratransform.position = new Vector3(0, 1.6, 0);
-            //cam.position.set(0, 1.6, 0);
+
         } else {
-            //cameratransform.position = new Vector3(0, 1.6, 0);
-            //cam.position.set(0, 0, 0);
+
         }
     }
 
@@ -39,18 +34,13 @@ export function buildRig(scene: Scene, xr: WebXRDefaultExperience): Mesh {
         for (const cam of scene.cameras) {
             cam.parent = cameratransform;
             if (cam.getClassName() == "FreeCamera") {
-                //cameratransform.position = new Vector3(0, 1.6, 0);
-                //cam.position.set(0, 1.6, 0);
             } else {
-                //cameratransform.position = new Vector3(0, 0, 0);
-                //cam.position.set(0, 0, 0);
             }
         }
         cameratransform.rotation.set(0, Math.PI, 0);
-        //s.activeCamera.parent = cameratransform;
     });
     rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
-    rigMesh.setAbsolutePosition(new Vector3(0, .01, 3));
+    rigMesh.setAbsolutePosition(new Vector3(0, .01, 4));
     rigMesh.isPickable = false;
     new AxesViewer(scene, .25);
     rigMesh.lookAt(new Vector3(0, 0.01, 0));

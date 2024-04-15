@@ -1,5 +1,4 @@
 import {Color3} from "@babylonjs/core";
-import {EditMenuState} from "../../menus/editMenuState";
 
 export enum DiagramEventType {
     ADD,
@@ -25,7 +24,6 @@ export enum DiagramEventMask {
 
 export type DiagramEvent = {
     type: DiagramEventType;
-    menustate?: EditMenuState;
     entity?: DiagramEntity;
     oldColor?: Color3;
     newColor?: Color3;

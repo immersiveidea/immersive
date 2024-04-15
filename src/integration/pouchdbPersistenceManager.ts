@@ -271,7 +271,7 @@ export class PouchdbPersistenceManager {
                 return;
             }
             if (target.data && target.data.userCtx) {
-                if (!target.data.userCtx.name) {
+                if (!target.data.userCtx.name || target.data.userCtx.name != remoteUserName) {
                     const buildTarget = await axios.post(userEndpoint,
                         {username: remoteUserName, password: password});
                     if (buildTarget.status != 200) {

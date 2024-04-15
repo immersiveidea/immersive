@@ -36,12 +36,11 @@ export class Rigplatform {
     public rigMesh: Mesh;
 
     constructor(scene: Scene, xr: WebXRDefaultExperience,
-                diagramManager: DiagramManager,
-                controllers: Controllers,
+                diagramManager: DiagramManager
     ) {
         this.scene = scene;
         this.diagramManager = diagramManager;
-        this.controllers = controllers;
+        this.controllers = diagramManager.controllers;
         this.xr = xr;
         this.rigMesh = buildRig(scene, xr);
 

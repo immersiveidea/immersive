@@ -27,7 +27,7 @@ export class DiagramManager {
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
     private readonly logger = log.getLogger('DiagramManager');
     private readonly toolbox: Toolbox;
-    private readonly scene: Scene;
+    private readonly _scene: Scene;
     private readonly sounds: DiaSounds;
 
     constructor(scene: Scene) {
@@ -49,10 +49,10 @@ export class DiagramManager {
         });
 
         this.sounds = new DiaSounds(scene);
-        this.scene = scene;
+        this._scene = scene;
         this.toolbox = new Toolbox(scene);
-        this.presentationManager = new PresentationManager(this.scene);
-        this.diagramEntityActionManager = buildEntityActionManager(this.scene, this.sounds, this._controllers);
+        this.presentationManager = new PresentationManager(this._scene);
+        this.diagramEntityActionManager = buildEntityActionManager(this._scene, this.sounds, this._controllers);
 
         if (this.onDiagramEventObservable.hasObservers()) {
             this.logger.warn("onDiagramEventObservable already has Observers, you should be careful");
@@ -95,6 +95,11 @@ export class DiagramManager {
     public get config(): AppConfig {
         return this._config;
     }
+
+    public get scene(): Scene {
+        return this._scene;
+    }
+
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
         let newMesh;
         if (!mesh.isAnInstance) {
@@ -116,14 +121,14 @@ export class DiagramManager {
         newMesh.material = mesh.material;
         newMesh.metadata = deepCopy(mesh.metadata);
         if (this._config.current?.physicsEnabled) {
-            applyPhysics(this.sounds, newMesh, this.scene);
+            applyPhysics(this.sounds, newMesh, this._scene);
         }
         return newMesh;
     }
 
     private onDiagramEvent(event: DiagramEvent) {
         diagramEventHandler(
-            event, this.scene, this.toolbox, this._config.current.physicsEnabled,
+            event, this._scene, this.toolbox, this._config.current.physicsEnabled,
             this.diagramEntityActionManager, this.sounds);
     }
 }

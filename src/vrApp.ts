@@ -40,7 +40,7 @@ export class VrApp {
 
         const spinner = new Spinner(scene);
         spinner.show();
-        //const config = new AppConfig();
+
 
         const diagramManager = new DiagramManager(scene);
         const db = new PouchdbPersistenceManager();
@@ -64,7 +64,7 @@ export class VrApp {
         scene.setActiveCameraByName("Main Camera");
         const environment = new CustomEnvironment(scene, "default", diagramManager.config);
         environment.groundMeshObservable.add((ground) => {
-            groundMeshObserver(ground, scene, diagramManager, diagramManager.controllers, spinner);
+            groundMeshObserver(ground, diagramManager, spinner);
         }, -1, false, this);
 
         const gamepadManager = new GamepadManager(scene);
