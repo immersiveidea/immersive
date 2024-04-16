@@ -60,7 +60,7 @@ export class VrApp {
             new Vector3(0, 1.6, 0), scene);
         //camera.setTarget(new Vector3(0, 1.6, -3));
         scene.setActiveCameraByName("Main Camera");
-        const environment = new CustomEnvironment(scene, "default", diagramManager.config);
+        const environment = new CustomEnvironment("default", diagramManager.config);
         environment.groundMeshObservable.add((ground) => {
             groundMeshObserver(ground, diagramManager, spinner);
         }, -1, false, this);

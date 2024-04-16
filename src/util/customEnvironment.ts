@@ -17,6 +17,7 @@ import {
 import {CustomPhysics} from "./customPhysics";
 import {AppConfig} from "./appConfig";
 import {GridMaterial} from "@babylonjs/materials";
+import {DefaultScene} from "../defaultScene";
 
 
 export class CustomEnvironment {
@@ -24,14 +25,14 @@ export class CustomEnvironment {
     private readonly name: string;
     private readonly _groundMeshObservable: Observable<GroundMesh> = new Observable<GroundMesh>();
 
-    constructor(scene: Scene, name: string = "default", config: AppConfig) {
-        this.scene = scene;
+    constructor(name: string = "default", config: AppConfig) {
+        this.scene = DefaultScene.scene;
         this.name = name;
         const loading = document.querySelector('#loadingGrid');
         if (loading) {
             loading.remove();
         }
-        const light = new HemisphericLight("light1", new Vector3(1, 2, 1), scene);
+        const light = new HemisphericLight("light1", new Vector3(1, 2, 1), this.scene);
         light.groundColor = new Color3(.1, .1, .1)
         light.diffuse = new Color3(1, 1, 1);
         light.intensity = .8;
@@ -91,8 +92,8 @@ export class CustomEnvironment {
             height: 20,
             subdivisions: 1
         }, scene);
-        createPoints(scene, 20, 20);
-        ground.material = createGridMaterial(scene, Color3.FromHexString("#aaffaa"), Color3.FromHexString("#111511"));
+        createPoints(20, 20);
+        ground.material = createGridMaterial(Color3.FromHexString("#aaffaa"), Color3.FromHexString("#111511"));
         const color1 = Color3.FromHexString("#ff9999");
         const color2 = Color3.FromHexString("#221111");
         const color3 = Color3.FromHexString("#9999ff");
@@ -114,12 +115,13 @@ export class CustomEnvironment {
         const wall = MeshBuilder.CreatePlane("wall", {width: 20, height: 20}, scene);
         wall.position = position;
         wall.rotation = rotation;
-        wall.material = createGridMaterial(scene, color1, color2);
+        wall.material = createGridMaterial(color1, color2);
         return wall;
     }
 }
 
-async function createPoints(scene: Scene, divisions: number = 10, scale: number = 80) {
+async function createPoints(divisions: number = 10, scale: number = 80) {
+    const scene = DefaultScene.scene;
     const half = .5;
     const increment = 1 / divisions;
     let x = -half;
@@ -153,7 +155,8 @@ async function createPoints(scene: Scene, divisions: number = 10, scale: number 
     mesh.parent = baseTransform;
 }
 
-function createGridMaterial(scene: Scene, lineColor: Color3, mainColor: Color3): Material {
+function createGridMaterial(lineColor: Color3, mainColor: Color3): Material {
+    const scene = DefaultScene.scene;
     const material = new GridMaterial("gridMaterial", scene);
     material.minorUnitVisibility = .1;
     material.gridRatio = .1;
