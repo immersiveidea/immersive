@@ -9,14 +9,14 @@ export class AppConfig {
         this._currentConfig = {
             id: 1,
             gridSnap: .1,
-            rotateSnap: 45,
+            rotateSnap: 90,
             createSnap: .1,
             turnSnap: 22.5,
             newRelicKey: null,
             newRelicAccount: null,
             physicsEnabled: false,
             demoCompleted: false,
-            flyMode: false
+            flyMode: true
         };
         this.onConfigChangedObservable.add((config) => {
             this._currentConfig = config;

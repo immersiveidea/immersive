@@ -1,10 +1,11 @@
-import {ActionManager, ExecuteCodeAction, Scene} from "@babylonjs/core";
+import {ActionManager, ExecuteCodeAction} from "@babylonjs/core";
 import {ControllerEventType, Controllers} from "../../controllers/controllers";
 import log from "loglevel";
+import {DefaultScene} from "../../defaultScene";
 
-export function buildEntityActionManager(scene: Scene, controllers: Controllers) {
+export function buildEntityActionManager(controllers: Controllers) {
     const logger = log.getLogger('buildEntityActionManager');
-    const actionManager = new ActionManager(scene);
+    const actionManager = new ActionManager(DefaultScene.scene);
     /*actionManager.registerAction(
         new PlaySoundAction(ActionManager.OnPointerOverTrigger, sounds.tick));*/
     actionManager.registerAction(

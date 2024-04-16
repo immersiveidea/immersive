@@ -26,6 +26,7 @@ import {motionControllerObserver} from "./functions/motionControllerObserver";
 import {handleWasGrabbed} from "./functions/handleWasGrabbed";
 import {buildDrop} from "./functions/buildDrop";
 import {pointable} from "./functions/pointable";
+import {DefaultScene} from "../defaultScene";
 
 const CLICK_TIME = 300;
 export class Base {
@@ -54,7 +55,7 @@ export class Base {
         this.logger.setLevel(this.logger.levels.DEBUG);
         this.controller = controller;
         this.controllers = diagramManager.controllers;
-        this.scene = diagramManager.scene;
+        this.scene = DefaultScene.scene;
         this.xr = xr;
         this.diagramManager = diagramManager;
         this.scene.onBeforeRenderObservable.add(beforeRenderObserver, -1, false, this);

@@ -4,45 +4,43 @@ import {DiagramManager} from "./diagram/diagramManager";
 import log, {Logger} from "loglevel";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
-import {Spinner} from "./util/spinner";
+import {Spinner} from "./objects/spinner";
 import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager";
 import {addSceneInspector} from "./util/functions/sceneInspctor";
 import {groundMeshObserver} from "./util/functions/groundMeshObserver";
-import {MainMenu} from "./menus/mainMenu";
 import {buildQuestLink} from "./util/functions/buildQuestLink";
 import {exportGltf} from "./util/functions/exportGltf";
+import {DefaultScene} from "./defaultScene";
 
 export class VrApp {
-    private scene: Scene;
+
     private engine: Engine;
     //preTasks = [havokModule];
     private logger: Logger = log.getLogger('App');
 
     constructor() {
-        //log.getLogger('App').setLevel('debug');
-        //log.getLogger('DiagramManager').setLevel('debug');
-        log.resetLevel();
-        log.setDefaultLevel('error');
-
-        const canvas = document.querySelector('#gameCanvas');
-        this.logger.debug('App', 'gameCanvas created');
-    }
-
-    public async initialize(canvas: HTMLCanvasElement) {
+        const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
         this.engine = new Engine(canvas, true);
         this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
         window.onresize = () => {
             this.engine.resize();
         }
         const scene = new Scene(this.engine);
-        this.scene = scene;
-        this.scene.ambientColor = new Color3(.1, .1, .1);
+        scene.ambientColor = new Color3(.1, .1, .1);
+        DefaultScene.create(scene);
 
-        const spinner = new Spinner(scene);
+        log.resetLevel();
+        log.setDefaultLevel('error');
+        this.logger.debug('App', 'gameCanvas created');
+    }
+
+    public async initialize() {
+        const scene = DefaultScene.scene;
+
+        const spinner = new Spinner();
         spinner.show();
 
-
-        const diagramManager = new DiagramManager(scene);
+        const diagramManager = new DiagramManager();
         const db = new PouchdbPersistenceManager();
         db.setDiagramManager(diagramManager);
         db.configObserver.add((newConfig) => {
@@ -72,18 +70,18 @@ export class VrApp {
 
 
          */
-        addSceneInspector(scene);
-        const mainMenu = new MainMenu(scene);
+        addSceneInspector();
+        //const mainMenu = new MainMenu(scene);
         const el = document.querySelector('#download');
         if (el) {
             el.addEventListener('click', () => {
-                exportGltf(scene);
+                exportGltf();
             })
         }
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
         let i = 0;
         this.engine.runRenderLoop(() => {
-            this.scene.render();
+            scene.render();
             if (i++ % 60 == 0) {
 
             }
@@ -98,8 +96,8 @@ export class VrApp {
 }
 
 const vrApp = new VrApp();
-const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
-vrApp.initialize(canvas).then(() => {
+
+vrApp.initialize().then(() => {
     buildQuestLink();
 });
 

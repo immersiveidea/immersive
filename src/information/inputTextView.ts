@@ -3,6 +3,7 @@ import log, {Logger} from "loglevel";
 import {AdvancedDynamicTexture, Control, InputText, VirtualKeyboard} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {Handle} from "../objects/handle";
+import {DefaultScene} from "../defaultScene";
 
 export type TextEvent = {
     id: string;
@@ -21,9 +22,9 @@ export class InputTextView {
     private diagramMesh: AbstractMesh;
     private keyboard: VirtualKeyboard;
 
-    constructor(scene: Scene, controllers: Controllers) {
+    constructor(controllers: Controllers) {
         this.controllers = controllers;
-        this.scene = scene;
+        this.scene = DefaultScene.scene;
 
         this.inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
         this.handle = new Handle(this.inputMesh);

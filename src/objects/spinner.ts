@@ -10,14 +10,15 @@ import {
     StandardMaterial,
     Texture
 } from "@babylonjs/core";
+import {DefaultScene} from "../defaultScene";
 
 export class Spinner {
-    private readonly scene: Scene;
+    private readonly _scene: Scene;
     private spinner: AbstractMesh;
     private particleSystem: ParticleSystem;
 
-    constructor(scene: Scene) {
-        this.scene = scene;
+    constructor() {
+        this._scene = DefaultScene.scene;
         this.build();
     }
 
@@ -32,9 +33,9 @@ export class Spinner {
     }
 
     private build() {
-        const spinner: AbstractMesh = MeshBuilder.CreateSphere("spinner", {diameter: 2}, this.scene);
-        const material = new StandardMaterial("spinner", this.scene);
-        const text = new DynamicTexture("spinner", {width: 1024, height: 1024}, this.scene, false);
+        const spinner: AbstractMesh = MeshBuilder.CreateSphere("spinner", {diameter: 2}, this._scene);
+        const material = new StandardMaterial("spinner", this._scene);
+        const text = new DynamicTexture("spinner", {width: 1024, height: 1024}, this._scene, false);
         text.drawText("Please Wait", 250, 500, "bold 150px Segoe UI", "white", "transparent", true, true);
         spinner.rotation.z = Math.PI;
         material.diffuseTexture = text;
@@ -52,23 +53,23 @@ export class Spinner {
         });
         rotate.setKeys(keys);
         spinner.animations.push(rotate);
-        this.scene.beginAnimation(spinner, 0, 30, true);
+        this._scene.beginAnimation(spinner, 0, 30, true);
 
         material.alpha = .9;
         spinner.material = material;
         let particleSystem;
         if (GPUParticleSystem.IsSupported) {
-            particleSystem = new GPUParticleSystem("particles", {capacity: 100000}, this.scene);
+            particleSystem = new GPUParticleSystem("particles", {capacity: 100000}, this._scene);
             particleSystem.activeParticleCount = 2048;
         } else {
-            particleSystem = new ParticleSystem("particles", 2048, this.scene);
+            particleSystem = new ParticleSystem("particles", 2048, this._scene);
         }
         particleSystem.emitRate = 10;
         const emitter = new SphereParticleEmitter(.9);
         emitter.radiusRange = .2;
         particleSystem.particleEmitterType = emitter;
 
-        particleSystem.particleTexture = new Texture("/assets/textures/flare.png", this.scene);
+        particleSystem.particleTexture = new Texture("/assets/textures/flare.png", this._scene);
 
 
         particleSystem.minEmitPower = .1;

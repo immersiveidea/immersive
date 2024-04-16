@@ -4,7 +4,7 @@ import {WebController} from "../../controllers/webController";
 import {ConfigMenu} from "../../menus/configMenu";
 import {Rigplatform} from "../../controllers/rigplatform";
 import {DiagramManager} from "../../diagram/diagramManager";
-import {Spinner} from "../spinner";
+import {Spinner} from "../../objects/spinner";
 
 const logger = log.getLogger('groungMeshObserver');
 

@@ -12,6 +12,7 @@ import {ControllerEventType} from "./controllers";
 import {DiagramManager} from "../diagram/diagramManager";
 import {RoundButton} from "../objects/roundButton";
 import log from "loglevel";
+import {DefaultScene} from "../defaultScene";
 
 const logger = log.getLogger("Right");
 export class Right extends Base {
@@ -41,7 +42,7 @@ export class Right extends Base {
 
     ) {
         super(controller, xr, diagramManager);
-        const scene = diagramManager.scene;
+        const scene = DefaultScene.scene;
 
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);

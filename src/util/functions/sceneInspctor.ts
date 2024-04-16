@@ -1,4 +1,7 @@
-export function addSceneInspector(scene) {
+import {DefaultScene} from "../../defaultScene";
+
+export function addSceneInspector() {
+    const scene = DefaultScene.scene;
     window.addEventListener("keydown", (ev) => {
         if (ev.key == "z") {
             //voiceManager.startRecording();

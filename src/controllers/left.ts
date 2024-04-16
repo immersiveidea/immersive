@@ -11,13 +11,14 @@ import {ControllerEventType} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 import {RoundButton} from "../objects/roundButton";
+import {DefaultScene} from "../defaultScene";
 
 const logger = log.getLogger('Left');
 export class Left extends Base {
     constructor(controller:
                     WebXRInputSource, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
         super(controller, xr, diagramManager);
-        const scene = diagramManager.scene;
+        const scene = DefaultScene.scene;
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']

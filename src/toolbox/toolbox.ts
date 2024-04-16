@@ -3,6 +3,7 @@ import {GUI3DManager, StackPanel3D,} from "@babylonjs/gui";
 import {buildColor} from "./functions/buildColor";
 import log from "loglevel";
 import {Handle} from "../objects/handle";
+import {DefaultScene} from "../defaultScene";
 
 const colors: string[] = [
     "#222222", "#8b4513", "#006400", "#778899",
@@ -26,10 +27,10 @@ export class Toolbox {
         new Observable<{ oldColor: string; newColor: string }>()
     private axes: AxesViewer;
 
-    constructor(scene: Scene) {
-        this.scene = scene;
+    constructor() {
+        this.scene = DefaultScene.scene;
         this.addPanel = new StackPanel3D();
-        this.manager = new GUI3DManager(scene);
+        this.manager = new GUI3DManager(this.scene);
         this.manager.addControl(this.addPanel);
         this.toolboxBaseNode = new TransformNode("toolbox", this.scene);
         this.handle = new Handle(this.toolboxBaseNode);

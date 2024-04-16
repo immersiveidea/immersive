@@ -4,7 +4,6 @@ import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
 import {AppConfig} from "../util/appConfig";
 import {Toolbox} from "../toolbox/toolbox";
-import {PresentationManager} from "./presentationManager";
 import {diagramEventHandler} from "./functions/diagramEventHandler";
 import {deepCopy} from "../util/functions/deepCopy";
 import {applyPhysics} from "./functions/diagramShapePhysics";
@@ -14,13 +13,13 @@ import {v4 as uuidv4} from 'uuid';
 import {buildEntityActionManager} from "./functions/buildEntityActionManager";
 import {isDiagramEntity} from "./functions/isDiagramEntity";
 import {InputTextView} from "../information/inputTextView";
+import {DefaultScene} from "../defaultScene";
 
 
 export class DiagramManager {
     public readonly _config: AppConfig;
     private readonly _controllers: Controllers;
     private readonly diagramEntityActionManager: ActionManager;
-    private presentationManager: PresentationManager;
     private readonly inputTextView: InputTextView;
 
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
@@ -29,12 +28,13 @@ export class DiagramManager {
     private readonly _scene: Scene;
 
 
-    constructor(scene: Scene) {
+    constructor() {
+        this._scene = DefaultScene.scene;
         this._config = new AppConfig();
         this._controllers = new Controllers();
-        this.inputTextView = new InputTextView(scene, this._controllers);
+        this.inputTextView = new InputTextView(this._controllers);
         this.inputTextView.onTextObservable.add((evt) => {
-            const mesh = scene.getMeshById(evt.id);
+            const mesh = this._scene.getMeshById(evt.id);
             if (mesh) {
                 const entity = toDiagramEntity(mesh);
                 entity.text = evt.text;
@@ -47,11 +47,9 @@ export class DiagramManager {
             }
         });
 
-
-        this._scene = scene;
-        this.toolbox = new Toolbox(scene);
-        this.presentationManager = new PresentationManager(this._scene);
-        this.diagramEntityActionManager = buildEntityActionManager(this._scene, this._controllers);
+        this.toolbox = new Toolbox();
+        //this.presentationManager = new PresentationManager(this._scene);
+        this.diagramEntityActionManager = buildEntityActionManager(this._controllers);
 
         if (this.onDiagramEventObservable.hasObservers()) {
             this.logger.warn("onDiagramEventObservable already has Observers, you should be careful");
@@ -66,10 +64,10 @@ export class DiagramManager {
         this.onDiagramEventObservable.add(this.onDiagramEvent, 1, true, this);
         this.logger.debug("DiagramManager constructed");
 
-        scene.onMeshRemovedObservable.add((mesh) => {
+        this._scene.onMeshRemovedObservable.add((mesh) => {
             if (isDiagramEntity(mesh)) {
                 if (mesh.metadata.template != '#connection-template') {
-                    scene.meshes.forEach((m) => {
+                    this._scene.meshes.forEach((m) => {
                         if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {
                             this.logger.debug("removing connection", m.id);
                             this.onDiagramEventObservable.notifyObservers({

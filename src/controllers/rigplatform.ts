@@ -5,6 +5,7 @@ import {ControllerEvent, ControllerEventType, Controllers} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 import {buildRig} from "./functions/buildRig";
+import {DefaultScene} from "../defaultScene";
 
 const RIGHT = "right";
 const LEFT = "left";
@@ -39,7 +40,7 @@ export class Rigplatform {
         xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager
     ) {
-        this.scene = diagramManager.scene;
+        this.scene = DefaultScene.scene;
         this.diagramManager = diagramManager;
         this.controllers = diagramManager.controllers;
         this.xr = xr;
