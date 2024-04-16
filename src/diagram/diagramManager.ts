@@ -2,7 +2,6 @@ import {AbstractMesh, ActionManager, Color3, InstancedMesh, Mesh, Observable, Sc
 import {DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
-import {DiaSounds} from "../util/diaSounds";
 import {AppConfig} from "../util/appConfig";
 import {Toolbox} from "../toolbox/toolbox";
 import {PresentationManager} from "./presentationManager";
@@ -28,7 +27,7 @@ export class DiagramManager {
     private readonly logger = log.getLogger('DiagramManager');
     private readonly toolbox: Toolbox;
     private readonly _scene: Scene;
-    private readonly sounds: DiaSounds;
+
 
     constructor(scene: Scene) {
         this._config = new AppConfig();
@@ -48,11 +47,11 @@ export class DiagramManager {
             }
         });
 
-        this.sounds = new DiaSounds(scene);
+
         this._scene = scene;
         this.toolbox = new Toolbox(scene);
         this.presentationManager = new PresentationManager(this._scene);
-        this.diagramEntityActionManager = buildEntityActionManager(this._scene, this.sounds, this._controllers);
+        this.diagramEntityActionManager = buildEntityActionManager(this._scene, this._controllers);
 
         if (this.onDiagramEventObservable.hasObservers()) {
             this.logger.warn("onDiagramEventObservable already has Observers, you should be careful");
@@ -121,7 +120,7 @@ export class DiagramManager {
         newMesh.material = mesh.material;
         newMesh.metadata = deepCopy(mesh.metadata);
         if (this._config.current?.physicsEnabled) {
-            applyPhysics(this.sounds, newMesh, this._scene);
+            applyPhysics(newMesh, this._scene);
         }
         return newMesh;
     }
@@ -129,6 +128,6 @@ export class DiagramManager {
     private onDiagramEvent(event: DiagramEvent) {
         diagramEventHandler(
             event, this._scene, this.toolbox, this._config.current.physicsEnabled,
-            this.diagramEntityActionManager, this.sounds);
+            this.diagramEntityActionManager);
     }
 }

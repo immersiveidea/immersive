@@ -1,4 +1,4 @@
-import {AbstractMesh, WebXRDefaultExperience, WebXRState} from "@babylonjs/core";
+import {AbstractMesh, WebXRDefaultExperience, WebXRMotionControllerManager, WebXRState} from "@babylonjs/core";
 import log from "loglevel";
 import {WebController} from "../../controllers/webController";
 import {ConfigMenu} from "../../menus/configMenu";
@@ -11,11 +11,14 @@ const logger = log.getLogger('groungMeshObserver');
 export async function groundMeshObserver(ground: AbstractMesh,
                                          diagramManager: DiagramManager,
                                          spinner: Spinner) {
+    WebXRMotionControllerManager.PrioritizeOnlineRepository = false;
+    WebXRMotionControllerManager.UseOnlineRepository = true;
     const xr = await WebXRDefaultExperience.CreateAsync(ground.getScene(), {
         floorMeshes: [ground],
         disableHandTracking: true,
         disableTeleportation: true,
         disableDefaultUI: true,
+        disableNearInteraction: true,
         outputCanvasOptions: {
             canvasOptions: {
                 framebufferScaleFactor: 1

@@ -2,14 +2,12 @@ import {AdvancedDynamicTexture, CheckboxGroup, RadioGroup, SelectionPanel, Stack
 import {MeshBuilder, Scene, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {AppConfig} from "../util/appConfig";
 import {Controllers} from "../controllers/controllers";
-import {DiaSounds} from "../util/diaSounds";
 import {AbstractMenu} from "./abstractMenu";
 import log from "loglevel";
 
 const logger = log.getLogger('ConfigMenu');
 
 export class ConfigMenu extends AbstractMenu {
-    private sounds: DiaSounds;
     private config: AppConfig;
     private readonly baseTransform: TransformNode;
     private gridSnaps: Array<{ label: string, value: number }> = [

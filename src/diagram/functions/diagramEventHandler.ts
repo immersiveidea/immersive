@@ -4,7 +4,6 @@ import {applyPhysics} from "./diagramShapePhysics";
 import {ActionManager, PhysicsMotionType, Scene} from "@babylonjs/core";
 import {updateTextNode} from "../../util/functions/updateTextNode";
 import {Toolbox} from "../../toolbox/toolbox";
-import {DiaSounds} from "../../util/diaSounds";
 
 import {buildMeshFromDiagramEntity} from "./buildMeshFromDiagramEntity";
 import {isDiagramEntity} from "./isDiagramEntity";
@@ -14,8 +13,7 @@ export function diagramEventHandler(event: DiagramEvent,
                                     scene: Scene,
                                     toolbox: Toolbox,
                                     physicsEnabled: boolean,
-                                    actionManager: ActionManager,
-                                    sounds: DiaSounds) {
+                                    actionManager: ActionManager) {
     const entity = event.entity;
     let mesh;
     if (event.type == DiagramEventType.REMOVE) {
@@ -31,7 +29,7 @@ export function diagramEventHandler(event: DiagramEvent,
             if (mesh) {
                 mesh.actionManager = actionManager;
                 if (physicsEnabled) {
-                    applyPhysics(sounds, mesh, scene, PhysicsMotionType.DYNAMIC);
+                    applyPhysics(mesh, scene, PhysicsMotionType.DYNAMIC);
                 }
             }
         }
@@ -62,12 +60,12 @@ export function diagramEventHandler(event: DiagramEvent,
                 mesh.actionManager = actionManager;
             }
             if (physicsEnabled) {
-                applyPhysics(sounds, mesh, scene);
+                applyPhysics(mesh, scene);
             }
             break;
         case DiagramEventType.MODIFY:
             if (mesh && physicsEnabled) {
-                applyPhysics(sounds, mesh, scene);
+                applyPhysics(mesh, scene);
             }
             break;
         case DiagramEventType.REMOVE:
@@ -82,7 +80,7 @@ export function diagramEventHandler(event: DiagramEvent,
                 } else {
                     mesh.dispose();
                 }
-                sounds.exit.play();
+
             }
             break;
     }

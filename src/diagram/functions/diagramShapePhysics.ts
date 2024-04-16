@@ -1,4 +1,3 @@
-import {DiaSounds} from "../../util/diaSounds";
 import {AbstractMesh, PhysicsAggregate, PhysicsBody, PhysicsMotionType, PhysicsShapeType, Scene} from "@babylonjs/core";
 import log from "loglevel";
 import {isDiagramEntity} from "./isDiagramEntity";
@@ -6,7 +5,7 @@ import {isDiagramEntity} from "./isDiagramEntity";
 const logger = log.getLogger('DiagramShapePhysics');
 const MASS_FACTOR = 10;
 
-export function applyPhysics(sounds: DiaSounds,
+export function applyPhysics(
                              mesh: AbstractMesh,
                              scene: Scene,
                              motionType?: PhysicsMotionType) {
@@ -43,14 +42,14 @@ export function applyPhysics(sounds: DiaSounds,
     applyMotionType(motionType, body, mesh);
 
     body.setCollisionCallbackEnabled(true);
-    body.getCollisionObservable().add((event) => {
+    /*body.getCollisionObservable().add((event) => {
         if (event.impulse < 10 && event.impulse > 1) {
             const sound = sounds.bounce;
             sound.setVolume(event.impulse / 10);
             sound.attachToMesh(mesh);
             sound.play();
         }
-    }, -1, false);
+    }, -1, false);*/
     applyPhysicsDefaults(body);
 }
 

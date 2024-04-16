@@ -2,7 +2,6 @@ import {AbstractMesh, MeshBuilder, Observable, Scene, Vector3} from "@babylonjs/
 import log, {Logger} from "loglevel";
 import {AdvancedDynamicTexture, Control, InputText, VirtualKeyboard} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
-import {DiaSounds} from "../util/diaSounds";
 import {Handle} from "../objects/handle";
 
 export type TextEvent = {
@@ -14,7 +13,7 @@ export class InputTextView {
     public readonly onTextObservable: Observable<TextEvent> = new Observable<TextEvent>();
     private readonly scene: Scene;
     private readonly inputMesh: AbstractMesh;
-    private sounds: DiaSounds;
+
     private readonly controllers: Controllers;
 
     private readonly handle: Handle;
@@ -25,7 +24,7 @@ export class InputTextView {
     constructor(scene: Scene, controllers: Controllers) {
         this.controllers = controllers;
         this.scene = scene;
-        this.sounds = new DiaSounds(scene);
+
         this.inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
         this.handle = new Handle(this.inputMesh);
         this.createKeyboard();
@@ -117,7 +116,7 @@ export class InputTextView {
         });
 
         keyboard.onPointerDownObservable.add(() => {
-            this.sounds.tick.play();
+            /*this.sounds.tick.play();*/
         });
         keyboard.onKeyPressObservable.add((key) => {
             if (key === '↵') {

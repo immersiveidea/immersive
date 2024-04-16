@@ -10,13 +10,11 @@ import {
     PhysicsShapeType,
     PointsCloudSystem,
     Scene,
-    Sound,
     Texture,
     TransformNode,
     Vector3
 } from "@babylonjs/core";
 import {CustomPhysics} from "./customPhysics";
-import {DiaSounds} from "./diaSounds";
 import {AppConfig} from "./appConfig";
 import {GridMaterial} from "@babylonjs/materials";
 
@@ -48,7 +46,7 @@ export class CustomEnvironment {
     }
 
     private initSounds() {
-        try {
+        /* try {
             const sounds = new DiaSounds(this.scene);
             window.setTimeout((sound) => {
                 sound.play()
@@ -78,6 +76,8 @@ export class CustomEnvironment {
         } catch (error) {
 
         }
+
+             */
     }
     public get groundMeshObservable() {
         return this._groundMeshObservable;
