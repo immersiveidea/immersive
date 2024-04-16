@@ -44,7 +44,7 @@ export class Rigplatform {
         this.diagramManager = diagramManager;
         this.controllers = diagramManager.controllers;
         this.xr = xr;
-        this.rigMesh = buildRig(this.scene, xr);
+        this.rigMesh = buildRig(xr);
         this.fixRotation();
         this.initializeControllers();
         this.registerVelocityObserver();

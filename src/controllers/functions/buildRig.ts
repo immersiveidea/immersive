@@ -5,15 +5,16 @@ import {
     PhysicsAggregate,
     PhysicsMotionType,
     PhysicsShapeType,
-    Scene,
     TransformNode,
     Vector3,
     WebXRDefaultExperience
 } from "@babylonjs/core";
 
 import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
+import {DefaultScene} from "../../defaultScene";
 
-export function buildRig(scene: Scene, xr: WebXRDefaultExperience): Mesh {
+export function buildRig(xr: WebXRDefaultExperience): Mesh {
+    const scene = DefaultScene.scene;
     const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: .01}, scene);
     const cameratransform = new TransformNode("cameraTransform", scene);
     cameratransform.parent = rigMesh;
