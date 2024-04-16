@@ -1,5 +1,5 @@
 import {AdvancedDynamicTexture, CheckboxGroup, RadioGroup, SelectionPanel, StackPanel} from "@babylonjs/gui";
-import {MeshBuilder, Scene, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {MeshBuilder, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {AppConfig} from "../util/appConfig";
 import {Controllers} from "../controllers/controllers";
 import {AbstractMenu} from "./abstractMenu";
@@ -25,9 +25,9 @@ export class ConfigMenu extends AbstractMenu {
         {label: "90", value: 90},
     ]
 
-    constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers, config: AppConfig) {
-        super(scene, xr, controllers);
-        this.baseTransform = new TransformNode("configMenuBase", scene);
+    constructor(xr: WebXRDefaultExperience, controllers: Controllers, config: AppConfig) {
+        super(xr, controllers);
+        this.baseTransform = new TransformNode("configMenuBase", this.scene);
         this.config = config;
         this.buildMenu();
     }

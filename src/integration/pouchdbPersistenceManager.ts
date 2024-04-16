@@ -12,13 +12,11 @@ export class PouchdbPersistenceManager {
     configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
     updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
     removeObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
-    //implement IPersistenceManager interface with pouchdb apis
+
     private db: PouchDB;
     private remote: PouchDB;
 
     private diagramListings: PouchDB;
-
-
     private user: string;
 
     constructor() {
@@ -43,7 +41,7 @@ export class PouchdbPersistenceManager {
                     this.modify(evt.entity);
                     break;
                 default:
-                //this.logger.warn('App', 'unknown diagram event type', evt);
+                    logger.warn('unknown diagram event type', evt);
             }
         }, 2);
         this.updateObserver.add((evt) => {

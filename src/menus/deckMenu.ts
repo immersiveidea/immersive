@@ -1,12 +1,12 @@
 import {AbstractMenu} from "./abstractMenu";
-import {Color3, MeshBuilder, Scene, StandardMaterial, Vector2, WebXRDefaultExperience} from "@babylonjs/core";
+import {Color3, MeshBuilder, StandardMaterial, Vector2, WebXRDefaultExperience} from "@babylonjs/core";
 import {Controllers} from "../controllers/controllers";
 
 export class DeckMenu extends AbstractMenu {
     private static instance: DeckMenu;
 
-    public constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
-        super(scene, xr, controllers);
+    public constructor(xr: WebXRDefaultExperience, controllers: Controllers) {
+        super(xr, controllers);
         this.buildMenu();
     }
 

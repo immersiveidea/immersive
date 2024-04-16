@@ -1,4 +1,4 @@
-import {AbstractMesh, Scene, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {AbstractMesh, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 
 import {Controllers} from "../controllers/controllers";
 import {DiaSounds} from "../util/diaSounds";
@@ -17,14 +17,14 @@ export class ScaleMenu extends AbstractMenu {
     private yTransformNode: TransformNode;
     private zTransformNode: TransformNode;
 
-    constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
-        super(scene, xr, controllers);
-        this.transformNode = new TransformNode("scaleMenu", scene);
-        this.xTransformNode = new TransformNode("xTransformNode", scene);
+    constructor(xr: WebXRDefaultExperience, controllers: Controllers) {
+        super(xr, controllers);
+        this.transformNode = new TransformNode("scaleMenu", this.scene);
+        this.xTransformNode = new TransformNode("xTransformNode", this.scene);
         this.xTransformNode.parent = this.transformNode;
-        this.yTransformNode = new TransformNode("yTransformNode", scene);
+        this.yTransformNode = new TransformNode("yTransformNode", this.scene);
         this.yTransformNode.parent = this.transformNode;
-        this.zTransformNode = new TransformNode("zTransformNode", scene);
+        this.zTransformNode = new TransformNode("zTransformNode", this.scene);
         this.zTransformNode.parent = this.transformNode;
         //super.createHandle(this.transformNode);
         this.transformNode.position.y = 0;

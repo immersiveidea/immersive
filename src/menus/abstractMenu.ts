@@ -1,6 +1,7 @@
 import {Scene, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {Controllers} from "../controllers/controllers";
 import {Handle} from "../objects/handle";
+import {DefaultScene} from "../defaultScene";
 
 export abstract class AbstractMenu {
     protected handle: Handle;
@@ -8,8 +9,8 @@ export abstract class AbstractMenu {
     protected xr: WebXRDefaultExperience;
     protected controllers: Controllers;
 
-    protected constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
-        this.scene = scene;
+    protected constructor(xr: WebXRDefaultExperience, controllers: Controllers) {
+        this.scene = DefaultScene.scene;
         this.xr = xr;
         this.controllers = controllers;
     }
