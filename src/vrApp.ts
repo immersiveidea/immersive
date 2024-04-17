@@ -71,6 +71,18 @@ export class VrApp {
             })
         }
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
+        /*
+
+        const textGen = new TextMeshGenerator();
+        let y = .1;
+        for (let i = 0; i < 1000; i++) {
+            const text = textGen.generateCharMesh("hijklmnop Hello World");
+            text.position.y = y;
+            text.position.z = -5;
+            text.rotation.y = Math.PI;
+            y+=.1;
+        }
+        */
         let i = 0;
         this.engine.runRenderLoop(() => {
             scene.render();

@@ -1,4 +1,14 @@
-import {AbstractMesh, Color3, DynamicTexture, Material, MeshBuilder, StandardMaterial} from "@babylonjs/core";
+import {
+    AbstractMesh,
+    Color3,
+    DynamicTexture,
+    Material,
+    Mesh,
+    MeshBuilder,
+    Scene,
+    StandardMaterial,
+    Vector3
+} from "@babylonjs/core";
 import log from "loglevel";
 
 
@@ -10,10 +20,11 @@ export function updateTextNode(mesh: AbstractMesh, text: string) {
         return null;
     }
     const textNodes = mesh.getChildren((node) => {
-        return node.metadata?.text == true;
+        return node.metadata?.label == true;
     });
     if (textNodes && textNodes.length > 0) {
         textNodes.forEach((node) => {
+            node.parent = null;
             node.dispose(false, true);
         });
     }
@@ -23,7 +34,7 @@ export function updateTextNode(mesh: AbstractMesh, text: string) {
     }
 
     //Set font
-    const height = 0.05;
+    const height = 0.08;
     const font_size = 24;
     const font = "bold " + font_size + "px Arial";
     //Set height for dynamic texture
@@ -39,19 +50,22 @@ export function updateTextNode(mesh: AbstractMesh, text: string) {
 
     //Calculate width the plane has to be
     const planeWidth = DTWidth * ratio;
-
+    temp.dispose();
     //Create dynamic texture and write the text
     const dynamicTexture = new DynamicTexture("DynamicTexture", {
         width: DTWidth,
         height: DTHeight
     }, mesh.getScene(), false);
+    dynamicTexture.drawText(text, null, null, font, "#ffffff", "#000000", true);
+
     const mat = new StandardMaterial("mat", mesh.getScene());
     mat.diffuseColor = Color3.Black();
     mat.disableLighting = true;
     mat.backFaceCulling = true;
     mat.emissiveTexture = dynamicTexture;
+    mat.freeze();
     //mat.emissiveColor = Color3.White();
-    dynamicTexture.drawText(text, null, null, font, "#ffffff", "#000000", true);
+
     //Create plane and set dynamic texture as material
     //const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
     const plane1 = createPlane(mat, mesh, text, planeWidth, height);
@@ -77,6 +91,22 @@ function createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth
     } else {
         plane.position.y = yOffset + (height * plane.scaling.y);
     }
-
+    //plane.addLODLevel(5, getDistantPlane(mesh.getScene(), plane.scaling, planeWidth, height));
+    plane.addLODLevel(3, null);
     return plane;
+}
+
+let distantPlane = null;
+
+function getDistantPlane(scene: Scene, scaling: Vector3, planeWidth: number, planeHeight: number): Mesh {
+    //if (distantPlane == null) {
+    distantPlane = MeshBuilder.CreatePlane("distantPlane", {width: planeWidth, height: planeHeight}, scene);
+    distantPlane.scaling = scaling;
+    //distantPlane.scaling.y = distantPlane.scaling.y /4;
+    const material = new StandardMaterial("distantPlaneMaterial", scene);
+    material.emissiveColor = Color3.White()
+    material.freeze()
+    distantPlane.material = material;
+    // }
+    return distantPlane;
 }
