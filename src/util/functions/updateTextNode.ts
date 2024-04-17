@@ -1,4 +1,4 @@
-import {AbstractMesh, DynamicTexture, Material, MeshBuilder, StandardMaterial} from "@babylonjs/core";
+import {AbstractMesh, Color3, DynamicTexture, Material, MeshBuilder, StandardMaterial} from "@babylonjs/core";
 import log from "loglevel";
 
 
@@ -46,9 +46,12 @@ export function updateTextNode(mesh: AbstractMesh, text: string) {
         height: DTHeight
     }, mesh.getScene(), false);
     const mat = new StandardMaterial("mat", mesh.getScene());
-    mat.diffuseTexture = dynamicTexture;
+    mat.diffuseColor = Color3.Black();
+    mat.disableLighting = true;
+    mat.backFaceCulling = true;
+    mat.emissiveTexture = dynamicTexture;
     //mat.emissiveColor = Color3.White();
-    dynamicTexture.drawText(text, null, null, font, "#000000", "#ffffff", true);
+    dynamicTexture.drawText(text, null, null, font, "#ffffff", "#000000", true);
     //Create plane and set dynamic texture as material
     //const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
     const plane1 = createPlane(mat, mesh, text, planeWidth, height);

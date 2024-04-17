@@ -40,7 +40,7 @@ export class Rigplatform {
         xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager
     ) {
-        this.scene = DefaultScene.scene;
+        this.scene = DefaultScene.Scene;
         this.diagramManager = diagramManager;
         this.controllers = diagramManager.controllers;
         this.xr = xr;

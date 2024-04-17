@@ -26,7 +26,7 @@ export class CustomEnvironment {
     private readonly _groundMeshObservable: Observable<GroundMesh> = new Observable<GroundMesh>();
 
     constructor(name: string = "default", config: AppConfig) {
-        this.scene = DefaultScene.scene;
+        this.scene = DefaultScene.Scene;
         this.name = name;
         const loading = document.querySelector('#loadingGrid');
         if (loading) {
@@ -121,7 +121,7 @@ export class CustomEnvironment {
 }
 
 async function createPoints(divisions: number = 10, scale: number = 80) {
-    const scene = DefaultScene.scene;
+    const scene = DefaultScene.Scene;
     const half = .5;
     const increment = 1 / divisions;
     let x = -half;
@@ -156,7 +156,7 @@ async function createPoints(divisions: number = 10, scale: number = 80) {
 }
 
 function createGridMaterial(lineColor: Color3, mainColor: Color3): Material {
-    const scene = DefaultScene.scene;
+    const scene = DefaultScene.Scene;
     const material = new GridMaterial("gridMaterial", scene);
     material.minorUnitVisibility = .1;
     material.gridRatio = .1;

@@ -28,7 +28,7 @@ export class Toolbox {
     private axes: AxesViewer;
 
     constructor() {
-        this.scene = DefaultScene.scene;
+        this.scene = DefaultScene.Scene;
         this.addPanel = new StackPanel3D();
         this.manager = new GUI3DManager(this.scene);
         this.manager.addControl(this.addPanel);

@@ -1,10 +1,12 @@
 import {AbstractMesh, TransformNode} from "@babylonjs/core";
 import {DiagramManager} from "../../diagram/diagramManager";
+import {DefaultScene} from "../../defaultScene";
 
 export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh):
     { transformNode: TransformNode, newMesh: AbstractMesh } {
+    const scene = DefaultScene.Scene;
     const newMesh = diagramManager.createCopy(mesh);
-    const transformNode = new TransformNode("grabAnchor, this.scene");
+    const transformNode = new TransformNode("grabAnchor", scene);
     transformNode.id = "grabAnchor";
     transformNode.position = newMesh.position.clone();
     if (newMesh.rotationQuaternion) {

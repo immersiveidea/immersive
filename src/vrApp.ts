@@ -1,4 +1,4 @@
-import {Color3, Engine, FreeCamera, Scene, Vector3} from "@babylonjs/core";
+import {Color3, Engine, FreeCamera, Scene, Vector3, WebGPUEngine} from "@babylonjs/core";
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
 import log, {Logger} from "loglevel";
@@ -12,30 +12,22 @@ import {buildQuestLink} from "./util/functions/buildQuestLink";
 import {exportGltf} from "./util/functions/exportGltf";
 import {DefaultScene} from "./defaultScene";
 
+const webGpu = false;
 export class VrApp {
 
-    private engine: Engine;
+    private engine: WebGPUEngine | Engine;
     //preTasks = [havokModule];
     private logger: Logger = log.getLogger('App');
 
     constructor() {
-        const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
-        this.engine = new Engine(canvas, true);
-        this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-        window.onresize = () => {
-            this.engine.resize();
-        }
-        const scene = new Scene(this.engine);
-        scene.ambientColor = new Color3(.1, .1, .1);
-        DefaultScene.create(scene);
+        this.initializeEngine().then(() => {
+            this.logger.info('Engine initialized');
+        });
 
-        log.resetLevel();
-        log.setDefaultLevel('error');
-        this.logger.debug('App', 'gameCanvas created');
     }
 
     public async initialize() {
-        const scene = DefaultScene.scene;
+        const scene = DefaultScene.Scene;
 
         const spinner = new Spinner();
         spinner.show();
@@ -90,16 +82,41 @@ export class VrApp {
 
     }
 
+    private async initializeEngine() {
+        const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
+        if (webGpu) {
+            this.engine = new WebGPUEngine(canvas);
+            await (this.engine as WebGPUEngine).initAsync();
+        } else {
+            this.engine = new Engine(canvas, true);
+        }
+
+        //this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+
+        //window.onresize = () => {
+        //    this.engine.resize();
+        // }
+        /*window.setInterval(() => {
+           console.log(this.engine.performanceMonitor.instantaneousFPS.toFixed(2) + " fps");
+        }, 1000);*/
+        const scene = new Scene(this.engine);
+        scene.ambientColor = new Color3(.1, .1, .1);
+        DefaultScene.Scene = scene;
+
+        log.resetLevel();
+        log.setDefaultLevel('error');
+        this.logger.debug('App', 'gameCanvas created');
+        await this.initialize();
+    }
+
     public async start() {
 
     }
 }
 
 const vrApp = new VrApp();
+buildQuestLink();
 
-vrApp.initialize().then(() => {
-    buildQuestLink();
-});
 
 
 

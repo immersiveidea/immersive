@@ -18,7 +18,7 @@ export class Left extends Base {
     constructor(controller:
                     WebXRInputSource, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
         super(controller, xr, diagramManager);
-        const scene = DefaultScene.scene;
+        const scene = DefaultScene.Scene;
         this.controller.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']

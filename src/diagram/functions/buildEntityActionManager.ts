@@ -5,7 +5,7 @@ import {DefaultScene} from "../../defaultScene";
 
 export function buildEntityActionManager(controllers: Controllers) {
     const logger = log.getLogger('buildEntityActionManager');
-    const actionManager = new ActionManager(DefaultScene.scene);
+    const actionManager = new ActionManager(DefaultScene.Scene);
     /*actionManager.registerAction(
         new PlaySoundAction(ActionManager.OnPointerOverTrigger, sounds.tick));*/
     actionManager.registerAction(

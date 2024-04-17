@@ -18,7 +18,7 @@ export class Spinner {
     private particleSystem: ParticleSystem;
 
     constructor() {
-        this._scene = DefaultScene.scene;
+        this._scene = DefaultScene.Scene;
         this.build();
     }
 

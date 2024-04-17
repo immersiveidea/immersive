@@ -55,7 +55,7 @@ export class Base {
         this.logger.setLevel(this.logger.levels.DEBUG);
         this.controller = controller;
         this.controllers = diagramManager.controllers;
-        this.scene = DefaultScene.scene;
+        this.scene = DefaultScene.Scene;
         this.xr = xr;
         this.diagramManager = diagramManager;
         this.scene.onBeforeRenderObservable.add(beforeRenderObserver, -1, false, this);

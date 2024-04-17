@@ -154,7 +154,7 @@ export class DiagramConnection {
     }
 
     private beforeRender = () => {
-        this.tick++;
+
         if (this.tick % 5 == 0) {
             this.recalculate();
             this.setPoints();

@@ -24,7 +24,7 @@ export class InputTextView {
 
     constructor(controllers: Controllers) {
         this.controllers = controllers;
-        this.scene = DefaultScene.scene;
+        this.scene = DefaultScene.Scene;
 
         this.inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
         this.handle = new Handle(this.inputMesh);

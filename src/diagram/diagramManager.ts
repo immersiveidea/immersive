@@ -29,7 +29,7 @@ export class DiagramManager {
 
 
     constructor() {
-        this._scene = DefaultScene.scene;
+        this._scene = DefaultScene.Scene;
         this._config = new AppConfig();
         this._controllers = new Controllers();
         this.inputTextView = new InputTextView(this._controllers);

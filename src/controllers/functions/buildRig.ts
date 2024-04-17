@@ -14,7 +14,7 @@ import {buildStandardMaterial} from "../../materials/functions/buildStandardMate
 import {DefaultScene} from "../../defaultScene";
 
 export function buildRig(xr: WebXRDefaultExperience): Mesh {
-    const scene = DefaultScene.scene;
+    const scene = DefaultScene.Scene;
     const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: .01}, scene);
     const cameratransform = new TransformNode("cameraTransform", scene);
     cameratransform.parent = rigMesh;

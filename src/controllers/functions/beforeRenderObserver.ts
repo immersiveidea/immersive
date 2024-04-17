@@ -3,7 +3,7 @@ import {DefaultScene} from "../../defaultScene";
 
 export function beforeRenderObserver() {
     if (this?.grabbedMesh?.physicsBody) {
-        const scene = DefaultScene.scene;
+        const scene = DefaultScene.Scene;
         const hk = (scene.getPhysicsEngine().getPhysicsPlugin() as HavokPlugin);
         this.lastPosition = this?.grabbedMesh?.physicsBody?.transformNode.absolutePosition.clone();
         if (this.grabbedMeshParentId) {

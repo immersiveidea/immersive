@@ -25,10 +25,12 @@ export async function groundMeshObserver(ground: AbstractMesh,
             }
         },
         optionalFeatures: true,
+
         pointerSelectionOptions: {
             enablePointerSelectionOnAllControllers: true
         }
     });
+    //xr.baseExperience.featuresManager.enableFeature(WebXRFeatureName.LAYERS, "latest", { preferMultiviewOnInit: true }, true, false);
     const enterButton = (document.querySelector('#enterXR') as HTMLAnchorElement);
     if (enterButton) {
         const vrSupported = await xr.baseExperience.sessionManager.isSessionSupportedAsync('immersive-vr');

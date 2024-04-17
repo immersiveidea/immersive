@@ -42,7 +42,7 @@ export class Right extends Base {
 
     ) {
         super(controller, xr, diagramManager);
-        const scene = DefaultScene.scene;
+        const scene = DefaultScene.Scene;
 
         this.controller.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
