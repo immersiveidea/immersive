@@ -1,14 +1,4 @@
-import {
-    AbstractMesh,
-    Color3,
-    DynamicTexture,
-    Material,
-    Mesh,
-    MeshBuilder,
-    Scene,
-    StandardMaterial,
-    Vector3
-} from "@babylonjs/core";
+import {AbstractMesh, Color3, DynamicTexture, Material, MeshBuilder, StandardMaterial} from "@babylonjs/core";
 import log from "loglevel";
 
 
@@ -61,29 +51,26 @@ export function updateTextNode(mesh: AbstractMesh, text: string) {
     const mat = new StandardMaterial("mat", mesh.getScene());
     mat.diffuseColor = Color3.Black();
     mat.disableLighting = true;
-    mat.backFaceCulling = true;
+    mat.backFaceCulling = false;
     mat.emissiveTexture = dynamicTexture;
     mat.freeze();
-    //mat.emissiveColor = Color3.White();
 
-    //Create plane and set dynamic texture as material
-    //const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
     const plane1 = createPlane(mat, mesh, text, planeWidth, height);
-    const plane2 = createPlane(mat, mesh, text, planeWidth, height);
-    plane2.rotation.y = Math.PI;
+    //const plane2 = createPlane(mat, mesh, text, planeWidth, height);
+    //plane2.rotation.y = Math.PI;
 }
 
 function createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth: number, height: number): AbstractMesh {
     const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
     const yOffset = mesh.getBoundingInfo().boundingSphere.maximum.y;
-    plane.parent = mesh;
 
+    plane.parent = mesh;
     plane.scaling.y = (1 / mesh.scaling.y);
     plane.scaling.x = (1 / mesh.scaling.x);
     plane.scaling.z = (1 / mesh.scaling.z);
     plane.material = mat;
-    //plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
     plane.metadata = {exportable: true, label: true};
+
     if (mesh.metadata?.template == "#connection-template") {
         plane.billboardMode = AbstractMesh.BILLBOARDMODE_Y;
         plane.position.y = mesh.position.y + .1;
@@ -91,22 +78,7 @@ function createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth
     } else {
         plane.position.y = yOffset + (height * plane.scaling.y);
     }
-    //plane.addLODLevel(5, getDistantPlane(mesh.getScene(), plane.scaling, planeWidth, height));
     plane.addLODLevel(3, null);
     return plane;
 }
 
-let distantPlane = null;
-
-function getDistantPlane(scene: Scene, scaling: Vector3, planeWidth: number, planeHeight: number): Mesh {
-    //if (distantPlane == null) {
-    distantPlane = MeshBuilder.CreatePlane("distantPlane", {width: planeWidth, height: planeHeight}, scene);
-    distantPlane.scaling = scaling;
-    //distantPlane.scaling.y = distantPlane.scaling.y /4;
-    const material = new StandardMaterial("distantPlaneMaterial", scene);
-    material.emissiveColor = Color3.White()
-    material.freeze()
-    distantPlane.material = material;
-    // }
-    return distantPlane;
-}

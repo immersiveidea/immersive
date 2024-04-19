@@ -1,26 +1,21 @@
 import PouchDB from 'pouchdb';
 import {DiagramEntity, DiagramEventType} from "../diagram/types/diagramEntity";
 import {Color3, Observable} from "@babylonjs/core";
-import {AppConfigType} from "../util/appConfigType";
-import {v4 as uuidv4} from 'uuid';
 import axios from "axios";
 import {DiagramManager} from "../diagram/diagramManager";
 import log, {Logger} from "loglevel";
 
 const logger: Logger = log.getLogger('PouchdbPersistenceManager');
 export class PouchdbPersistenceManager {
-    configObserver: Observable<AppConfigType> = new Observable<AppConfigType>();
     updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
     removeObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
 
     private db: PouchDB;
     private remote: PouchDB;
-
-    private diagramListings: PouchDB;
     private user: string;
 
     constructor() {
-        this.diagramListings = new PouchDB("diagramListings");
+
     }
 
     public setDiagramManager(diagramManager: DiagramManager) {
@@ -56,23 +51,6 @@ export class PouchdbPersistenceManager {
             diagramManager.onDiagramEventObservable.notifyObservers(
                 {type: DiagramEventType.REMOVE, entity: entity}, 1);
         });
-    }
-
-    private _currentDiagramId: string;
-
-    public get currentDiagramId(): string {
-        return this._currentDiagramId;
-    }
-
-    public set currentDiagramId(value: string) {
-        this._currentDiagramId = value;
-        try {
-            const listing = this.diagramListings.get(value);
-        } catch (err) {
-            this.diagramListings.put({_id: value, name: "New Diagram"});
-        }
-        this.db = new PouchDB(value);
-        this.db.sync(this.remote, {live: true});
     }
 
     public async add(entity: DiagramEntity) {
@@ -121,63 +99,26 @@ export class PouchdbPersistenceManager {
         return data;
     }
 
-    public async setConfig(config: AppConfigType, initial: boolean = false) {
-        if (!initial) {
-            localStorage.setItem('config', JSON.stringify(config));
-        } else {
-            localStorage.setItem('config', JSON.stringify(config));
-        }
-    }
-
-    public getConfig(): AppConfigType {
-        return JSON.parse(localStorage.getItem('config')) as AppConfigType;
-    }
-
     public async initialize() {
         try {
             let current = this.getPath();
-            const configString = localStorage.getItem('config');
-            const config = JSON.parse(configString) as AppConfigType;
 
-            if (!current && config.currentDiagramId) {
-                this.db = new PouchDB(config.currentDiagramId);
-                await this.beginSync(config.currentDiagramId);
+            if (current) {
+                this.db = new PouchDB(current);
             } else {
-                if (current) {
-                    config.currentDiagramId = current;
-                } else {
-                    config.currentDiagramId = uuidv4();
-                }
-                this.db = new PouchDB(config.currentDiagramId);
-                await this.beginSync(config.currentDiagramId);
-                localStorage.setItem('config', JSON.stringify(config));
-            }
-            this.configObserver.notifyObservers(config);
-        } catch (err) {
-            const defaultConfig = {
-                _id: '1',
-                demoCompleted: false,
-                gridSnap: 1,
-                rotateSnap: 0,
-                createSnap: 0,
-                turnSnap: 0,
-                flyMode: true,
-                currentDiagramId: 'public'
-            }
-            try {
-                await this.setConfig(defaultConfig, true);
-            } catch (err) {
-                logger.error(err);
+                current = 'public';
+                this.db = new PouchDB(current);
             }
 
-            this.diagramListings.put({_id: defaultConfig.currentDiagramId, name: "New Diagram"});
-            this.db = new PouchDB(defaultConfig.currentDiagramId);
-            await this.beginSync(defaultConfig.currentDiagramId);
-            this.configObserver.notifyObservers(defaultConfig);
+            await this.beginSync(current);
+
+        } catch (err) {
+            logger.error(err);
+            logger.error('cannot initialize pouchdb for sync');
+            return;
         }
         try {
             const all = await this.db.allDocs({include_docs: true});
-
             for (const entity of all.rows) {
                 logger.debug(entity.doc);
                 this.updateObserver.notifyObservers(entity.doc, 1);
@@ -258,7 +199,6 @@ export class PouchdbPersistenceManager {
                 } else {
                     return;
                 }
-
             }
             const userEndpoint: string = import.meta.env.VITE_USER_ENDPOINT
             logger.debug(userEndpoint);

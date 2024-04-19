@@ -35,17 +35,6 @@ export class VrApp {
         const diagramManager = new DiagramManager();
         const db = new PouchdbPersistenceManager();
         db.setDiagramManager(diagramManager);
-        db.configObserver.add((newConfig) => {
-            if (!newConfig.demoCompleted) {
-                const main = document.querySelector('#main');
-            } else {
-                const create = document.querySelector('#create');
-            }
-            diagramManager.config.onConfigChangedObservable.notifyObservers(newConfig, 1);
-        });
-        diagramManager.config.onConfigChangedObservable.add((newConfig) => {
-            db.setConfig(newConfig);
-        }, 2, false, this);
         await db.initialize();
 
         const camera: FreeCamera = new FreeCamera("Main Camera",
@@ -71,24 +60,8 @@ export class VrApp {
             })
         }
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
-        /*
-
-        const textGen = new TextMeshGenerator();
-        let y = .1;
-        for (let i = 0; i < 1000; i++) {
-            const text = textGen.generateCharMesh("hijklmnop Hello World");
-            text.position.y = y;
-            text.position.z = -5;
-            text.rotation.y = Math.PI;
-            y+=.1;
-        }
-        */
-        let i = 0;
         this.engine.runRenderLoop(() => {
             scene.render();
-            if (i++ % 60 == 0) {
-
-            }
         });
         this.logger.info('Render loop started');
 
@@ -103,14 +76,11 @@ export class VrApp {
             this.engine = new Engine(canvas, true);
         }
 
-        //this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+        this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 
-        //window.onresize = () => {
-        //    this.engine.resize();
-        // }
-        /*window.setInterval(() => {
-           console.log(this.engine.performanceMonitor.instantaneousFPS.toFixed(2) + " fps");
-        }, 1000);*/
+        window.onresize = () => {
+            this.engine.resize();
+        }
         const scene = new Scene(this.engine);
         scene.ambientColor = new Color3(.1, .1, .1);
         DefaultScene.Scene = scene;

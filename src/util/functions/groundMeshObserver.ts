@@ -75,7 +75,7 @@ export async function groundMeshObserver(ground: AbstractMesh,
     diagramManager.config.onConfigChangedObservable.add((config) => {
         rig.flyMode = config.flyMode;
         rig.turnSnap = config.turnSnap;
-    });
+    }, -1, false, this);
     const config = new ConfigMenu(xr, diagramManager.controllers, diagramManager.config);
     const webController = new WebController(ground.getScene(), rig, diagramManager, diagramManager.controllers);
 
