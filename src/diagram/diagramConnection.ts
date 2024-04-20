@@ -55,7 +55,6 @@ export class DiagramConnection {
     private toAnchor: TransformNode;
     private fromAnchor: TransformNode;
     private transformNode: TransformNode;
-    private points: Vector3[] = [];
 
     private _mesh: AbstractMesh;
 
@@ -129,7 +128,6 @@ export class DiagramConnection {
     private buildConnection() {
         this.logger.debug(`buildConnection from ${this._from} to ${this._to}`);
         this._mesh = MeshBuilder.CreateCylinder(this.id + "_connection", {diameter: .025, height: 1}, this.scene);
-
         this.transformNode = new TransformNode(this.id + "_transform", this.scene);
         this.transformNode.metadata = {exportable: true};
         this._mesh.setParent(this.transformNode);
@@ -154,7 +152,6 @@ export class DiagramConnection {
     }
 
     private beforeRender = () => {
-
         if (this.tick % 5 == 0) {
             this.recalculate();
             this.setPoints();

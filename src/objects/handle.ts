@@ -1,5 +1,5 @@
-import {AbstractMesh, InstancedMesh, Mesh, MeshBuilder, Scene, TransformNode, Vector3} from "@babylonjs/core";
-import {buildStandardMaterial} from "../materials/functions/buildStandardMaterial";
+import {AbstractMesh, InstancedMesh, Mesh, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {HtmlMeshBuilder} from "babylon-html";
 
 export class Handle {
     public mesh: AbstractMesh;
@@ -86,13 +86,18 @@ function getHandleMesh(name: string, scene: Scene): InstancedMesh {
         instance.setParent(scene.getMeshByName("platform"));
         return instance;
     }
-    const handle = MeshBuilder.CreateCapsule("base-handle-mesh", {
+    /*const handle = MeshBuilder.CreateCapsule("base-handle-mesh", {
         radius: .04,
         orientation: Vector3.Right(),
         height: .3
+    }, scene);*/
+    const handle = HtmlMeshBuilder.CreatePlaneSync("base-handle-mesh", {
+        html:
+            `<div style="width: 100%; height: 100%; border-radius: 32px; background-color: #111122; color: #eeeeee"><center>Handle</center></div>
+        `, width: .5, height: .1, image: {width: 256, height: 51}
     }, scene);
-    handle.setEnabled(false);
-    handle.material = buildStandardMaterial('base-handle-material', scene, "#CCCCDD");
+
+    //handle.material = buildStandardMaterial('base-handle-material', scene, "#CCCCDD");
     handle.id = "base-handle-mesh";
     const instance = new InstancedMesh(name, (handle as Mesh));
     instance.setParent(scene.getMeshById("platform"));

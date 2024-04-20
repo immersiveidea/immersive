@@ -19,7 +19,7 @@ export class Left extends Base {
                     WebXRInputSource, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
         super(controller, xr, diagramManager);
         const scene = DefaultScene.Scene;
-        this.controller.onMotionControllerInitObservable.add((init) => {
+        this.xrInputSource.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
                     .onAxisValueChangedObservable.add((value) => {
@@ -66,7 +66,7 @@ export class Left extends Base {
                     this.controllers.controllerObserver.notifyObservers({
                         type: ControllerEventType.TRIGGER,
                         value: button.value,
-                        controller: this.controller
+                        controller: this.xrInputSource
                     });
                 }, -1, false, this);
         }

@@ -44,7 +44,7 @@ export class Right extends Base {
         super(controller, xr, diagramManager);
         const scene = DefaultScene.Scene;
 
-        this.controller.onMotionControllerInitObservable.add((init) => {
+        this.xrInputSource.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
             if (init.components['a-button']) {
                 const transform = new TransformNode('a-button', scene);
@@ -70,7 +70,7 @@ export class Right extends Base {
                     this.controllers.controllerObserver.notifyObservers({
                         type: ControllerEventType.TRIGGER,
                         value: button.value,
-                        controller: this.controller
+                        controller: this.xrInputSource
                     });
                 }, -1, false, this);
         }

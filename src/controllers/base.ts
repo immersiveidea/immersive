@@ -3,6 +3,7 @@ import {
     Mesh,
     PhysicsMotionType,
     Scene,
+    TransformNode,
     Vector3,
     WebXRControllerComponent,
     WebXRDefaultExperience,
@@ -31,7 +32,7 @@ import {DefaultScene} from "../defaultScene";
 const CLICK_TIME = 300;
 export class Base {
     static stickVector = Vector3.Zero();
-    protected controller: WebXRInputSource;
+    protected xrInputSource: WebXRInputSource;
     protected speedFactor = 4;
     protected readonly scene: Scene;
     protected grabbedMesh: AbstractMesh = null;
@@ -47,25 +48,34 @@ export class Base {
     private lastPosition: Vector3 = null;
     protected controllers: Controllers;
     private clickMenu: ClickMenu;
+    private pickPoint: Vector3 = new Vector3();
 
     constructor(controller: WebXRInputSource,
                 xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager) {
         this.logger = log.getLogger('Base');
         this.logger.setLevel(this.logger.levels.DEBUG);
-        this.controller = controller;
+        this.xrInputSource = controller;
         this.controllers = diagramManager.controllers;
         this.scene = DefaultScene.Scene;
         this.xr = xr;
+        this.scene.onPointerObservable.add((pointerInfo) => {
+            if (pointerInfo.pickInfo.pickedMesh?.metadata?.template) {
+                const mesh = pointerInfo.pickInfo.pickedMesh;
+                const pos = mesh.absolutePosition;
+                this.pickPoint.copyFrom(pointerInfo.pickInfo.pickedPoint);
+            }
+
+        });
         this.diagramManager = diagramManager;
         this.scene.onBeforeRenderObservable.add(beforeRenderObserver, -1, false, this);
-        this.controller.onMotionControllerInitObservable.add(motionControllerObserver, -1, false, this);
+        this.xrInputSource.onMotionControllerInitObservable.add(motionControllerObserver, -1, false, this);
         this.controllers.controllerObserver.add((event) => {
             this.logger.debug(event);
             switch (event.type) {
                 case ControllerEventType.PULSE:
-                    if (event.gripId == this?.controller?.grip?.id) {
-                        this.controller?.motionController?.pulse(.25, 30)
+                    if (event.gripId == this?.xrInputSource?.grip?.id) {
+                        this.xrInputSource?.motionController?.pulse(.25, 30)
                             .then(() => {
                                 this.logger.debug("pulse done");
                             });
@@ -83,14 +93,14 @@ export class Base {
 
     public disable() {
         this.scene.preventDefaultOnPointerDown = true;
-        this.controller.motionController.rootMesh.setEnabled(false)
-        this.controller.pointer.setEnabled(false);
+        this.xrInputSource.motionController.rootMesh.setEnabled(false)
+        this.xrInputSource.pointer.setEnabled(false);
     }
 
     public enable() {
         this.scene.preventDefaultOnPointerDown = false;
-        this.controller.motionController.rootMesh.setEnabled(true);
-        this.controller.pointer.setEnabled(true)
+        this.xrInputSource.motionController.rootMesh.setEnabled(true);
+        this.xrInputSource.pointer.setEnabled(true)
     }
 
     protected initClicker(trigger: WebXRControllerComponent) {
@@ -120,7 +130,7 @@ export class Base {
     }
 
     private grab(cloneEntity: boolean = false) {
-        let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
+        let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.xrInputSource.uniqueId);
 
         if (!mesh) {
             return;
@@ -129,7 +139,7 @@ export class Base {
         displayDebug(mesh);
         if (!isDiagramEntity(mesh)) {
             if (handleWasGrabbed(mesh)) {
-                mesh && mesh.setParent(this.controller.motionController.rootMesh);
+                mesh && mesh.setParent(this.xrInputSource.motionController.rootMesh);
                 this.grabbedMesh = mesh;
             } else {
                 if (mesh?.parent?.parent?.metadata?.grabbable) {
@@ -156,16 +166,16 @@ export class Base {
 
         if ((!mesh.metadata?.grabClone || player) && !cloneEntity) {
             if (mesh.physicsBody) {
-                const transformNode = setupTransformNode(mesh, this.controller.motionController.rootMesh);
+                const transformNode = setupTransformNode(mesh, this.xrInputSource.motionController.rootMesh);
                 mesh.physicsBody.setMotionType(PhysicsMotionType.ANIMATED);
                 this.grabbedMeshParentId = transformNode.id;
             } else {
-                mesh.setParent(this.controller.motionController.rootMesh);
+                mesh.setParent(this.xrInputSource.motionController.rootMesh);
             }
             this.grabbedMesh = mesh;
         } else {
             this.logger.debug("cloning " + mesh?.id);
-            const clone = grabAndClone(this.diagramManager, mesh, this.controller.motionController.rootMesh);
+            const clone = grabAndClone(this.diagramManager, mesh, this.xrInputSource.motionController.rootMesh);
             clone.newMesh.metadata.grabClone = false;
             clone.newMesh.metadata.tool = false;
             this.grabbedMeshParentId = clone.transformNode.id;
@@ -196,8 +206,14 @@ export class Base {
         reparent(mesh, this.previousParentId, this.grabbedMeshParentId);
         this.grabbedMeshParentId = null;
         if (!mesh.physicsBody) {
-            mesh.position = snapGridVal(mesh.position, this.diagramManager._config.current.gridSnap);
-            mesh.rotation = snapRotateVal(mesh.rotation, this.diagramManager._config.current.rotateSnap);
+            const transform = new TransformNode('temp', this.scene);
+            transform.rotation = mesh.rotation;
+            transform.position = this.pickPoint;
+            mesh.setParent(transform);
+            transform.position = snapGridVal(transform.position, this.diagramManager._config.current.gridSnap).clone();
+            transform.rotation = snapRotateVal(transform.rotation, this.diagramManager._config.current.rotateSnap);
+            mesh.setParent(null);
+
         }
         this.previousParentId = null;
         this.previousScaling = null;
@@ -224,7 +240,7 @@ export class Base {
     }
 
     private click() {
-        let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.controller.uniqueId);
+        let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.xrInputSource.uniqueId);
 
         if (pointable(mesh)) {
             this.logger.debug("click on " + mesh.id);
@@ -234,7 +250,7 @@ export class Base {
                     this.clickMenu = null;
                 }
             } else {
-                this.clickMenu = new ClickMenu(mesh, this.diagramManager, this.controller.grip);
+                this.clickMenu = new ClickMenu(mesh, this.diagramManager, this.xrInputSource.grip);
             }
 
         } else {
