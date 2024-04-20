@@ -1,55 +1,76 @@
-import {GUI3DManager, PlanePanel} from "@babylonjs/gui";
-import {AbstractMesh, Tools, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramConnection} from "../diagram/diagramConnection";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
-import {makeButton} from "./functions/makeButton";
+import {HtmlButton} from "babylon-html";
 
 export class ClickMenu {
-    private static readonly sounds;
-    private readonly entity: AbstractMesh;
-    private readonly manager: GUI3DManager;
+    private readonly _mesh: AbstractMesh;
     private readonly transform: TransformNode;
     private readonly diagramManager: DiagramManager;
-    private utilityPosition: Vector3;
-
     private connection: DiagramConnection = null;
 
-    constructor(entity: AbstractMesh, diagramManager: DiagramManager, grip: TransformNode) {
-        this.entity = entity;
+    constructor(mesh: AbstractMesh, diagramManager: DiagramManager, grip: TransformNode) {
+        this._mesh = mesh;
         this.diagramManager = diagramManager;
-        const scene = entity.getScene();
-        const manager = new GUI3DManager(scene);
-        manager.onPickingObservable.add((mesh) => {
-            if (mesh) {
-                this.utilityPosition = mesh.getAbsolutePosition();
+        const scene = mesh.getScene();
+        this.transform = new TransformNode("transform", scene);
+        let x = -.54 / 2;
+
+        const removeButton: HtmlButton = this.makeNewButton("Remove", "remove", scene, x += .11);
+        removeButton.onPointerObservable.add((eventData) => {
+            if (eventData.sourceEvent.type == "pointerup") {
+                const event: DiagramEvent = {
+                    type: DiagramEventType.REMOVE,
+                    entity:
+                        toDiagramEntity(this._mesh)
+                }
+                this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
+                this.dispose();
             }
-        });
-        const transform = new TransformNode("transform", scene);
-        const panel = new PlanePanel();
+        }, -1, false, this, false);
 
-        panel.orientation = PlanePanel.FACEFORWARD_ORIENTATION;
-        panel.columns = 4;
-        panel.margin = .1;
-        manager.addControl(panel);
-        panel.linkToTransformNode(transform);
+        const labelButton: HtmlButton = this.makeNewButton("Label", "label", scene, x += .11);
+        labelButton.onPointerObservable.add((eventData) => {
+            if (eventData.sourceEvent.type == "pointerup") {
+                this.diagramManager.editText(this._mesh);
+                this.dispose();
+            }
+        }, -1, false, this, false);
 
-        panel.addControl(this.makeButton("Remove", "remove", grip));
-        panel.addControl(this.makeButton("Label", "label", grip));
-        panel.addControl(this.makeButton("Connect", "connect", grip));
-        panel.addControl(this.makeButton("Close", "close", grip));
+        const connectButton: HtmlButton = this.makeNewButton("Connect", "connect", scene, x += .11);
+        connectButton.onPointerObservable.add((eventData) => {
+            if (eventData.sourceEvent.type == "pointerup") {
+                this.createMeshConnection(this._mesh, grip, eventData.additionalData.pickedPoint.clone());
+            }
+        }, -1, false, this, false);
 
-        manager.controlScaling = .1;
-        panel.updateLayout();
-        this.transform = transform;
-        this.manager = manager;
-        Tools.SetImmediate(() => {
-            transform.position = entity.absolutePosition.clone();
-            transform.position.y = entity.getBoundingInfo().boundingBox.maximumWorld.y + .1;
-            transform.billboardMode = TransformNode.BILLBOARDMODE_Y;
-        });
+        const closeButton: HtmlButton = this.makeNewButton("Close", "close", scene, x += .11);
+        closeButton.onPointerObservable.add((eventData) => {
+            eventData.sourceEvent.type == "pointerup" && this.dispose();
+        }, -1, false, this, false);
+
+        const sizeButton: HtmlButton = this.makeNewButton("Size", "size", scene, x += .11);
+        sizeButton.onPointerObservable.add((eventData) => {
+            if (eventData.sourceEvent.type == "pointerup") {
+                this.diagramManager.scaleMenu.show(this._mesh);
+            }
+        }, -1, false, this, false);
+
+
+        this.transform.position = mesh.absolutePosition.clone();
+        this.transform.position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
+        this.transform.billboardMode = TransformNode.BILLBOARDMODE_Y;
+    }
+
+    private makeNewButton(name: string, id: string, scene: Scene, x: number): HtmlButton {
+        const button = new HtmlButton(name, id, scene, null, {html: null, image: {width: 268, height: 268}});
+        button.transform.parent = this.transform;
+        button.transform.rotation.y = Math.PI;
+        button.transform.position.x = x;
+        return button;
     }
 
     public get isConnecting() {
@@ -74,40 +95,12 @@ export class ClickMenu {
         }
     }
 
-    private makeButton(name: string, id: string, grip: TransformNode) {
-        const button = makeButton(id, name);
-        button.onPointerClickObservable.add(() => {
-            switch (id) {
-                case "close":
-                    this.dispose();
-                    break;
-                case "remove":
-                    const event: DiagramEvent = {
-                        type: DiagramEventType.REMOVE,
-                        entity:
-                            toDiagramEntity(this.entity)
-                    }
-                    this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
-                    this.dispose();
-                    break;
-                case "label":
-                    this.diagramManager.editText(this.entity);
-                    this.dispose();
-                    break;
-                case "connect":
-                    this.createMeshConnection(this.entity, grip);
-            }
-        }, -1, false, this, true);
-        return button;
-    }
-
-    private createMeshConnection(mesh: AbstractMesh, grip: TransformNode) {
-        this.connection = new DiagramConnection(mesh.id, null, null, this.transform.getScene(), grip, this.utilityPosition);
+    private createMeshConnection(mesh: AbstractMesh, grip: TransformNode, utilityPosition: Vector3) {
+        this.connection = new DiagramConnection(mesh.id, null, null, this.transform.getScene(), grip, utilityPosition);
     }
 
     private dispose() {
-        this.manager.onPickingObservable.clear();
-        this.manager.dispose();
-        this.transform.dispose();
+        this.diagramManager.scaleMenu.hide();
+        this.transform.dispose(false, true);
     }
 }

@@ -1,103 +1,131 @@
-import {AbstractMesh, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {DefaultScene} from "../defaultScene";
+import {HtmlButton, HtmlMeshBuilder} from "babylon-html";
+import {AbstractMesh, Observable, TransformNode, Vector3} from "@babylonjs/core";
 
-import {Controllers} from "../controllers/controllers";
-import {DiaSounds} from "../util/diaSounds";
-import {AbstractMenu} from "./abstractMenu";
 
-import {GUI3DManager, Slider3D} from "@babylonjs/gui";
+export class ScaleMenu {
+    private static Sizes = [
+        .025, .05, .1, .25, .5, 1.0, 2.0, 3.0, 4.0, 5.0
+    ]
+    public readonly onScaleChangeObservable: Observable<AbstractMesh> = new Observable<AbstractMesh>();
+    private readonly transform;
+    private _mesh: AbstractMesh;
 
-export class ScaleMenu extends AbstractMenu {
-    private sounds: DiaSounds;
-    private mesh: AbstractMesh;
-    private xSlider: Slider3D;
-    private ySlider: Slider3D;
-    private zSlider: Slider3D;
-    private transformNode: TransformNode;
-    private xTransformNode: TransformNode;
-    private yTransformNode: TransformNode;
-    private zTransformNode: TransformNode;
-
-    constructor(xr: WebXRDefaultExperience, controllers: Controllers) {
-        super(xr, controllers);
-        this.transformNode = new TransformNode("scaleMenu", this.scene);
-        this.xTransformNode = new TransformNode("xTransformNode", this.scene);
-        this.xTransformNode.parent = this.transformNode;
-        this.yTransformNode = new TransformNode("yTransformNode", this.scene);
-        this.yTransformNode.parent = this.transformNode;
-        this.zTransformNode = new TransformNode("zTransformNode", this.scene);
-        this.zTransformNode.parent = this.transformNode;
-        //super.createHandle(this.transformNode);
-        this.transformNode.position.y = 0;
-        this.transformNode.position.z = 0;
-        this.transformNode.position.x = 0;
-
-        this.buildMenu();
-
-        //this.transformNode.position.y = 2;
-
+    constructor() {
+        this.transform = new TransformNode("scaleMenu", DefaultScene.Scene);
+        this.transform.scaling = new Vector3(.5, .5, .5);
+        this.build();
     }
 
-    public changeMesh(mesh: AbstractMesh) {
-        this.mesh = mesh;
-        this.xSlider.value = mesh.scaling.x;
-        this.ySlider.value = mesh.scaling.y;
-        this.zSlider.value = mesh.scaling.z;
-
-        const two = new Vector3(2, 2, 2);
-        this.transformNode.position = this.mesh.absolutePosition.clone();
-        this.transformNode.rotation = this.mesh.absoluteRotationQuaternion.toEulerAngles();
-
+    public changePosition(position: Vector3) {
+        this.transform.position = position.clone();
     }
 
-    private buildMenu() {
-        const manager = new GUI3DManager(this.scene);
-        //manager.rootContainer.position.y = 2;
-        //manager.rootContainer.node.position.y = 2;
-        this.xSlider = new Slider3D("xslider");
-        this.ySlider = new Slider3D("yslider");
-        this.zSlider = new Slider3D("zslider");
-
-        manager.addControl(this.xSlider);
-        manager.addControl(this.ySlider);
-        manager.addControl(this.zSlider);
-        this.xSlider.linkToTransformNode(this.xTransformNode);
-        this.ySlider.linkToTransformNode(this.yTransformNode);
-        this.zSlider.linkToTransformNode(this.zTransformNode);
-
-        this.xTransformNode.position = new Vector3(0, 0, .6);
-        this.xTransformNode.rotation.y = Math.PI;
-        this.yTransformNode.position = new Vector3(.6, .6, .6);
-        this.yTransformNode.rotation.z = Math.PI / 2;
-        this.zTransformNode.position = new Vector3(.6, .6, 0);
-        this.zTransformNode.rotation.y = Math.PI / 2;
-        setValues(this.xSlider);
-        setValues(this.ySlider);
-        setValues(this.zSlider);
-        this.xSlider.onValueChangedObservable.add((value) => {
-            if (this.mesh) {
-                this.mesh.scaling.x = value;
-            }
-        });
-        this.ySlider.onValueChangedObservable.add((value) => {
-            if (this.mesh) {
-                this.mesh.scaling.y = value;
-            }
-        });
-        this.zSlider.onValueChangedObservable.add((value) => {
-            if (this.mesh) {
-                this.mesh.scaling.z = value;
-            }
-        });
-        this.transformNode.scaling.x = .5;
-        this.transformNode.scaling.y = .5;
-        this.transformNode.scaling.z = .5;
+    public show(mesh: AbstractMesh) {
+        this.transform.position = mesh.absolutePosition.clone();
+        this.transform.position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
+        //this.transform.billboardMode = TransformNode.BILLBOARDMODE_Y;
+        this.transform.setEnabled(true);
+        this._mesh = mesh;
     }
 
-}
+    public hide() {
+        this.transform.setEnabled(false);
+        this._mesh = null;
+    }
 
-function setValues(slider: Slider3D) {
-    slider.minimum = .1;
-    slider.maximum = 1;
-    slider.step = .1;
-    slider.value = .1;
+    private async build() {
+        let x = .12;
+        const xParent = new TransformNode("xParent", DefaultScene.Scene);
+        xParent.parent = this.transform;
+        const yParent = new TransformNode("yParent", DefaultScene.Scene);
+        yParent.parent = this.transform;
+        const zParent = new TransformNode("zParent", DefaultScene.Scene);
+        zParent.parent = this.transform;
+        xParent.rotation.x = Math.PI / 2;
+        yParent.rotation.z = Math.PI / 2;
+        yParent.billboardMode = TransformNode.BILLBOARDMODE_Y;
+        zParent.rotation.y = Math.PI / 2;
+        zParent.rotation.x = Math.PI / 2;
+        for (const size of ScaleMenu.Sizes) {
+            const xbutton = this.makeButton(size.toString(), x, 0, xParent);
+            xbutton.onPointerObservable.add((eventData) => {
+                if (eventData.sourceEvent.type == "pointerup") {
+                    this.scaleX(size)
+                }
+            }, -1, false, this, false);
+
+            const ybutton = this.makeButton(size.toString(), x, Math.PI / 2, yParent);
+            ybutton.onPointerObservable.add((eventData) => {
+                if (eventData.sourceEvent.type == "pointerup") {
+                    this.scaleY(size)
+                }
+            }, -1, false, this, false);
+
+            const zbutton = this.makeButton(size.toString(), x, -Math.PI / 2, zParent);
+            zbutton.onPointerObservable.add((eventData) => {
+                if (eventData.sourceEvent.type == "pointerup") {
+                    this.scaleZ(size)
+                }
+            }, -1, false, this, false);
+            x += .11;
+        }
+//        const labelX = await this.createLabel('X Size', .3);
+        //      const labelY = await this.createLabel('Y Size', .2);
+        //    const labelZ = await this.createLabel('Z Size', .1);
+        this.transform.position.y = 1;
+        this.transform.rotation.y = Math.PI;
+        this.transform.setEnabled(false);
+    }
+
+    private makeButton(name: string, x: number, y: number, parent: TransformNode = null) {
+        const button = new HtmlButton(name, name, DefaultScene.Scene);
+        button.transform.parent = parent;
+        button.transform.position.x = x;
+        //button.transform.position.y = y;
+        button.transform.rotation.z = y;
+        button.transform.rotation.y = Math.PI;
+        return button;
+    }
+
+    private scaleX(size: number) {
+        if (this._mesh) {
+            this._mesh.scaling.x = size;
+            this.scaleChanged();
+        }
+    }
+
+    private scaleY(size: number) {
+        if (this._mesh) {
+            this._mesh.scaling.y = size;
+            this.scaleChanged();
+        }
+    }
+
+    private scaleZ(size: number) {
+        if (this._mesh) {
+            this._mesh.scaling.z = size;
+            this.scaleChanged();
+        }
+    }
+
+    private scaleChanged() {
+        if (this._mesh) {
+            this.onScaleChangeObservable.notifyObservers(this._mesh);
+        }
+    }
+
+    private async createLabel(name: string, y: number) {
+        const label = await HtmlMeshBuilder.CreatePlane(`${name}-label`,
+            {
+                html: `<div style='margin: 0; padding-top: 40px; font-size: 32px; text-align: center; color:#ffffff; background: #000000; width: 128px; height: 128px'>${name}</div>`,
+                height: .1, image: {width: 128, height: 128}
+            },
+            DefaultScene.Scene);
+
+        label.parent = this.transform;
+        label.position.y = y;
+        label.position.x = -.42;
+        return label;
+    }
 }

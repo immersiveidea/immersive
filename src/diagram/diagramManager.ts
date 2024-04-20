@@ -14,6 +14,7 @@ import {buildEntityActionManager} from "./functions/buildEntityActionManager";
 import {isDiagramEntity} from "./functions/isDiagramEntity";
 import {InputTextView} from "../information/inputTextView";
 import {DefaultScene} from "../defaultScene";
+import {ScaleMenu} from "../menus/scaleMenu";
 
 
 export class DiagramManager {
@@ -21,7 +22,7 @@ export class DiagramManager {
     private readonly _controllers: Controllers;
     private readonly diagramEntityActionManager: ActionManager;
     private readonly inputTextView: InputTextView;
-
+    public readonly scaleMenu: ScaleMenu;
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
     private readonly logger = log.getLogger('DiagramManager');
     private readonly toolbox: Toolbox;
@@ -48,6 +49,17 @@ export class DiagramManager {
         });
 
         this.toolbox = new Toolbox();
+        this.scaleMenu = new ScaleMenu();
+        this.scaleMenu.onScaleChangeObservable.add((mesh: AbstractMesh) => {
+            this.onDiagramEventObservable.notifyObservers({
+                type: DiagramEventType.MODIFY,
+                entity: toDiagramEntity(mesh),
+            }, -1);
+
+            const position = mesh.absolutePosition.clone();
+            position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
+            this.scaleMenu.changePosition(position);
+        });
         //this.presentationManager = new PresentationManager(this._scene);
         this.diagramEntityActionManager = buildEntityActionManager(this._controllers);
 

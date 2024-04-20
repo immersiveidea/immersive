@@ -52,7 +52,6 @@ export class VrApp {
 
          */
         addSceneInspector();
-        //const mainMenu = new MainMenu(scene);
         const el = document.querySelector('#download');
         if (el) {
             el.addEventListener('click', () => {
