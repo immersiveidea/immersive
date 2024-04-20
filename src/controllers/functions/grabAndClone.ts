@@ -5,7 +5,7 @@ import {DefaultScene} from "../../defaultScene";
 export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh):
     { transformNode: TransformNode, newMesh: AbstractMesh } {
     const scene = DefaultScene.Scene;
-    const newMesh = diagramManager.createCopy(mesh);
+    const newMesh = diagramManager.createCopy(mesh, true);
     const transformNode = new TransformNode("grabAnchor", scene);
     transformNode.id = "grabAnchor";
     transformNode.position = newMesh.position.clone();

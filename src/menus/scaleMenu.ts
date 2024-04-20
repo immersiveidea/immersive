@@ -24,7 +24,6 @@ export class ScaleMenu {
     public show(mesh: AbstractMesh) {
         this.transform.position = mesh.absolutePosition.clone();
         this.transform.position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
-        //this.transform.billboardMode = TransformNode.BILLBOARDMODE_Y;
         this.transform.setEnabled(true);
         this._mesh = mesh;
     }
