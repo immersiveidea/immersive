@@ -207,13 +207,17 @@ export class Base {
         this.grabbedMeshParentId = null;
         if (!mesh.physicsBody) {
             const transform = new TransformNode('temp', this.scene);
-            transform.rotation = mesh.rotation;
             transform.position = this.pickPoint;
             mesh.setParent(transform);
-            transform.position = snapGridVal(transform.position, this.diagramManager._config.current.gridSnap).clone();
-            transform.rotation = snapRotateVal(transform.rotation, this.diagramManager._config.current.rotateSnap);
+            mesh.rotation = snapRotateVal(mesh.rotation, this.diagramManager._config.current.rotateSnap);
+            transform.position = snapGridVal(transform.position, this.diagramManager._config.current.gridSnap);
             mesh.setParent(null);
+            mesh.position = snapGridVal(mesh.position, this.diagramManager._config.current.gridSnap);
+            //mesh.position = snapGridVal(mesh.position, this.diagramManager._config.current.gridSnap);
+            //mesh.setPivotPoint(transform.position, Space.WORLD)
 
+
+            //transform.dispose();
         }
         this.previousParentId = null;
         this.previousScaling = null;
