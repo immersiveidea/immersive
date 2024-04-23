@@ -246,7 +246,6 @@ export class Base {
 
     private click() {
         let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.xrInputSource.uniqueId);
-
         if (pointable(mesh)) {
             logger.debug("click on " + mesh.id);
             if (this.clickMenu && !this.clickMenu.isDisposed) {
@@ -255,7 +254,7 @@ export class Base {
                     this.clickMenu = null;
                 }
             } else {
-                this.clickMenu = new ClickMenu(mesh, this.diagramManager, this.xrInputSource.grip);
+                this.clickMenu = this.diagramManager.diagramMenuManager.createClickMenu(mesh, this.xrInputSource.grip);
             }
 
         } else {
