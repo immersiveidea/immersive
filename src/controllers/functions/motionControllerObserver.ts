@@ -1,5 +1,8 @@
+import log from "loglevel";
+
+const logger = log.getLogger('motionControllerObserver');
 export function motionControllerObserver(init) {
-    this.logger.debug(init.components);
+    logger.debug(init.components);
     if (init.components['xr-standard-squeeze']) {
         this.initGrip(init.components['xr-standard-squeeze'])
     }

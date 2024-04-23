@@ -1,4 +1,4 @@
-import {AbstractMesh, ActionManager, Color3, InstancedMesh, Mesh, Observable, Scene} from "@babylonjs/core";
+import {AbstractMesh, ActionManager, InstancedMesh, Mesh, Observable, Scene} from "@babylonjs/core";
 import {DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
@@ -16,7 +16,11 @@ import {InputTextView} from "../information/inputTextView";
 import {DefaultScene} from "../defaultScene";
 import {ScaleMenu} from "../menus/scaleMenu";
 
-
+export enum DiagramEventObserverMask {
+    ALL = -1,
+    FROM_DB = 1,
+    TO_DB = 2,
+}
 export class DiagramManager {
     public readonly _config: AppConfig;
     private readonly _controllers: Controllers;
@@ -39,10 +43,7 @@ export class DiagramManager {
             if (mesh) {
                 const entity = toDiagramEntity(mesh);
                 entity.text = evt.text;
-                this.onDiagramEventObservable.notifyObservers({
-                    type: DiagramEventType.MODIFY,
-                    entity: entity
-                }, -1);
+                this.notifyAll({type: DiagramEventType.MODIFY, entity: entity});
             } else {
                 this.logger.error("mesh not found", evt.id);
             }
@@ -51,29 +52,13 @@ export class DiagramManager {
         this.toolbox = new Toolbox();
         this.scaleMenu = new ScaleMenu();
         this.scaleMenu.onScaleChangeObservable.add((mesh: AbstractMesh) => {
-            this.onDiagramEventObservable.notifyObservers({
-                type: DiagramEventType.MODIFY,
-                entity: toDiagramEntity(mesh),
-            }, -1);
-
+            this.notifyAll({type: DiagramEventType.MODIFY, entity: toDiagramEntity(mesh)});
             const position = mesh.absolutePosition.clone();
             position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
             this.scaleMenu.changePosition(position);
         });
-        //this.presentationManager = new PresentationManager(this._scene);
         this.diagramEntityActionManager = buildEntityActionManager(this._controllers);
-
-        if (this.onDiagramEventObservable.hasObservers()) {
-            this.logger.warn("onDiagramEventObservable already has Observers, you should be careful");
-        }
-        this.toolbox.colorChangeObservable.add((evt) => {
-            this.logger.debug(evt);
-            this.onDiagramEventObservable.notifyObservers({
-                type: DiagramEventType.CHANGECOLOR,
-                oldColor: Color3.FromHexString(evt.oldColor), newColor: Color3.FromHexString(evt.newColor)
-            }, 2);
-        }, -1, true, this, false);
-        this.onDiagramEventObservable.add(this.onDiagramEvent, 1, true, this);
+        this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
         this.logger.debug("DiagramManager constructed");
 
         this._scene.onMeshRemovedObservable.add((mesh) => {
@@ -82,15 +67,16 @@ export class DiagramManager {
                     this._scene.meshes.forEach((m) => {
                         if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {
                             this.logger.debug("removing connection", m.id);
-                            this.onDiagramEventObservable.notifyObservers({
-                                type: DiagramEventType.REMOVE,
-                                entity: toDiagramEntity(m)
-                            }, -1);
+                            this.notifyAll({type: DiagramEventType.REMOVE, entity: toDiagramEntity(m)});
                         }
                     });
                 }
             }
         });
+    }
+
+    private notifyAll(event: DiagramEvent) {
+        this.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
     }
 
     public editText(mesh: AbstractMesh) {
@@ -103,10 +89,6 @@ export class DiagramManager {
 
     public get config(): AppConfig {
         return this._config;
-    }
-
-    public get scene(): Scene {
-        return this._scene;
     }
 
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {

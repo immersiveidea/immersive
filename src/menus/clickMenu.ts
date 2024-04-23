@@ -1,7 +1,7 @@
 import {AbstractMesh, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
-import {DiagramManager} from "../diagram/diagramManager";
+import {DiagramEventObserverMask, DiagramManager} from "../diagram/diagramManager";
 import {DiagramConnection} from "../diagram/diagramConnection";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 import {HtmlButton} from "babylon-html";
@@ -27,7 +27,7 @@ export class ClickMenu {
                     entity:
                         toDiagramEntity(this._mesh)
                 }
-                this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
+                this.diagramManager.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
                 this.dispose();
             }
         }, -1, false, this, false);
@@ -88,7 +88,7 @@ export class ClickMenu {
                 this.diagramManager.onDiagramEventObservable.notifyObservers({
                     type: DiagramEventType.ADD,
                     entity: toDiagramEntity(this.connection.mesh)
-                }, -1);
+                }, DiagramEventObserverMask.ALL);
                 this.connection = null;
                 this.dispose();
             }

@@ -38,7 +38,6 @@ export function diagramEventHandler(event: DiagramEvent,
         updateTextNode(mesh, entity.text);
     }
     switch (event.type) {
-
         case DiagramEventType.RESET:
             scene.getNodes().forEach((node) => {
                 if (node?.metadata?.template && !node?.metadata?.tool) {

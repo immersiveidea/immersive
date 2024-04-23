@@ -9,7 +9,7 @@ import {
     WebXRDefaultExperience,
     WebXRInputSource
 } from "@babylonjs/core";
-import {DiagramManager} from "../diagram/diagramManager";
+import {DiagramEventObserverMask, DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import log from "loglevel";
 import {ControllerEventType, Controllers} from "./controllers";
@@ -30,6 +30,8 @@ import {pointable} from "./functions/pointable";
 import {DefaultScene} from "../defaultScene";
 
 const CLICK_TIME = 300;
+const logger = log.getLogger('Base');
+
 export class Base {
     static stickVector = Vector3.Zero();
     protected xrInputSource: WebXRInputSource;
@@ -44,7 +46,6 @@ export class Base {
     private clickStart: number = 0;
     protected readonly xr: WebXRDefaultExperience;
     protected readonly diagramManager: DiagramManager;
-    private logger: log.Logger;
     private lastPosition: Vector3 = null;
     protected controllers: Controllers;
     private clickMenu: ClickMenu;
@@ -53,8 +54,6 @@ export class Base {
     constructor(controller: WebXRInputSource,
                 xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager) {
-        this.logger = log.getLogger('Base');
-        this.logger.setLevel(this.logger.levels.DEBUG);
         this.xrInputSource = controller;
         this.controllers = diagramManager.controllers;
         this.scene = DefaultScene.Scene;
@@ -69,15 +68,17 @@ export class Base {
         });
         this.diagramManager = diagramManager;
         this.scene.onBeforeRenderObservable.add(beforeRenderObserver, -1, false, this);
+
+        //@TODO THis works, but it uses initGrip, not sure if this is the best idea
         this.xrInputSource.onMotionControllerInitObservable.add(motionControllerObserver, -1, false, this);
         this.controllers.controllerObserver.add((event) => {
-            this.logger.debug(event);
+            logger.debug(event);
             switch (event.type) {
                 case ControllerEventType.PULSE:
                     if (event.gripId == this?.xrInputSource?.grip?.id) {
                         this.xrInputSource?.motionController?.pulse(.25, 30)
                             .then(() => {
-                                this.logger.debug("pulse done");
+                                logger.debug("pulse done");
                             });
                     }
                     break;
@@ -104,7 +105,7 @@ export class Base {
     }
 
     protected initClicker(trigger: WebXRControllerComponent) {
-        this.logger.debug("initTrigger");
+        logger.debug("initTrigger");
         trigger.onButtonStateChangedObservable.add(() => {
             if (trigger.changes.pressed) {
                 if (trigger.pressed) {
@@ -112,7 +113,7 @@ export class Base {
                         this.clickStart = Date.now();
                         window.setTimeout(() => {
                             if (this.clickStart > 0) {
-                                this.logger.debug("grabbing and cloning");
+                                logger.debug("grabbing and cloning");
                                 this.grab(true);
                             }
                         }, 300, this);
@@ -159,7 +160,7 @@ export class Base {
         }
 
         this.previousParentId = mesh?.parent?.id;
-        this.logger.warn("grabbed " + mesh?.id + " parent " + this.previousParentId);
+        logger.warn("grabbed " + mesh?.id + " parent " + this.previousParentId);
         this.previousRotation = mesh?.rotation.clone();
         this.previousScaling = mesh?.scaling.clone();
         this.previousPosition = mesh?.position.clone();
@@ -174,7 +175,7 @@ export class Base {
             }
             this.grabbedMesh = mesh;
         } else {
-            this.logger.debug("cloning " + mesh?.id);
+            logger.debug("cloning " + mesh?.id);
             const clone = grabAndClone(this.diagramManager, mesh, this.xrInputSource.motionController.rootMesh);
             clone.newMesh.metadata.grabClone = false;
             clone.newMesh.metadata.tool = false;
@@ -185,7 +186,7 @@ export class Base {
                 type: DiagramEventType.ADD,
                 entity: toDiagramEntity(clone.newMesh)
             }
-            this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
+            this.diagramManager.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
         }
     }
 
@@ -232,22 +233,22 @@ export class Base {
         const body = mesh?.physicsBody;
         if (body) {
             body.setMotionType(PhysicsMotionType.DYNAMIC);
-            this.logger.debug(body.transformNode.absolutePosition);
-            this.logger.debug(this.lastPosition);
+            logger.debug(body.transformNode.absolutePosition);
+            logger.debug(this.lastPosition);
             if (this.lastPosition) {
                 body.setLinearVelocity(body.transformNode.absolutePosition.subtract(this.lastPosition).scale(20));
                 //body.setLinearVelocity(this.lastPosition.subtract(body.transformNode.absolutePosition).scale(20));
-                this.logger.debug(this.lastPosition.subtract(body.transformNode.absolutePosition).scale(20));
+                logger.debug(this.lastPosition.subtract(body.transformNode.absolutePosition).scale(20));
             }
         }
-        this.diagramManager.onDiagramEventObservable.notifyObservers(event, -1);
+        this.diagramManager.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
     }
 
     private click() {
         let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.xrInputSource.uniqueId);
 
         if (pointable(mesh)) {
-            this.logger.debug("click on " + mesh.id);
+            logger.debug("click on " + mesh.id);
             if (this.clickMenu && !this.clickMenu.isDisposed) {
                 if (this.clickMenu.isConnecting) {
                     this.clickMenu.connect(mesh);
@@ -258,7 +259,7 @@ export class Base {
             }
 
         } else {
-            this.logger.debug("click on nothing");
+            logger.debug("click on nothing");
         }
 
 
@@ -270,7 +271,6 @@ export class Base {
                 if (grip.pressed) {
                     this.grab();
                 } else {
-
                     this.drop();
                 }
             }

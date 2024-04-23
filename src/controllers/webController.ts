@@ -1,7 +1,7 @@
 import {AbstractMesh, KeyboardEventTypes, MeshBuilder, Scene} from "@babylonjs/core";
 import {Rigplatform} from "./rigplatform";
 import {ControllerEventType, Controllers} from "./controllers";
-import {DiagramManager} from "../diagram/diagramManager";
+import {DiagramEventObserverMask, DiagramManager} from "../diagram/diagramManager";
 import {GridMaterial} from "@babylonjs/materials";
 import {wheelHandler} from "./functions/wheelHandler";
 import log, {Logger} from "loglevel";
@@ -206,7 +206,7 @@ export class WebController {
                     this.diagramManager.onDiagramEventObservable.notifyObservers({
                         type: DiagramEventType.MODIFY,
                         entity: toDiagramEntity(this.mesh)
-                    }, -1);
+                    }, DiagramEventObserverMask.ALL);
                 }
                 this.mesh = null;
             }

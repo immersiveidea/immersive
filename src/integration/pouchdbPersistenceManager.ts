@@ -1,14 +1,16 @@
 import PouchDB from 'pouchdb';
 import {DiagramEntity, DiagramEventType} from "../diagram/types/diagramEntity";
-import {Color3, Observable} from "@babylonjs/core";
+import {Observable} from "@babylonjs/core";
 import axios from "axios";
-import {DiagramManager} from "../diagram/diagramManager";
+import {DiagramEventObserverMask, DiagramManager} from "../diagram/diagramManager";
 import log, {Logger} from "loglevel";
+import {ascii_to_hex} from "./functions/hexFunctions";
+import {getPath} from "../util/functions/getPath";
 
 const logger: Logger = log.getLogger('PouchdbPersistenceManager');
 export class PouchdbPersistenceManager {
-    updateObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
-    removeObserver: Observable<DiagramEntity> = new Observable<DiagramEntity>();
+    onDBUpdateObservable: Observable<DiagramEntity> = new Observable<DiagramEntity>();
+    onDBRemoveObservable: Observable<DiagramEntity> = new Observable<DiagramEntity>();
 
     private db: PouchDB;
     private remote: PouchDB;
@@ -17,52 +19,36 @@ export class PouchdbPersistenceManager {
     constructor() {
 
     }
-
     public setDiagramManager(diagramManager: DiagramManager) {
         diagramManager.onDiagramEventObservable.add((evt) => {
             logger.debug(evt);
             switch (evt.type) {
-                case DiagramEventType.CHANGECOLOR:
-                    this.changeColor(evt.oldColor, evt.newColor);
-                    break;
-                case DiagramEventType.ADD:
-                    this.add(evt.entity);
-                    break;
                 case DiagramEventType.REMOVE:
                     this.remove(evt.entity.id);
                     break;
+                case DiagramEventType.ADD:
                 case DiagramEventType.MODIFY:
                 case DiagramEventType.DROP:
-                    this.modify(evt.entity);
+                    this.upsert(evt.entity);
                     break;
                 default:
                     logger.warn('unknown diagram event type', evt);
             }
-        }, 2);
-        this.updateObserver.add((evt) => {
+        }, DiagramEventObserverMask.TO_DB);
+
+        this.onDBUpdateObservable.add((evt) => {
             logger.debug(evt);
             diagramManager.onDiagramEventObservable.notifyObservers({
                 type: DiagramEventType.ADD,
                 entity: evt
-            }, 1);
+            }, DiagramEventObserverMask.FROM_DB);
         });
-        this.removeObserver.add((entity) => {
+
+        this.onDBRemoveObservable.add((entity) => {
             logger.debug(entity);
             diagramManager.onDiagramEventObservable.notifyObservers(
-                {type: DiagramEventType.REMOVE, entity: entity}, 1);
+                {type: DiagramEventType.REMOVE, entity: entity}, DiagramEventObserverMask.FROM_DB);
         });
-    }
-
-    public async add(entity: DiagramEntity) {
-        if (!entity) {
-            return;
-        }
-        const newEntity = {...entity, _id: entity.id};
-        try {
-            this.db.put(newEntity);
-        } catch (err) {
-            logger.error(err);
-        }
     }
 
     public async remove(id: string) {
@@ -77,78 +63,62 @@ export class PouchdbPersistenceManager {
         }
     }
 
-    public async modify(entity: DiagramEntity) {
+    public async upsert(entity: DiagramEntity) {
         if (!entity) {
             return;
         }
         try {
             const doc = await this.db.get(entity.id);
-            const newDoc = {...doc, ...entity};
-            this.db.put(newDoc);
-
+            if (doc) {
+                const newDoc = {...doc, ...entity};
+                this.db.put(newDoc);
+            }
         } catch (err) {
-            logger.error(err);
+            if (err.status == 404) {
+                try {
+                    const newEntity = {...entity, _id: entity.id};
+                    this.db.put(newEntity);
+                } catch (err2) {
+                    logger.error(err2);
+                }
+            } else {
+                logger.error(err);
+            }
         }
-    }
-
-    public async getNewRelicData(): Promise<any[]> {
-        return [];
-    }
-
-    public async setNewRelicData(data: any[]): Promise<any> {
-        return data;
     }
 
     public async initialize() {
+        if (!await this.initLocal()) {
+            return;
+        }
+        await this.sendLocalDataToScene();
+    }
+
+    private async initLocal(): Promise<boolean> {
         try {
-            let current = this.getPath();
-
-            if (current) {
-                this.db = new PouchDB(current);
-            } else {
-                current = 'public';
-                this.db = new PouchDB(current);
-            }
-
+            let current = getPath() || 'public';
+            this.db = new PouchDB(current);
             await this.beginSync(current);
-
+            return true;
         } catch (err) {
             logger.error(err);
             logger.error('cannot initialize pouchdb for sync');
-            return;
+            return false;
         }
+    }
+
+    private async sendLocalDataToScene() {
         try {
             const all = await this.db.allDocs({include_docs: true});
             for (const entity of all.rows) {
                 logger.debug(entity.doc);
-                this.updateObserver.notifyObservers(entity.doc, 1);
+                this.onDBUpdateObservable.notifyObservers(entity.doc, 1);
             }
         } catch (err) {
             logger.error(err);
         }
-
     }
 
-    private getPath(): string {
-        const path = window.location.pathname.split('/');
-        if (path.length == 3 && path[1]) {
-            return path[2];
-        } else {
-            return null;
-        }
-    }
-
-
-    async changeColor(oldColor: Color3, newColor: Color3) {
-        const all = await this.db.allDocs({include_docs: true});
-        for (const entity of all.rows) {
-            logger.debug(`comparing ${entity.doc.color} to ${oldColor.toHexString()}`);
-            if (entity.doc.color == oldColor.toHexString()) {
-                entity.doc.color = newColor.toHexString();
-                this.db.put({...entity.doc, _rev: entity.doc._rev});
-            }
-        }
-    }
 
     sync() {
 
@@ -162,20 +132,17 @@ export class PouchdbPersistenceManager {
                 logger.debug(doc);
                 if (doc._deleted) {
                     logger.debug('Delete', doc);
-                    this.removeObserver.notifyObservers({id: doc._id, template: doc.template}, 1);
+                    this.onDBRemoveObservable.notifyObservers({id: doc._id, template: doc.template}, 1);
                 } else {
-                    this.updateObserver.notifyObservers(doc, 1);
+                    this.onDBUpdateObservable.notifyObservers(doc, 1);
                 }
 
             }
         }
-
     }
 
     private async beginSync(localName: string) {
         try {
-            //const remoteDbName = "db1";
-
             const userHex = ascii_to_hex(localName);
             const remoteDbName = 'userdb-' + userHex;
             const remoteUserName = localName;
@@ -185,7 +152,6 @@ export class PouchdbPersistenceManager {
             if (dbs.data.indexOf(remoteDbName) == -1) {
                 logger.warn('sync target missing attempting to create');
                 const newdb = await axios.post(import.meta.env.VITE_CREATE_ENDPOINT,
-
                     {
                         "_id": "org.couchdb.user:" + localName,
                         "name": localName,
@@ -229,7 +195,6 @@ export class PouchdbPersistenceManager {
                 {auth: {username: remoteUserName, password: password}, skip_setup: true});
             const dbInfo = await this.remote.info();
             logger.debug(dbInfo);
-
             this.db.sync(this.remote, {live: true, retry: true})
                 .on('change', (info) => {
                     this.syncDoc(info)
@@ -249,20 +214,3 @@ export class PouchdbPersistenceManager {
     }
 }
 
-function hex_to_ascii(input) {
-    var hex = input.toString();
-    let output = '';
-    for (let n = 0; n < hex.length; n += 2) {
-        output += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
-    }
-    return output;
-}
-
-function ascii_to_hex(str) {
-    const arr1 = [];
-    for (let n = 0, l = str.length; n < l; n++) {
-        var hex = Number(str.charCodeAt(n)).toString(16);
-        arr1.push(hex);
-    }
-    return arr1.join('');
-}
