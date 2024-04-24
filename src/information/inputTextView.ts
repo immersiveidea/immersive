@@ -25,9 +25,10 @@ export class InputTextView {
     constructor(controllers: Controllers) {
         this.controllers = controllers;
         this.scene = DefaultScene.Scene;
-
         this.inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
         this.handle = new Handle(this.inputMesh);
+        this.inputMesh.position.y = .06;
+        this.inputMesh.position.z = .02;
         this.createKeyboard();
     }
 
@@ -44,9 +45,18 @@ export class InputTextView {
         logger.debug(mesh.metadata);
     }
 
+    public get handleMesh(): AbstractMesh {
+        return this.handle.mesh;
+    }
+
+    private hide() {
+        this.handle.mesh.setEnabled(false);
+        this.diagramMesh = null;
+    }
+
     public createKeyboard() {
         const platform = this.scene.getMeshById('platform');
-        const position = new Vector3(0, 1.66, .5);
+        const position = new Vector3(0, 1.66, .53);
         const rotation = new Vector3(.9, 0, 0);
         const handle = this.handle;
         /*if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
@@ -107,7 +117,7 @@ export class InputTextView {
                 logger.debug(eventData);
                 const gripId = eventState?.userInfo?.pickInfo?.gripTransform?.id;
                 if (gripId) {
-                    this.controllers.controllerObserver.notifyObservers({
+                    this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.PULSE,
                         gripId: gripId
                     });
@@ -133,10 +143,5 @@ export class InputTextView {
         }, -1, false, this, false);
         this.keyboard = keyboard;
         this.handle.mesh.setEnabled(false);
-    }
-
-    private hide() {
-        this.handle.mesh.setEnabled(false);
-        this.diagramMesh = null;
     }
 }

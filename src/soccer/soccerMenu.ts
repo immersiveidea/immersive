@@ -28,7 +28,7 @@ export class SoccerMenu extends AbstractMenu {
         this.field = new Field(this.scene);
         this.manager = new GUI3DManager(this.scene);
 
-        this.controllers.controllerObserver.add(this.controllerEventHandler, -1, false, this);
+        this.controllers.controllerObservable.add(this.controllerEventHandler, -1, false, this);
         this.buildMenu();
     }
 
@@ -100,7 +100,7 @@ export class SoccerMenu extends AbstractMenu {
                         //end.applyRotationQuaternionInPlace(Quaternion.FromEulerAngles(0, e.y, 0));
                         if (this.startTime && this.startPosition) {
                             const duration = new Date().getTime() - this.startTime;
-                            this.controllers.controllerObserver.notifyObservers({
+                            this.controllers.controllerObservable.notifyObservers({
                                 type: ControllerEventType.MOTION,
                                 startPosition: this.startPosition,
                                 endPosition: end,
@@ -127,7 +127,7 @@ export class SoccerMenu extends AbstractMenu {
                     }, 1500);
 
                     if (pickInfo?.pickedMesh?.name == 'Football Ball.001') {
-                        this.controllers.controllerObserver.notifyObservers({
+                        this.controllers.controllerObservable.notifyObservers({
                             type: ControllerEventType.GAZEPOINT,
                             endPosition: pickInfo.pickedPoint,
                             startPosition: this.xr.baseExperience.camera.globalPosition

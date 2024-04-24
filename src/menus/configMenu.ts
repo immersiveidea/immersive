@@ -1,13 +1,13 @@
 import {AdvancedDynamicTexture, CheckboxGroup, RadioGroup, SelectionPanel, StackPanel} from "@babylonjs/gui";
-import {MeshBuilder, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {AppConfig} from "../util/appConfig";
-import {Controllers} from "../controllers/controllers";
-import {AbstractMenu} from "./abstractMenu";
 import log from "loglevel";
+import {DefaultScene} from "../defaultScene";
+import {Handle} from "../objects/handle";
 
 const logger = log.getLogger('ConfigMenu');
 
-export class ConfigMenu extends AbstractMenu {
+export class ConfigMenu {
     private config: AppConfig;
     private readonly baseTransform: TransformNode;
     private gridSnaps: Array<{ label: string, value: number }> = [
@@ -17,54 +17,26 @@ export class ConfigMenu extends AbstractMenu {
         {label: "0.5", value: 0.5},
         {label: "1", value: 1},
     ]
-
+    private _handle: Handle;
     private rotationSnaps: Array<{ label: string, value: number }> = [
         {label: "Off", value: 0},
         {label: "22.5", value: 22.5},
         {label: "45", value: 45},
         {label: "90", value: 90},
     ]
+    private readonly _scene: Scene;
 
-    constructor(xr: WebXRDefaultExperience, controllers: Controllers, config: AppConfig) {
-        super(xr, controllers);
-        this.baseTransform = new TransformNode("configMenuBase", this.scene);
+    constructor(config: AppConfig) {
+        this._scene = DefaultScene.Scene;
+        this.baseTransform = new TransformNode("configMenuBase", this._scene);
+
+        this._handle = new Handle(this.baseTransform);
         this.config = config;
         this.buildMenu();
     }
-    private buildMenu() {
-        const configPlane = MeshBuilder
-            .CreatePlane("configMenuPlane",
-                {
-                    width: .6,
-                    height: .3
-                }, this.scene);
-        configPlane.setParent(this.baseTransform);
-        this.createHandle(this.baseTransform, new Vector3(1, 1.6, .5), new Vector3(Math.PI / 4, Math.PI / 4, 0));
-        configPlane.position.y = .2;
-        const configTexture = AdvancedDynamicTexture.CreateForMesh(configPlane, 2048, 1024);
-        const columnPanel = new StackPanel('columns');
-        columnPanel.isVertical = false;
-        columnPanel.fontSize = "48px";
-        configTexture.addControl(columnPanel);
-        const selectionPanel1 = new SelectionPanel("selectionPanel1");
-        selectionPanel1.width = "500px";
 
-        columnPanel.addControl(selectionPanel1);
-        this.buildGridSizeControl(selectionPanel1);
-        this.buildCreateScaleControl(selectionPanel1);
-
-        const selectionPanel2 = new SelectionPanel("selectionPanel2");
-        selectionPanel2.width = "500px";
-
-        columnPanel.addControl(selectionPanel2);
-        this.buildRotationSnapControl(selectionPanel2);
-        this.buildTurnSnapControl(selectionPanel2);
-
-        const selectionPanel3 = new SelectionPanel("selectionPanel3");
-        selectionPanel3.width = "768px";
-        columnPanel.addControl(selectionPanel3);
-        this.buildFlyModeControl(selectionPanel3);
-        this.baseTransform.parent.setEnabled(true);
+    public get handleMesh(): AbstractMesh {
+        return this._handle.mesh;
     }
 
     private adjustRadio(radio: RadioGroup | CheckboxGroup) {
@@ -155,6 +127,68 @@ export class ConfigMenu extends AbstractMenu {
 
     private gridVal(value) {
         this.config.setGridSnap(this.gridSnaps[value].value);
+    }
+
+    private buildMenu() {
+        const configPlane = MeshBuilder
+            .CreatePlane("configMenuPlane",
+                {
+                    width: .6,
+                    height: .3
+                }, this._scene);
+        configPlane.parent = this.baseTransform;
+        //this.createHandle(this.baseTransform, new Vector3(1, 1.6, .5), new Vector3(Math.PI / 4, Math.PI / 4, 0));
+        configPlane.position.y = .2;
+        const configTexture = AdvancedDynamicTexture.CreateForMesh(configPlane, 2048, 1024);
+        const columnPanel = new StackPanel('columns');
+        columnPanel.isVertical = false;
+        columnPanel.fontSize = "48px";
+        configTexture.addControl(columnPanel);
+        const selectionPanel1 = new SelectionPanel("selectionPanel1");
+        selectionPanel1.width = "500px";
+
+        columnPanel.addControl(selectionPanel1);
+        this.buildGridSizeControl(selectionPanel1);
+        this.buildCreateScaleControl(selectionPanel1);
+
+        const selectionPanel2 = new SelectionPanel("selectionPanel2");
+        selectionPanel2.width = "500px";
+
+        columnPanel.addControl(selectionPanel2);
+        this.buildRotationSnapControl(selectionPanel2);
+        this.buildTurnSnapControl(selectionPanel2);
+
+        const selectionPanel3 = new SelectionPanel("selectionPanel3");
+        selectionPanel3.width = "768px";
+        columnPanel.addControl(selectionPanel3);
+        this.buildFlyModeControl(selectionPanel3);
+        const offset = new Vector3(.50, 1.6, .38);
+        const rotation = new Vector3(.5, .6, 0);
+
+        const platform = this._scene.getMeshById('platform');
+        if (platform) {
+            this._handle.mesh.parent = platform;
+            if (!this._handle.idStored) {
+                this._handle.mesh.position = offset;
+                this._handle.mesh.rotation = rotation;
+            }
+
+        } else {
+            const handler = this._scene.onNewMeshAddedObservable.add((mesh) => {
+                if (mesh && mesh.id == 'platform') {
+                    this._handle.mesh.parent = mesh;
+
+                    if (!this._handle.idStored) {
+                        this._handle.mesh.position = offset;
+                        this._handle.mesh.rotation = rotation;
+                    }
+
+
+                    //this._scene.onNewMeshAddedObservable.remove(handler);
+                }
+            }, -1, true, this);
+        }
+        this.baseTransform.parent.setEnabled(true);
     }
 
 }

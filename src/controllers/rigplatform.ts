@@ -113,7 +113,7 @@ export class Rigplatform {
     private registerObserver() {
         if (!this.registered) {
             this.registered = true;
-            this.controllers.controllerObserver.add((event: ControllerEvent) => {
+            this.controllers.controllerObservable.add((event: ControllerEvent) => {
                 logger.debug(event);
                 switch (event.type) {
                     case ControllerEventType.INCREASE_VELOCITY:

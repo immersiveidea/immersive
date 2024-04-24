@@ -24,7 +24,7 @@ export class Right extends Base {
             bbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
                     logger.debug('B Button Pressed');
-                    this.controllers.controllerObserver.notifyObservers({
+                    this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.B_BUTTON,
                         value: button.value
                     });
@@ -67,7 +67,7 @@ export class Right extends Base {
                 .onButtonStateChangedObservable
                 .add((button) => {
                     logger.debug("right trigger pressed");
-                    this.controllers.controllerObserver.notifyObservers({
+                    this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.TRIGGER,
                         value: button.value,
                         controller: this.xrInputSource
@@ -81,7 +81,7 @@ export class Right extends Base {
             abutton.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
                     logger.debug('A button pressed');
-                    this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.MENU});
+                    this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.MENU});
                 }
             });
         }
@@ -96,7 +96,7 @@ export class Right extends Base {
             thumbstick.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
                     logger.trace('Right', `thumbstick changed ${value.value}`);
-                    this.controllers.controllerObserver.notifyObservers({
+                    this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.INCREASE_VELOCITY,
                         value: value.value
                     });
@@ -107,22 +107,22 @@ export class Right extends Base {
 
     private moveRig(value) {
         if (Math.abs(value.x) > .1) {
-            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.TURN, value: value.x});
+            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.TURN, value: value.x});
         } else {
-            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.TURN, value: 0});
+            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.TURN, value: 0});
         }
         if (Math.abs(value.y) > .1) {
-            this.controllers.controllerObserver.notifyObservers({
+            this.controllers.controllerObservable.notifyObservers({
                 type: ControllerEventType.UP_DOWN,
                 value: value.y * this.speedFactor
             });
             Base.stickVector.z = 1;
         } else {
-            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
+            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
             Base.stickVector.z = 0;
         }
         if (Base.stickVector.equals(Vector3.Zero())) {
-            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
+            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
         }
     }
 }

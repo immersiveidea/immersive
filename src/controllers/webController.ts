@@ -92,7 +92,7 @@ export class WebController {
                     case " ":
                         if (kbInfo.event.ctrlKey) {
                             if (this.controllers) {
-                                this.controllers.controllerObserver.notifyObservers(
+                                this.controllers.controllerObservable.notifyObservers(
                                     {type: ControllerEventType.X_BUTTON, value: 1}
                                 )
                             }

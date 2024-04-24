@@ -98,13 +98,6 @@ export class Toolbox {
             if (platform) {
                 const handle = this.handle;
                 handle.mesh.parent = platform;
-                /*if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
-                    offset = handle.mesh.position;
-                }
-                if (handle.mesh.rotation.x != 0 && handle.mesh.rotation.y != 0 && handle.mesh.rotation.z != 0) {
-                    rotation = handle.mesh.rotation;
-                }*/
-                //handle.mesh.parent = platform;
                 if (!handle.idStored) {
                     handle.mesh.position = offset;
                     handle.mesh.rotation = rotation;
@@ -129,6 +122,10 @@ export class Toolbox {
 
         /*setMenuPosition(this.toolboxBaseNode.parent as Mesh, this.scene,
             Vector3.Zero());*/
+    }
+
+    public get handleMesh(): AbstractMesh {
+        return this.handle.mesh;
     }
 }
 

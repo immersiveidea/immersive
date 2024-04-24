@@ -28,7 +28,7 @@ export class Ball {
 
     public setControllers(controllers: Controllers) {
         this.controllers = controllers;
-        this.controllers.controllerObserver.add((event) => {
+        this.controllers.controllerObservable.add((event) => {
             if (event.type == ControllerEventType.MOTION) {
 
             }

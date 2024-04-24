@@ -71,7 +71,7 @@ export class Base {
 
         //@TODO THis works, but it uses initGrip, not sure if this is the best idea
         this.xrInputSource.onMotionControllerInitObservable.add(motionControllerObserver, -1, false, this);
-        this.controllers.controllerObserver.add((event) => {
+        this.controllers.controllerObservable.add((event) => {
             logger.debug(event);
             switch (event.type) {
                 case ControllerEventType.PULSE:

@@ -1,7 +1,6 @@
 import {AbstractMesh, WebXRDefaultExperience, WebXRMotionControllerManager, WebXRState} from "@babylonjs/core";
 import log from "loglevel";
 import {WebController} from "../../controllers/webController";
-import {ConfigMenu} from "../../menus/configMenu";
 import {Rigplatform} from "../../controllers/rigplatform";
 import {DiagramManager} from "../../diagram/diagramManager";
 import {Spinner} from "../../objects/spinner";
@@ -76,7 +75,7 @@ export async function groundMeshObserver(ground: AbstractMesh,
         rig.flyMode = config.flyMode;
         rig.turnSnap = config.turnSnap;
     }, -1, false, this);
-    const config = new ConfigMenu(xr, diagramManager.controllers, diagramManager.config);
+
     const webController = new WebController(ground.getScene(), rig, diagramManager, diagramManager.controllers);
 
 }

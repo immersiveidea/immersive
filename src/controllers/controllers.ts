@@ -37,5 +37,5 @@ export enum ControllerEventType {
 
 export class Controllers {
     public movable: TransformNode | AbstractMesh;
-    public readonly controllerObserver: Observable<ControllerEvent> = new Observable();
+    public readonly controllerObservable: Observable<ControllerEvent> = new Observable();
 }

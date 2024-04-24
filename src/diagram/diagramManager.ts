@@ -33,7 +33,7 @@ export class DiagramManager {
         this._scene = DefaultScene.Scene;
         this._config = new AppConfig();
         this._controllers = new Controllers();
-        this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, this._controllers);
+        this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, this._controllers, this._config);
         this._diagramEntityActionManager = buildEntityActionManager(this._controllers);
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
         logger.debug("DiagramManager constructed");

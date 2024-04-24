@@ -46,7 +46,7 @@ export class Left extends Base {
                 init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
                     if (value.pressed) {
                         logger.trace('Left', 'thumbstick changed');
-                        this.controllers.controllerObserver.notifyObservers({
+                        this.controllers.controllerObservable.notifyObservers({
                             type: ControllerEventType.DECREASE_VELOCITY,
                             value: value.value
                         });
@@ -63,7 +63,7 @@ export class Left extends Base {
                 .onButtonStateChangedObservable
                 .add((button) => {
                     logger.trace('trigger pressed');
-                    this.controllers.controllerObserver.notifyObservers({
+                    this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.TRIGGER,
                         value: button.value,
                         controller: this.xrInputSource
@@ -77,7 +77,7 @@ export class Left extends Base {
             xbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
                     logger.trace('X button pressed');
-                    this.controllers.controllerObserver.notifyObservers({
+                    this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.X_BUTTON,
                         value: button.value
                     });
@@ -91,7 +91,7 @@ export class Left extends Base {
             ybutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
                     logger.trace('Y button pressed');
-                    this.controllers.controllerObserver.notifyObservers({
+                    this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.Y_BUTTON,
                         value: button.value
                     });
@@ -115,7 +115,7 @@ export class Left extends Base {
 
     private moveRig(value: { x: number, y: number }) {
         if (Math.abs(value.x) > .1) {
-            this.controllers.controllerObserver.notifyObservers({
+            this.controllers.controllerObservable.notifyObservers({
                 type: ControllerEventType.LEFT_RIGHT,
                 value: value.x * this.speedFactor
             });
@@ -124,7 +124,7 @@ export class Left extends Base {
             Base.stickVector.x = 0;
         }
         if (Math.abs(value.y) > .1) {
-            this.controllers.controllerObserver.notifyObservers({
+            this.controllers.controllerObservable.notifyObservers({
                 type: ControllerEventType.FORWARD_BACK,
                 value: value.y * this.speedFactor
             });
@@ -134,8 +134,8 @@ export class Left extends Base {
         }
 
         if (Base.stickVector.equals(Vector3.Zero())) {
-            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.LEFT_RIGHT, value: 0});
-            this.controllers.controllerObserver.notifyObservers({type: ControllerEventType.FORWARD_BACK, value: 0});
+            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.LEFT_RIGHT, value: 0});
+            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.FORWARD_BACK, value: 0});
         } else {
 
         }

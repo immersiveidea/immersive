@@ -10,7 +10,7 @@ export function buildEntityActionManager(controllers: Controllers) {
         new PlaySoundAction(ActionManager.OnPointerOverTrigger, sounds.tick));*/
     actionManager.registerAction(
         new ExecuteCodeAction(ActionManager.OnPointerOverTrigger, (evt) => {
-            controllers.controllerObserver.notifyObservers({
+            controllers.controllerObservable.notifyObservers({
                 type: ControllerEventType.PULSE,
                 gripId: evt?.additionalData?.pickResult?.gripTransform?.id
             })
