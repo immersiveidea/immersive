@@ -1,16 +1,8 @@
-import {
-    TransformNode,
-    Vector2,
-    Vector3,
-    WebXRControllerComponent,
-    WebXRDefaultExperience,
-    WebXRInputSource
-} from "@babylonjs/core";
+import {Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {Base} from "./base";
 import {ControllerEventType} from "./controllers";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
-import {RoundButton} from "../objects/roundButton";
 import {DefaultScene} from "../defaultScene";
 
 const logger = log.getLogger('Left');
@@ -30,18 +22,8 @@ export class Left extends Base {
                         this.moveMovable(value);
                     }
                 });
-                if (init.components['x-button']) {
-                    const transform = new TransformNode('x-button', scene);
-                    transform.parent = controller.grip;
-                    transform.rotation.x = Math.PI / 2;
-                    transform.scaling = new Vector3(.2, .2, .2);
-                    const xbutton = new RoundButton(transform, 'X', 'toggle toolbox menu', new Vector2(-.5, -.1));
-                    const ybutton = new RoundButton(transform, 'Y', 'toggle settings menu', new Vector2(-.4, .1));
-                }
                 this.initXButton(init.components['x-button']);
                 this.initYButton(init.components['y-button']);
-                const buttonhome = new TransformNode('buttons', scene)
-
                 this.initTrigger(init.components['xr-standard-trigger']);
                 init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
                     if (value.pressed) {

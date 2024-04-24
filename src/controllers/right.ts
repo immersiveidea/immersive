@@ -1,16 +1,8 @@
 import {Base} from "./base";
-import {
-    TransformNode,
-    Vector2,
-    Vector3,
-    WebXRControllerComponent,
-    WebXRDefaultExperience,
-    WebXRInputSource
-} from "@babylonjs/core";
+import {Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {ControllerEventType} from "./controllers";
 
 import {DiagramManager} from "../diagram/diagramManager";
-import {RoundButton} from "../objects/roundButton";
 import log from "loglevel";
 import {DefaultScene} from "../defaultScene";
 
@@ -46,15 +38,6 @@ export class Right extends Base {
 
         this.xrInputSource.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
-            if (init.components['a-button']) {
-                const transform = new TransformNode('a-button', scene);
-                transform.parent = controller.grip;
-                transform.rotation.x = Math.PI / 2;
-                transform.scaling = new Vector3(.2, .2, .2);
-                const abutton = new RoundButton(transform, 'A', 'toggle edit menu', new Vector2(.5, -.1));
-                const bbutton = new RoundButton(transform, 'B', 'toggle diagram selector', new Vector2(.4, .1));
-
-            }
             this.initBButton(init.components['b-button']);
             this.initAButton(init.components['a-button']);
             this.initThumbstick(init.components['xr-standard-thumbstick']);
