@@ -16,8 +16,10 @@ function CreateMenu({display, toggleCreateMenu}) {
     const onCreateClick = (evt) => {
         evt.preventDefault();
         const name = (document.querySelector('#createName') as HTMLInputElement).value;
+        const id = window.crypto.randomUUID().replace(/-/g, '_');
+        localStorage.setItem(id, name);
         if (name && name.length > 4) {
-            document.location.href = '/db/' + name;
+            document.location.href = '/db/' + id;
         } else {
             window.alert('Name must be longer than 4 characters');
         }
@@ -26,7 +28,6 @@ function CreateMenu({display, toggleCreateMenu}) {
         <div className="overlay" id="create" style={{'display': display}}>
             <div>
                 <div><input id="createName" placeholder="Enter a name for your diagram" type="text"/></div>
-                <div><input id="createPassword" placeholder="Enter a password (optional)" type="text"/></div>
                 <div><a href="#" id="createActionLink" onClick={onCreateClick}>Create</a></div>
                 <div><a className="cancel" onClick={toggleCreateMenu} href="#" id="cancelCreateLink">Cancel</a></div>
             </div>
@@ -69,7 +70,12 @@ function DiagramList({display, onClick}) {
             const data = await indexedDB.databases();
             let i = 0;
             setDbList(data.filter((item) => item.name.indexOf('_pouch_') > -1).map((item) => {
-                return {key: i++, name: item.name.replace('_pouch_', '')}
+                const dbid = item.name.replace('_pouch_', '');
+                let friendlyName = localStorage.getItem(dbid);
+                if (!friendlyName) {
+                    friendlyName = dbid;
+                }
+                return {key: dbid, name: friendlyName}
             }));
         };
         listDb();
@@ -82,7 +88,7 @@ function DiagramList({display, onClick}) {
             <div id="startCreate"><a href="#" id="startCreateLink" onClick={onClick}>New</a></div>
             <div id="diagramListContent">
                 <ul>
-                    {dbList.map((item) => <li key={item.key}><a href={`/db/${item.name}`}>{item.name}</a></li>)}
+                    {dbList.map((item) => <li key={item.key}><a href={`/db/${item.key}`}>{item.name}</a></li>)}
                 </ul>
             </div>
         </div>
