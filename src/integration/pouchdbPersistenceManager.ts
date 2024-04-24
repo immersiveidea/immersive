@@ -6,6 +6,7 @@ import {DiagramEventObserverMask, DiagramManager} from "../diagram/diagramManage
 import log, {Logger} from "loglevel";
 import {ascii_to_hex} from "./functions/hexFunctions";
 import {getPath} from "../util/functions/getPath";
+import {v4 as uuidv4} from 'uuid';
 
 const logger: Logger = log.getLogger('PouchdbPersistenceManager');
 export class PouchdbPersistenceManager {
@@ -96,7 +97,19 @@ export class PouchdbPersistenceManager {
 
     private async initLocal(): Promise<boolean> {
         try {
-            let current = getPath() || 'public';
+            let current = getPath();
+            if (!current) {
+                const locallyStored = localStorage.getItem('currentDiagram');
+                if (!locallyStored) {
+                    const newId = uuidv4().replaceAll('-', '_');
+                    localStorage.setItem('currentDiagram', newId);
+                    window.history.replaceState(null, null, '/db/' + newId);
+                    current = newId;
+                } else {
+                    current = locallyStored;
+                    window.history.replaceState(null, null, '/db/' + current);
+                }
+            }
             this.db = new PouchDB(current);
             await this.beginSync(current);
             return true;

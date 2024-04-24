@@ -1,7 +1,7 @@
 {
   "name": "immersive",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2 d",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
@@ -34,7 +34,7 @@
     "@types/react": "^18.2.72",
     "@types/react-dom": "^18.2.22",
     "axios": "^1.6.8",
-    "babylon-html": "0.0.3",
+    "babylon-html": "^0.0.3",
     "dom-to-image-more": "^3.3.0",
     "earcut": "^2.2.4",
     "events": "^3.3.0",
