@@ -5,22 +5,18 @@ import {buildTool} from "./buildTool";
 
 export function buildColor(color: Color3, scene: Scene, parent: TransformNode, index: number): Node {
     const width = .1;
-    const depth = .1;
-    const height = .01;
+    const height = .1;
     const material = new StandardMaterial("material-" + color.toHexString(), scene);
     material.diffuseColor = color;
     material.ambientColor = color;
+    material.roughness = .1;
+    material.maxSimultaneousLights = 1;
 
-    //material.emissiveColor = new Color3(.1,.1,.1);
-    //material.roughness = 1;
-    //material.specularPower = .0001;
-
-    const colorBoxMesh = MeshBuilder.CreateBox("toolbox-color-" + color.toHexString(), {
+    const colorBoxMesh = MeshBuilder.CreatePlane("toolbox-color-" + color.toHexString(), {
         width: width,
-        height: height,
-        depth: depth
+        height: height
     }, scene);
-    colorBoxMesh.rotation.x = Math.PI / 2;
+    //colorBoxMesh.rotation.x = Math.PI / 2;
     colorBoxMesh.material = material;
     const rowLength = 8;
     colorBoxMesh.position.x = -.45 + ((index % rowLength) / rowLength);

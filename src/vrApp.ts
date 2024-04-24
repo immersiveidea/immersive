@@ -29,6 +29,7 @@ export class VrApp {
     public async initialize() {
         const scene = DefaultScene.Scene;
 
+
         const spinner = new Spinner();
         spinner.show();
 
@@ -59,11 +60,11 @@ export class VrApp {
             })
         }
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
+        //const intro = new Introduction();
         this.engine.runRenderLoop(() => {
             scene.render();
         });
         this.logger.info('Render loop started');
-
     }
 
     private async initializeEngine() {
