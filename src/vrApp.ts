@@ -11,6 +11,7 @@ import {groundMeshObserver} from "./util/functions/groundMeshObserver";
 import {buildQuestLink} from "./util/functions/buildQuestLink";
 import {exportGltf} from "./util/functions/exportGltf";
 import {DefaultScene} from "./defaultScene";
+import {Introduction} from "./tutorial/introduction";
 
 const webGpu = false;
 export class VrApp {
@@ -60,7 +61,9 @@ export class VrApp {
             })
         }
         this.logger.info('keydown event listener added, use Ctrl+Shift+Alt+I to toggle debug layer');
-        //const intro = new Introduction();
+        if (!localStorage.getItem('tutorialCompleted')) {
+            const intro = new Introduction();
+        }
         this.engine.runRenderLoop(() => {
             scene.render();
         });
