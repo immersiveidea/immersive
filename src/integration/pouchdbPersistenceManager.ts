@@ -94,6 +94,26 @@ export class PouchdbPersistenceManager {
         await this.sendLocalDataToScene();
     }
 
+    private async setupMetadata(current: string) {
+        try {
+            const doc = await this.db.get('metadata');
+            if (doc && doc.friendly) {
+                localStorage.setItem(current, doc.friendly);
+            }
+        } catch (err) {
+            if (err.status == 404) {
+                console.log('no metadata found');
+                const friendly = localStorage.getItem(current);
+                if (friendly) {
+                    console.log('local friendly name found ', friendly, ' setting metadata');
+                    const newDoc = {_id: 'metadata', friendly: friendly};
+                    await this.db.put(newDoc);
+                } else {
+                    console.log('no friendly name found');
+                }
+            }
+        }
+    }
     private async initLocal(): Promise<boolean> {
         try {
             let sync = false;
@@ -103,8 +123,10 @@ export class PouchdbPersistenceManager {
             } else {
                 current = 'localdb';
             }
-            this.db = new PouchDB(current);
+            this.db = new PouchDB(current, {auto_compaction: true});
+            await this.db.compact();
             if (sync) {
+                await this.setupMetadata(current);
                 await this.beginSync(current);
             }
             return true;
