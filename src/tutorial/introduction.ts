@@ -10,7 +10,7 @@ import {
     VideoTexture
 } from "@babylonjs/core";
 import {DefaultScene} from "../defaultScene";
-import {HtmlButton} from "../../../babylon-html";
+import {HtmlButton} from "babylon-html";
 import Hls from "hls.js";
 
 type Step = {
