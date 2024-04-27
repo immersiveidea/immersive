@@ -190,7 +190,7 @@ export class PouchdbPersistenceManager {
                         "type": "user"
                     }
                 );
-                if (newdb.status == 200) {
+                if (newdb.status == 201) {
                     logger.info('sync target created');
                 } else {
                     return;

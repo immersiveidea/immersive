@@ -12,7 +12,6 @@ import {
 import {DefaultScene} from "../defaultScene";
 import {HtmlButton} from "../../../babylon-html";
 import Hls from "hls.js";
-import {Spinner} from "../objects/spinner";
 
 type Step = {
     name: string;
@@ -54,10 +53,8 @@ const logger = log.getLogger('Introduction');
 export class Introduction {
     private readonly _scene: Scene;
     private videoElement: HTMLVideoElement;
-    private spinner: Spinner;
+
     constructor() {
-        this.spinner = new Spinner();
-        this.spinner.show();
         logger.info('Introduction constructor');
         this._scene = DefaultScene.Scene;
         this.initialize();
