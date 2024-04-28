@@ -112,6 +112,11 @@ export class Rigplatform {
     }
 
     private registerObserver() {
+        if (this.registered) {
+            this.logger.warn('observer already registered, clearing and re registering');
+            this.controllers.controllerObservable.clear();
+            this.registered = false;
+        }
         if (!this.registered) {
             this.registered = true;
             this.controllers.controllerObservable.add((event: ControllerEvent) => {
@@ -150,11 +155,14 @@ export class Rigplatform {
                         break;
                 }
             });
+        } else {
+            this.logger.warn('observer already registered');
         }
     }
 
 
     private initializeControllers() {
+
         this.xr.input.onControllerAddedObservable.add((source) => {
             this.registerObserver();
             let controller;
@@ -174,6 +182,9 @@ export class Rigplatform {
             if (controller) {
                 controller.setRig(this);
             }
+        });
+        this.xr.input.onControllerRemovedObservable.add((source) => {
+            this.logger.debug('controller removed', source);
         });
     }
 

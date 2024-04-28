@@ -15,7 +15,7 @@ import {Introduction} from "./tutorial/introduction";
 
 const webGpu = false;
 
-log.setLevel('debug', false);
+log.setLevel('error', false);
 export class VrApp {
 
     private engine: WebGPUEngine | Engine;

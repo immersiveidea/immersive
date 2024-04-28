@@ -35,10 +35,13 @@ export async function groundMeshObserver(ground: AbstractMesh,
         const vrSupported = await xr.baseExperience.sessionManager.isSessionSupportedAsync('immersive-vr');
         if (vrSupported) {
             enterButton.classList.remove('inactive');
-            enterButton.addEventListener('click', (evt) => {
+            enterButton.addEventListener('click', async (evt) => {
                 evt.preventDefault();
                 //const voice = new VoiceRecognizer();
-                xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
+                logger.debug('entering XR');
+
+                const enter = await xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
+                logger.debug(enter);
             });
         }
 
@@ -65,6 +68,13 @@ export async function groundMeshObserver(ground: AbstractMesh,
                     }
                 });
                 break;
+            case WebXRState.EXITING_XR:
+                setTimeout(() => {
+                    logger.debug('reloading');
+                    window.location.reload();
+
+                }, 500);
+
         }
     });
 
