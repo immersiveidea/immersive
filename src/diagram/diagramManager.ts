@@ -15,13 +15,14 @@ import {DefaultScene} from "../defaultScene";
 import {DiagramMenuManager} from "./diagramMenuManager";
 import {ClickMenu} from "../menus/clickMenu";
 
-const logger = log.getLogger('DiagramManager');
+
 export enum DiagramEventObserverMask {
     ALL = -1,
     FROM_DB = 1,
     TO_DB = 2,
 }
 export class DiagramManager {
+    private logger = log.getLogger('DiagramManager');
     public readonly _config: AppConfig;
     private readonly _controllers: Controllers;
     private readonly _diagramEntityActionManager: ActionManager;
@@ -36,7 +37,7 @@ export class DiagramManager {
         this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, this._controllers, this._config);
         this._diagramEntityActionManager = buildEntityActionManager(this._controllers);
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
-        logger.debug("DiagramManager constructed");
+        this.logger.debug("DiagramManager constructed");
         this._scene.onMeshRemovedObservable.add((mesh) => {
             if (isDiagramEntity(mesh)) {
                 this.cleanupOrphanConnections(mesh)
@@ -74,7 +75,7 @@ export class DiagramManager {
         if (mesh.absoluteRotationQuaternion) {
             newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
         } else {
-            logger.error("no rotation quaternion");
+            this.logger.error("no rotation quaternion");
         }
         applyScaling(mesh, newMesh, copy, this._config.current?.createSnap);
         newMesh.material = mesh.material;
@@ -92,7 +93,7 @@ export class DiagramManager {
         if (mesh.metadata.template != '#connection-template') {
             this._scene.meshes.forEach((m) => {
                 if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {
-                    logger.debug("removing connection", m.id);
+                    this.logger.debug("removing connection", m.id);
                     this.notifyAll({type: DiagramEventType.REMOVE, entity: toDiagramEntity(m)});
                 }
             });

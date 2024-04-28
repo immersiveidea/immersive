@@ -5,8 +5,9 @@ import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DefaultScene} from "../defaultScene";
 
-const logger = log.getLogger('Left');
+
 export class Left extends Base {
+    private leftLogger = log.getLogger('Left');
     constructor(controller:
                     WebXRInputSource, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
         super(controller, xr, diagramManager);
@@ -15,7 +16,7 @@ export class Left extends Base {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
                     .onAxisValueChangedObservable.add((value) => {
-                    logger.trace(`thumbstick moved ${value.x}, ${value.y}`);
+                    this.leftLogger.trace(`thumbstick moved ${value.x}, ${value.y}`);
                     if (!this.controllers.movable) {
                         this.moveRig(value);
                     } else {
@@ -27,7 +28,7 @@ export class Left extends Base {
                 this.initTrigger(init.components['xr-standard-trigger']);
                 init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
                     if (value.pressed) {
-                        logger.trace('Left', 'thumbstick changed');
+                        this.leftLogger.trace('Left', 'thumbstick changed');
                         this.controllers.controllerObservable.notifyObservers({
                             type: ControllerEventType.DECREASE_VELOCITY,
                             value: value.value
@@ -44,7 +45,7 @@ export class Left extends Base {
             trigger
                 .onButtonStateChangedObservable
                 .add((button) => {
-                    logger.trace('trigger pressed');
+                    this.leftLogger.trace('trigger pressed');
                     this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.TRIGGER,
                         value: button.value,
@@ -58,7 +59,7 @@ export class Left extends Base {
         if (xbutton) {
             xbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
-                    logger.trace('X button pressed');
+                    this.leftLogger.trace('X button pressed');
                     this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.X_BUTTON,
                         value: button.value
@@ -72,7 +73,7 @@ export class Left extends Base {
         if (ybutton) {
             ybutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
-                    logger.trace('Y button pressed');
+                    this.leftLogger.trace('Y button pressed');
                     this.controllers.controllerObservable.notifyObservers({
                         type: ControllerEventType.Y_BUTTON,
                         value: button.value

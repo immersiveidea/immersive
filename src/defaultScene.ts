@@ -1,12 +1,13 @@
 import {Engine, Scene} from "@babylonjs/core";
 import log from "loglevel";
 
-const logger = log.getLogger('DefaultScene');
+
 export class DefaultScene {
     private static _Scene: Scene;
 
     public static get Scene(): Scene {
         if (!DefaultScene._Scene) {
+            const logger = log.getLogger('DefaultScene');
             logger.error('default scene not yet created');
             if (Engine.LastCreatedScene) {
                 logger.warn('using last created scene, this may not be what you want, proceed with caution');
@@ -21,6 +22,7 @@ export class DefaultScene {
     }
 
     public static set Scene(scene: Scene) {
+        const logger = log.getLogger('DefaultScene');
         if (DefaultScene._Scene) {
             logger.error('default scene already created, disposing and recreating');
             if (DefaultScene._Scene.isDisposed) {

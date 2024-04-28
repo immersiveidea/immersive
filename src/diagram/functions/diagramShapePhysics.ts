@@ -2,13 +2,14 @@ import {AbstractMesh, PhysicsAggregate, PhysicsBody, PhysicsMotionType, PhysicsS
 import log from "loglevel";
 import {isDiagramEntity} from "./isDiagramEntity";
 
-const logger = log.getLogger('DiagramShapePhysics');
+
 const MASS_FACTOR = 10;
 
 export function applyPhysics(
                              mesh: AbstractMesh,
                              scene: Scene,
                              motionType?: PhysicsMotionType) {
+    const logger = log.getLogger('DiagramShapePhysics');
     if (!isDiagramEntity(mesh)) {
         logger.error("applyPhysics: mesh.metadata.template is null", mesh);
         return;

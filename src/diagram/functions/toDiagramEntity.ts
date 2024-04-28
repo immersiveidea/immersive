@@ -3,10 +3,9 @@ import {DiagramEntity} from "../types/diagramEntity";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
 
-const logger = log.getLogger('toDiagramEntity');
 
 export function toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
-
+    const logger = log.getLogger('toDiagramEntity');
     if (!mesh) {
         logger.error("toDiagramEntity: mesh is null");
         return null;

@@ -14,6 +14,8 @@ import {DefaultScene} from "./defaultScene";
 import {Introduction} from "./tutorial/introduction";
 
 const webGpu = false;
+
+//log.setLevel('debug', false);
 export class VrApp {
 
     private engine: WebGPUEngine | Engine;
@@ -21,6 +23,7 @@ export class VrApp {
     private logger: Logger = log.getLogger('App');
 
     constructor() {
+
         this.initializeEngine().then(() => {
             this.logger.info('Engine initialized');
         });
@@ -88,8 +91,8 @@ export class VrApp {
         scene.ambientColor = new Color3(.1, .1, .1);
         DefaultScene.Scene = scene;
 
-        log.resetLevel();
-        log.setDefaultLevel('error');
+        //log.resetLevel();
+        //log.setDefaultLevel('error');
         this.logger.debug('App', 'gameCanvas created');
         await this.initialize();
     }

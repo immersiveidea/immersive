@@ -12,7 +12,6 @@ import {ClickMenu} from "../menus/clickMenu";
 import {ConfigMenu} from "../menus/configMenu";
 import {AppConfig} from "../util/appConfig";
 
-const logger = log.getLogger('DiagramMenuManager');
 
 export class DiagramMenuManager {
     public readonly toolbox: Toolbox;
@@ -21,7 +20,7 @@ export class DiagramMenuManager {
     private readonly _notifier: Observable<DiagramEvent>;
     private readonly _inputTextView: InputTextView;
     private readonly _scene: Scene;
-
+    private logger = log.getLogger('DiagramMenuManager');
 
     constructor(notifier: Observable<DiagramEvent>, controllers: Controllers, config: AppConfig) {
         this._scene = DefaultScene.Scene;
@@ -36,7 +35,7 @@ export class DiagramMenuManager {
                 entity.text = evt.text;
                 this.notifyAll({type: DiagramEventType.MODIFY, entity: entity});
             } else {
-                logger.error("mesh not found", evt.id);
+                this.logger.error("mesh not found", evt.id);
             }
         });
         this.toolbox = new Toolbox();

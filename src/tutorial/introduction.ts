@@ -49,13 +49,14 @@ const steps: Array<Step> = [
     {'name': 'Done', 'video': null}
 
 ]
-const logger = log.getLogger('Introduction');
+
 export class Introduction {
+    private logger = log.getLogger('Introduction');
     private readonly _scene: Scene;
     private videoElement: HTMLVideoElement;
 
     constructor() {
-        logger.info('Introduction constructor');
+        this.logger.debug('Introduction constructor');
         this._scene = DefaultScene.Scene;
         this.initialize();
     }
@@ -82,7 +83,7 @@ export class Introduction {
             hls.on(Hls.Events.MANIFEST_PARSED, function () {
                 vid.loop = false;
                 vid.play().then(() => {
-                    logger.debug("Video Playing");
+                    this.logger.debug("Video Playing");
                 });
             });
         } else if (vid.canPlayType('application/vnd.apple.mpegurl')) {

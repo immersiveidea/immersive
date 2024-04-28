@@ -1,9 +1,9 @@
 import {AbstractMesh} from "@babylonjs/core";
 import log from "loglevel";
 
-const logger = log.getLogger('reparent');
 
 export function reparent(mesh: AbstractMesh, previousParentId: string, grabbedMeshParentId: string) {
+    const logger = log.getLogger('reparent');
     if (previousParentId) {
         const parent = mesh.getScene().getMeshById(previousParentId);
         if (parent) {

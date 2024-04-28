@@ -7,8 +7,9 @@ import log, {Logger} from "loglevel";
 import {ascii_to_hex} from "./functions/hexFunctions";
 import {getPath} from "../util/functions/getPath";
 
-const logger: Logger = log.getLogger('PouchdbPersistenceManager');
+
 export class PouchdbPersistenceManager {
+    private logger: Logger = log.getLogger('PouchdbPersistenceManager');
     onDBUpdateObservable: Observable<DiagramEntity> = new Observable<DiagramEntity>();
     onDBRemoveObservable: Observable<DiagramEntity> = new Observable<DiagramEntity>();
 
@@ -21,7 +22,7 @@ export class PouchdbPersistenceManager {
     }
     public setDiagramManager(diagramManager: DiagramManager) {
         diagramManager.onDiagramEventObservable.add((evt) => {
-            logger.debug(evt);
+            this.logger.debug(evt);
             switch (evt.type) {
                 case DiagramEventType.REMOVE:
                     this.remove(evt.entity.id);
@@ -32,12 +33,12 @@ export class PouchdbPersistenceManager {
                     this.upsert(evt.entity);
                     break;
                 default:
-                    logger.warn('unknown diagram event type', evt);
+                    this.logger.warn('unknown diagram event type', evt);
             }
         }, DiagramEventObserverMask.TO_DB);
 
         this.onDBUpdateObservable.add((evt) => {
-            logger.debug(evt);
+            this.logger.debug(evt);
             diagramManager.onDiagramEventObservable.notifyObservers({
                 type: DiagramEventType.ADD,
                 entity: evt
@@ -45,7 +46,7 @@ export class PouchdbPersistenceManager {
         });
 
         this.onDBRemoveObservable.add((entity) => {
-            logger.debug(entity);
+            this.logger.debug(entity);
             diagramManager.onDiagramEventObservable.notifyObservers(
                 {type: DiagramEventType.REMOVE, entity: entity}, DiagramEventObserverMask.FROM_DB);
         });
@@ -59,7 +60,7 @@ export class PouchdbPersistenceManager {
             const doc = await this.db.get(id);
             this.db.remove(doc);
         } catch (err) {
-            logger.error(err);
+            this.logger.error(err);
         }
     }
 
@@ -79,10 +80,10 @@ export class PouchdbPersistenceManager {
                     const newEntity = {...entity, _id: entity.id};
                     this.db.put(newEntity);
                 } catch (err2) {
-                    logger.error(err2);
+                    this.logger.error(err2);
                 }
             } else {
-                logger.error(err);
+                this.logger.error(err);
             }
         }
     }
@@ -131,8 +132,8 @@ export class PouchdbPersistenceManager {
             }
             return true;
         } catch (err) {
-            logger.error(err);
-            logger.error('cannot initialize pouchdb for sync');
+            this.logger.error(err);
+            this.logger.error('cannot initialize pouchdb for sync');
             return false;
         }
     }
@@ -141,11 +142,11 @@ export class PouchdbPersistenceManager {
         try {
             const all = await this.db.allDocs({include_docs: true});
             for (const entity of all.rows) {
-                logger.debug(entity.doc);
+                this.logger.debug(entity.doc);
                 this.onDBUpdateObservable.notifyObservers(entity.doc, 1);
             }
         } catch (err) {
-            logger.error(err);
+            this.logger.error(err);
         }
     }
 
@@ -155,13 +156,13 @@ export class PouchdbPersistenceManager {
     }
 
     private syncDoc(info) {
-        logger.debug(info);
+        this.logger.debug(info);
         if (info.direction == 'pull') {
             const docs = info.change.docs;
             for (const doc of docs) {
-                logger.debug(doc);
+                this.logger.debug(doc);
                 if (doc._deleted) {
-                    logger.debug('Delete', doc);
+                    this.logger.debug('Delete', doc);
                     this.onDBRemoveObservable.notifyObservers({id: doc._id, template: doc.template}, 1);
                 } else {
                     this.onDBUpdateObservable.notifyObservers(doc, 1);
@@ -178,9 +179,9 @@ export class PouchdbPersistenceManager {
             const remoteUserName = localName;
             const password = localName;
             const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT + 'list');
-            logger.debug(dbs.data);
+            this.logger.debug(dbs.data);
             if (dbs.data.indexOf(remoteDbName) == -1) {
-                logger.warn('sync target missing attempting to create');
+                this.logger.warn('sync target missing attempting to create');
                 const newdb = await axios.post(import.meta.env.VITE_CREATE_ENDPOINT,
                     {
                         "_id": "org.couchdb.user:" + localName,
@@ -191,17 +192,18 @@ export class PouchdbPersistenceManager {
                     }
                 );
                 if (newdb.status == 201) {
-                    logger.info('sync target created');
+                    this.logger.info('sync target created');
                 } else {
+                    this.logger.warn('sync target not created', newdb);
                     return;
                 }
             }
             const userEndpoint: string = import.meta.env.VITE_USER_ENDPOINT
-            logger.debug(userEndpoint);
-            logger.debug(remoteDbName);
+            this.logger.debug(userEndpoint);
+            this.logger.debug(remoteDbName);
             const target = await axios.get(userEndpoint);
             if (target.status != 200) {
-                logger.info(target.statusText);
+                this.logger.warn(target.statusText);
                 return;
             }
             if (target.data && target.data.userCtx) {
@@ -209,37 +211,36 @@ export class PouchdbPersistenceManager {
                     const buildTarget = await axios.post(userEndpoint,
                         {username: remoteUserName, password: password});
                     if (buildTarget.status != 200) {
-                        logger.info(buildTarget.statusText);
+                        this.logger.info(buildTarget.statusText);
                         return;
                     } else {
                         this.user = buildTarget.data.userCtx;
-                        logger.debug(this.user);
+                        this.logger.debug(this.user);
                     }
                 }
             }
 
-
             const remoteEndpoint: string = import.meta.env.VITE_SYNCDB_ENDPOINT;
-            logger.debug(remoteEndpoint + remoteDbName);
+            this.logger.debug(remoteEndpoint + remoteDbName);
             this.remote = new PouchDB(remoteEndpoint + remoteDbName,
                 {auth: {username: remoteUserName, password: password}, skip_setup: true});
             const dbInfo = await this.remote.info();
-            logger.debug(dbInfo);
+            this.logger.debug(dbInfo);
             this.db.sync(this.remote, {live: true, retry: true})
                 .on('change', (info) => {
                     this.syncDoc(info)
                 })
-                .on('active', function (info) {
-                    logger.debug('sync active', info)
+                .on('active', (info) => {
+                    this.logger.debug('sync active', info)
                 })
-                .on('paused', function (info) {
-                    logger.debug('sync paused', info)
+                .on('paused', (info) => {
+                    this.logger.debug('sync paused', info)
                 })
-                .on('error', function (err) {
-                    logger.error('sync error', err)
+                .on('error', (err) => {
+                    this.logger.error('sync error', err)
                 });
         } catch (err) {
-            logger.error(err);
+            this.logger.error(err);
         }
     }
 }

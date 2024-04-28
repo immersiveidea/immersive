@@ -9,8 +9,9 @@ export type TextEvent = {
     id: string;
     text: string;
 }
-const logger: Logger = log.getLogger('InputTextView');
+
 export class InputTextView {
+    private logger: Logger = log.getLogger('InputTextView');
     public readonly onTextObservable: Observable<TextEvent> = new Observable<TextEvent>();
     private readonly scene: Scene;
     private readonly inputMesh: AbstractMesh;
@@ -42,7 +43,7 @@ export class InputTextView {
         this.diagramMesh = mesh;
         this.keyboard.isVisible = true;
         this.inputText.focus();
-        logger.debug(mesh.metadata);
+        this.logger.debug(mesh.metadata);
     }
 
     public get handleMesh(): AbstractMesh {
@@ -68,7 +69,7 @@ export class InputTextView {
         if (!platform) {
             this.scene.onNewMeshAddedObservable.add((mesh) => {
                 if (mesh.id == 'platform') {
-                    logger.debug("platform added");
+                    this.logger.debug("platform added");
                     handle.mesh.parent = mesh;
                     if (!handle.idStored) {
                         handle.mesh.position = position;
@@ -114,7 +115,7 @@ export class InputTextView {
         keyboard.isEnabled = true;
         keyboard.children.forEach((key) => {
             key.onPointerEnterObservable.add((eventData, eventState) => {
-                logger.debug(eventData);
+                this.logger.debug(eventData);
                 const gripId = eventState?.userInfo?.pickInfo?.gripTransform?.id;
                 if (gripId) {
                     this.controllers.controllerObservable.notifyObservers({
@@ -132,7 +133,7 @@ export class InputTextView {
         keyboard.onKeyPressObservable.add((key) => {
             if (key === '↵') {
                 if (this.inputText.text && this.inputText.text.length > 0) {
-                    logger.error(this.inputText.text);
+                    this.logger.error(this.inputText.text);
                     this.onTextObservable.notifyObservers({id: this.diagramMesh.id, text: this.inputText.text});
                 } else {
                     this.onTextObservable.notifyObservers({id: this.diagramMesh.id, text: null});

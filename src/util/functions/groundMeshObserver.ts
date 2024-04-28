@@ -5,11 +5,11 @@ import {Rigplatform} from "../../controllers/rigplatform";
 import {DiagramManager} from "../../diagram/diagramManager";
 import {Spinner} from "../../objects/spinner";
 
-const logger = log.getLogger('groungMeshObserver');
 
 export async function groundMeshObserver(ground: AbstractMesh,
                                          diagramManager: DiagramManager,
                                          spinner: Spinner) {
+    const logger = log.getLogger('groungMeshObserver');
     WebXRMotionControllerManager.PrioritizeOnlineRepository = false;
     WebXRMotionControllerManager.UseOnlineRepository = true;
     const xr = await WebXRDefaultExperience.CreateAsync(ground.getScene(), {
@@ -55,6 +55,7 @@ export async function groundMeshObserver(ground: AbstractMesh,
     });
 
     xr.baseExperience.onStateChangedObservable.add((state) => {
+        logger.debug(WebXRState[state]);
         switch (state) {
             case WebXRState.IN_XR:
                 ground.getScene().audioEnabled = true;

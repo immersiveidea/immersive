@@ -6,9 +6,9 @@ import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
 import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
 
-const logger = log.getLogger('buildMeshFromDiagramEntity');
 
 export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene): AbstractMesh {
+    const logger = log.getLogger('buildMeshFromDiagramEntity');
     if (!entity) {
         logger.error("buildMeshFromDiagramEntity: entity is null");
         return null;
@@ -26,6 +26,7 @@ export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene):
 }
 
 function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): AbstractMesh {
+    const logger = log.getLogger('createNewInstanceIfNecessary');
     const oldMesh: AbstractMesh = scene.getMeshById(entity.id);
     let newMesh: AbstractMesh;
     if (oldMesh) {
@@ -58,6 +59,7 @@ function generateId(entity: DiagramEntity) {
 }
 
 function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene): AbstractMesh {
+    const logger = log.getLogger('mapMetaqdata');
     if (newMesh) {
         if (!newMesh.metadata) {
             newMesh.metadata = {};

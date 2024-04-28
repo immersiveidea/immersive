@@ -2,7 +2,6 @@ import {Angle, Vector3} from "@babylonjs/core";
 import round from "round";
 import log from "loglevel";
 
-const logger = log.getLogger('snapRotateVal');
 
 export function snapRotateVal(value: Vector3, snap: number): Vector3 {
     if (!snap) {
@@ -15,6 +14,7 @@ export function snapRotateVal(value: Vector3, snap: number): Vector3 {
 }
 
 function snapAngle(val: number, snap: number): number {
+    const logger = log.getLogger('snapRotateVal');
     const angle = snap;
     const deg = Angle.FromRadians(val).degrees();
     const snappedDegrees = round(deg, angle);

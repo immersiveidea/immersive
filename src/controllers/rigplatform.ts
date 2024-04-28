@@ -10,9 +10,10 @@ import {DefaultScene} from "../defaultScene";
 const RIGHT = "right";
 const LEFT = "left";
 
-const logger = log.getLogger('Rigplatform');
+
 
 export class Rigplatform {
+    private logger = log.getLogger('Rigplatform');
     private readonly controllers: Controllers;
     private readonly diagramManager: DiagramManager;
     private readonly scene: Scene;
@@ -55,10 +56,10 @@ export class Rigplatform {
         this._flyMode = value;
         if (this._flyMode) {
             this.rigMesh.physicsBody.setGravityFactor(.01);
-            logger.debug('flymode');
+            this.logger.debug('flymode');
         } else {
             this.rigMesh.physicsBody.setGravityFactor(1);
-            logger.debug('walkmode');
+            this.logger.debug('walkmode');
         }
     }
 
@@ -104,7 +105,7 @@ export class Rigplatform {
                 vel.y = 0;
             }
             if (vel.length() > 0) {
-                logger.debug('Velocity', this.velocity, vel, this.scene.activeCamera.absoluteRotation);
+                this.logger.debug('Velocity', this.velocity, vel, this.scene.activeCamera.absoluteRotation);
             }
             this.rigMesh.physicsBody.setLinearVelocity(vel);
         });
@@ -114,7 +115,7 @@ export class Rigplatform {
         if (!this.registered) {
             this.registered = true;
             this.controllers.controllerObservable.add((event: ControllerEvent) => {
-                logger.debug(event);
+                this.logger.debug(event);
                 switch (event.type) {
                     case ControllerEventType.INCREASE_VELOCITY:
                         if (this.velocityIndex < this.velocityArray.length - 1) {
@@ -145,7 +146,7 @@ export class Rigplatform {
                         }
                         break;
                     case ControllerEventType.MOTION:
-                        logger.debug(JSON.stringify(event));
+                        this.logger.debug(JSON.stringify(event));
                         break;
                 }
             });

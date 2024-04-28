@@ -5,9 +5,9 @@ import log from "loglevel";
 import {DefaultScene} from "../defaultScene";
 import {Handle} from "../objects/handle";
 
-const logger = log.getLogger('ConfigMenu');
 
 export class ConfigMenu {
+    private logger = log.getLogger('ConfigMenu');
     private config: AppConfig;
     private readonly baseTransform: TransformNode;
     private gridSnaps: Array<{ label: string, value: number }> = [
@@ -61,7 +61,7 @@ export class ConfigMenu {
         selectionPanel.addGroup(radio);
         for (const [index, snap] of this.gridSnaps.entries()) {
             const selected = (this.config.current.createSnap == snap.value);
-            logger.debug(selected);
+            this.logger.debug(selected);
             radio.addRadio(snap.label, this.createVal.bind(this), selected);
         }
         this.adjustRadio(radio);

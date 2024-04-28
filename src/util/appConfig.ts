@@ -24,6 +24,7 @@ export class AppConfig {
             if (config) {
                 this._currentConfig = config;
             } else {
+
                 localStorage.setItem('appConfig', JSON.stringify(this._currentConfig));
             }
         } catch (err) {

@@ -1,7 +1,10 @@
 import {HavokPlugin} from "@babylonjs/core";
 import {DefaultScene} from "../../defaultScene";
+import log from "loglevel";
+
 
 export function beforeRenderObserver() {
+    const logger = log.getLogger('beforeRenderObserver');
     if (this?.grabbedMesh?.physicsBody) {
         const scene = DefaultScene.Scene;
         const hk = (scene.getPhysicsEngine().getPhysicsPlugin() as HavokPlugin);
@@ -12,11 +15,11 @@ export function beforeRenderObserver() {
                 hk.setPhysicsBodyTransformation(this.grabbedMesh.physicsBody, parent);
                 hk.sync(this.grabbedMesh.physicsBody);
             } else {
-                this.logger.error("parent not found for " + this.grabbedMeshParentId);
+                logger.error("parent not found for " + this.grabbedMeshParentId);
             }
 
         } else {
-            this.logger.warn("no parent id");
+            logger.warn("no parent id");
         }
 
     }
