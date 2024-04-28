@@ -152,7 +152,8 @@ export class DiagramConnection {
     }
 
     private beforeRender = () => {
-        if (this.tick % 5 == 0) {
+        if (this.tick++ % 10 == 0) {
+            this.logger.trace('recalculating', this.tick);
             this.recalculate();
             this.setPoints();
         }

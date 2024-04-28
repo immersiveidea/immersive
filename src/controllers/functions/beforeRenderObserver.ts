@@ -4,7 +4,6 @@ import log from "loglevel";
 
 
 export function beforeRenderObserver() {
-    const logger = log.getLogger('beforeRenderObserver');
     if (this?.grabbedMesh?.physicsBody) {
         const scene = DefaultScene.Scene;
         const hk = (scene.getPhysicsEngine().getPhysicsPlugin() as HavokPlugin);
@@ -15,11 +14,11 @@ export function beforeRenderObserver() {
                 hk.setPhysicsBodyTransformation(this.grabbedMesh.physicsBody, parent);
                 hk.sync(this.grabbedMesh.physicsBody);
             } else {
-                logger.error("parent not found for " + this.grabbedMeshParentId);
+                log.getLogger('beforeRenderObserver').error("parent not found for " + this.grabbedMeshParentId);
             }
 
         } else {
-            logger.warn("no parent id");
+            log.getLogger('beforeRenderObserver').warn("no parent id");
         }
 
     }
