@@ -1,5 +1,5 @@
 import {AbstractMesh, ActionManager, InstancedMesh, Mesh, Observable, Scene, TransformNode} from "@babylonjs/core";
-import {DiagramEvent, DiagramEventType} from "./types/diagramEntity";
+import {DiagramEntity, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
 import {AppConfig} from "../util/appConfig";
@@ -43,6 +43,27 @@ export class DiagramManager {
                 this.cleanupOrphanConnections(mesh)
             }
         });
+        document.addEventListener('uploadImage', (event: CustomEvent) => {
+            const diagramEntity: DiagramEntity = {
+                template: '#image-template',
+                image: event.detail.data,
+                text: event.detail.name,
+                position: {x: 0, y: 1.6, z: 0},
+                rotation: {x: 0, y: Math.PI, z: 0},
+                scale: {x: 1, y: 1, z: 1},
+            }
+
+            console.log(diagramEntity);
+            //const newMesh = buildMeshFromDiagramEntity(diagramEntity, this._scene);
+            if (this.onDiagramEventObservable) {
+                this.onDiagramEventObservable.notifyObservers({
+                    type: DiagramEventType.ADD,
+                    entity: diagramEntity
+                }, DiagramEventObserverMask.ALL);
+
+                //this.onDiagramEventObservable.notifyObservers({type: DiagramEventType.ADD, entity: diagramEntity}, DiagramEventObserverMask.FROM_DB);
+            }
+        })
     }
 
     public get diagramMenuManager(): DiagramMenuManager {

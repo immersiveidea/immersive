@@ -22,7 +22,11 @@ export default defineConfig({
             '^/create-db': {
                 target: 'https://www.deepdiagram.com/',
                 changeOrigin: true,
-            }
+            },
+            '^/api/images': {
+                target: 'https://www.deepdiagram.com/',
+                changeOrigin: true,
+            },
         }
     },
     base: "/"

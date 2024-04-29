@@ -1,11 +1,20 @@
-import {DiagramEntity, DiagramEntityType} from "../types/diagramEntity";
-import {AbstractMesh, InstancedMesh, Mesh, Quaternion, Scene, Vector3} from "@babylonjs/core";
+import {DiagramEntity, DiagramEntityType, DiagramTemplates} from "../types/diagramEntity";
+import {
+    AbstractMesh,
+    InstancedMesh,
+    Mesh,
+    MeshBuilder,
+    Quaternion,
+    Scene,
+    StandardMaterial,
+    Texture,
+    Vector3
+} from "@babylonjs/core";
 import {DiagramConnection} from "../diagramConnection";
 import {updateTextNode} from "../../util/functions/updateTextNode";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
 import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
-
 
 export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene): AbstractMesh {
     const logger = log.getLogger('buildMeshFromDiagramEntity');
@@ -33,23 +42,56 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
         logger.debug(`mesh ${oldMesh.id} already exists`);
         newMesh = oldMesh;
     } else {
-        if (entity.template == "#connection-template") {
-            const connection: DiagramConnection = new DiagramConnection(entity.from, entity.to, entity.id, scene);
-
-            logger.debug(`connection.mesh = ${connection.mesh.id}`);
-            newMesh = connection.mesh;
-        } else {
-            const toolMesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
-            if (toolMesh && !oldMesh) {
-                newMesh = new InstancedMesh(entity.id, (toolMesh as Mesh));
-                newMesh.metadata = {template: entity.template, exportable: true, tool: false};
-            } else {
+        switch (entity.template) {
+            case DiagramTemplates.CONNECTION:
+                const connection: DiagramConnection = new DiagramConnection(entity.from, entity.to, entity.id, scene);
+                logger.debug(`connection.mesh = ${connection.mesh.id}`);
+                newMesh = connection.mesh;
+                break;
+            case DiagramTemplates.USER:
+                break;
+            case DiagramTemplates.IMAGE:
+                newMesh = buildImage(entity, scene);
+                newMesh.metadata = {template: entity.template, exportable: true, tool: false}
+                break;
+            case DiagramTemplates.BOX:
+            case DiagramTemplates.SPHERE:
+            case DiagramTemplates.CYLINDER:
+            case DiagramTemplates.CONE:
+            case DiagramTemplates.PLANE:
+                const toolMesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
+                if (toolMesh && !oldMesh) {
+                    newMesh = new InstancedMesh(entity.id, (toolMesh as Mesh));
+                    newMesh.metadata = {template: entity.template, exportable: true, tool: false};
+                } else {
+                    logger.warn('no tool mesh found for ' + entity.template + "-" + entity.color);
+                }
+                break;
+            default:
                 logger.warn('no tool mesh found for ' + entity.template + "-" + entity.color);
+                break;
 
-            }
         }
     }
     return newMesh;
+}
+
+function buildImage(entity: DiagramEntity, scene: Scene): AbstractMesh {
+    const logger = log.getLogger('buildImage');
+    logger.debug("buildImage: entity is image");
+    const plane = MeshBuilder.CreatePlane(entity.id, {size: 1}, scene);
+    const material = new StandardMaterial("planeMaterial", scene);
+    const image = new Image();
+    image.src = entity.image;
+    const texture = new Texture(entity.image, scene);
+    material.emissiveTexture = texture;
+    material.backFaceCulling = false;
+    material.disableLighting = true;
+    plane.material = material;
+    image.decode().then(() => {
+        plane.scaling.x = image.width / image.height;
+    });
+    return plane;
 }
 
 function generateId(entity: DiagramEntity) {
@@ -104,6 +146,7 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
     }
     return newMesh;
 }
+
 function xyztovec(xyz: { x, y, z }): Vector3 {
     return new Vector3(xyz.x, xyz.y, xyz.z);
 }

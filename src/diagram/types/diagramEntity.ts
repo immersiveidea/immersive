@@ -21,6 +21,16 @@ export enum DiagramEventMask {
     REMOTE = 2,
 }
 
+export enum DiagramTemplates {
+    CONNECTION = "#connection-template",
+    USER = "#user-template",
+    BOX = "#box-template",
+    SPHERE = "#sphere-template",
+    CYLINDER = "#cylinder-template",
+    CONE = "#cone-template",
+    IMAGE = "#image-template",
+    PLANE = "#plane-template",
+}
 
 export type DiagramEvent = {
     type: DiagramEventType;
@@ -34,6 +44,7 @@ export type DiagramEntity = {
     id?: string;
     from?: string;
     to?: string;
+    image?: string;
     last_seen?: Date;
     position?: { x: number, y: number, z: number };
     rotation?: { x: number, y: number, z: number };

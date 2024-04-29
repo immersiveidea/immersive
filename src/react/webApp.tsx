@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import {uploadImage} from "./functions/uploadImage";
 
 function MainMenu({onClick}) {
     return (
@@ -7,6 +8,7 @@ function MainMenu({onClick}) {
             <div id="enterXR" className="inactive"><a href="#" id="enterVRLink">Enter VR</a></div>
             <QuestLink/>
             <div id="diagrams"><a href="#" id="diagramsLink" onClick={onClick}>Diagrams</a></div>
+            <div id="imageUpload"><a href="#" id="imageUploadLink" onClick={onClick}>Upload Image</a></div>
             <div id="download"><a href="#" id="downloadLink">Download Model</a></div>
         </div>
     )
@@ -113,7 +115,19 @@ function Menu() {
 
     function handleDiagramListClick(evt: React.MouseEvent<HTMLAnchorElement>) {
         evt.preventDefault();
-        setDiagramListState(diagramListState == 'none' ? 'block' : 'none');
+        switch (evt.target.id) {
+            case 'imageUploadLink':
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = uploadImage;
+
+                document.body.appendChild(input);
+                input.click();
+                break;
+            default:
+                setDiagramListState(diagramListState == 'none' ? 'block' : 'none');
+        }
     }
 
     return (
@@ -134,49 +148,3 @@ export default function WebApp() {
         </div>
     )
 }
-/*
-const create = document.querySelector('#startCreateLink');
-    if (create) {
-        create.addEventListener('click', function (evt) {
-            evt.preventDefault();
-            document.querySelector('#main').style.display = 'none';
-            document.querySelector('#create').style.display = 'block';
-        });
-    }
-    const cancel = document.querySelector('#cancelCreateLink');
-    if (cancel) {
-        cancel.addEventListener('click', function (evt) {
-            evt.preventDefault();
-            document.querySelector('#main').style.display = 'block';
-            document.querySelector('#create').style.display = 'none';
-        });
-    }
-    const close = document.querySelector('#closekey a');
-    if (close) {
-        close.addEventListener('click', function (evt) {
-            evt.preventDefault();
-            document.querySelector('#keyboardHelp').style.display = 'none';
-        });
-    }
-    const desktopTutorial = document.querySelector('#desktopLink');
-    if (desktopTutorial) {
-        desktopTutorial.addEventListener('click', function (evt) {
-            evt.preventDefault();
-            // document.querySelector('#tutorial').style.display = 'none';
-            document.querySelector('#keyboardHelp').style.display = 'block';
-        });
-    }
-    const createAction = document.querySelector('#createActionLink');
-    if (createAction) {
-        createAction.addEventListener('click', function (evt) {
-            evt.preventDefault();
-            const value = document.querySelector('#createName').value;
-            if (value && value.length > 4) {
-                document.location.href = '/db/' + value;
-            } else {
-                window.alert('Name must be longer than 4 characters');
-            }
-        });
-    }
-
- */
