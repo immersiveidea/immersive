@@ -115,7 +115,10 @@ function Menu() {
 
     function handleDiagramListClick(evt: React.MouseEvent<HTMLAnchorElement>) {
         evt.preventDefault();
-        switch (evt.target.id) {
+        if (!evt.currentTarget.id) {
+            return;
+        }
+        switch (evt.currentTarget.id) {
             case 'imageUploadLink':
                 const input = document.createElement('input');
                 input.type = 'file';
@@ -133,9 +136,7 @@ function Menu() {
     return (
         <div>
             <MainMenu onClick={handleDiagramListClick}/>
-            <TutorialMenu onClick={handleDesktopTutorialClick}/>
             <CreateMenu display={createState} toggleCreateMenu={handleCreateClick}/>
-            <KeyboardHelp display={desktopTutorialState} onClick={handleDesktopTutorialClick}/>
             <DiagramList onClick={handleCreateClick} display={diagramListState}/>
         </div>
     )

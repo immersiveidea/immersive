@@ -1,6 +1,5 @@
 import {
     AbstractMesh,
-    Mesh,
     PhysicsMotionType,
     Scene,
     TransformNode,
@@ -144,12 +143,8 @@ export class Base {
                 mesh && mesh.setParent(this.xrInputSource.motionController.rootMesh);
                 this.grabbedMesh = mesh;
             } else {
-                if (mesh?.parent?.parent?.metadata?.grabbable) {
-                    if (mesh?.parent?.parent?.parent) {
-                        mesh = (mesh?.parent?.parent?.parent as Mesh);
-                        this.grabbedMesh = mesh;
-                        player = true;
-                    }
+                if (mesh?.metadata?.grabbable) {
+                    this.grabbedMesh = mesh;
                 } else {
                     return;
                 }

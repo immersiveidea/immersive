@@ -1,6 +1,10 @@
 const uploadImage = async (evt) => {
 
     const file = (evt.target as HTMLInputElement).files[0];
+    if (!file) {
+        console.log('no file selected');
+        return;
+    }
     const formData = new FormData();
     formData.append('file', file);
     //formData.append('requireSignedURLs', 'true');

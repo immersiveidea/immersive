@@ -57,6 +57,35 @@ export class VrApp {
 
          */
         addSceneInspector();
+
+        /*
+        SceneLoader.ImportMesh(null,'https://models.deepdiagram.com/', 'Chair_textured_mesh_lowpoly_glb.glb', scene, (meshes) => {
+            const transform = new Mesh('chair', scene);
+            for(const mesh of meshes){
+                mesh.parent= transform;
+            }
+            let {min, max} = transform.getHierarchyBoundingVectors(true);
+            const parentMesh = MeshBuilder.CreateBox('boundingBox', {width: max.x - min.x, height: max.y - min.y, depth: max.z - min.z}, scene);
+            for(const mesh of meshes){
+                mesh.parent= parentMesh;
+
+            }
+            transform.dispose();
+            //parentMesh.setBoundingInfo(new BoundingInfo(min, max));
+            parentMesh.showBoundingBox = true;
+            parentMesh.scaling = new Vector3(.2,.2,.2);
+            //mesh.metadata = {grabbable: true};
+            parentMesh.position.y = .5;
+            parentMesh.position.z = 0;
+            parentMesh.metadata = {grabbable: true};
+            const material = new StandardMaterial('chairMaterial', scene);
+            material.alpha = 0;
+            parentMesh.material = material;
+            parentMesh.showBoundingBox = true;
+        });
+
+         */
+
         const el = document.querySelector('#download');
         if (el) {
             el.addEventListener('click', () => {
