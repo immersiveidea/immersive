@@ -173,7 +173,7 @@ export class Rigplatform {
                     }
                     break;
                 case LEFT:
-                    if (this.leftController) {
+                    if (!this.leftController) {
                         this.leftController = new Left(source, this.xr, this.diagramManager);
                     }
                     break;

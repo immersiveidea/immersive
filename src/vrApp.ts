@@ -1,5 +1,5 @@
 import {Color3, Engine, FreeCamera, Scene, Vector3, WebGPUEngine} from "@babylonjs/core";
-//import '@babylonjs/loaders';
+import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
 import log, {Logger} from "loglevel";
 import {GamepadManager} from "./controllers/gamepadManager";
@@ -74,7 +74,16 @@ export class VrApp {
         });
 
          */
+        /*
+        const chair = new GaussianSplattingMesh('chair', null, scene);
+        const m = await chair.loadFileAsync('https://models.deepdiagram.com/drill1.ply');
 
+        chair.position.y = 1.6;
+        chair.rotation.y = Math.PI;
+        chair.scaling = chair.scaling.scale(3);
+        chair.showBoundingBox = true;
+
+         */
         const el = document.querySelector('#download');
         if (el) {
             el.addEventListener('click', () => {

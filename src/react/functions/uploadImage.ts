@@ -1,5 +1,8 @@
-const uploadImage = async (evt) => {
+import {Spinner} from "../../objects/spinner";
 
+const uploadImage = async (evt) => {
+    const spinner = new Spinner();
+    spinner.show();
     const file = (evt.target as HTMLInputElement).files[0];
     if (!file) {
         console.log('no file selected');
@@ -30,17 +33,21 @@ const uploadImage = async (evt) => {
                     const uploadEvent = new CustomEvent('uploadImage', {
                         detail: {
                             name: file.name,
-                            data: variant
+                            data: variant,
+                            position: spinner.position.clone()
                         }
                     });
                     document.dispatchEvent(uploadEvent);
                     evt.target.remove();
+
                     console.log(variant);
                 }
             }
         }
     } catch (err) {
         console.error(err);
+    } finally {
+        spinner.hide();
     }
 }
 export {uploadImage};

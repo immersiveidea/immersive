@@ -40,6 +40,14 @@ export class DiagramManager {
             }
         });
         document.addEventListener('uploadImage', (event: CustomEvent) => {
+            let position = {x: 0, y: 1.6, z: 0};
+            if (event.detail.position) {
+                position = {
+                    x: event.detail.position.x,
+                    y: event.detail.position.y,
+                    z: event.detail.position.z
+                }
+            }
             const diagramEntity: DiagramEntity = {
                 template: '#image-template',
                 image: event.detail.data,

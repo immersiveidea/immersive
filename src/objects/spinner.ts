@@ -8,7 +8,8 @@ import {
     Scene,
     SphereParticleEmitter,
     StandardMaterial,
-    Texture
+    Texture,
+    Vector3
 } from "@babylonjs/core";
 import {DefaultScene} from "../defaultScene";
 
@@ -22,7 +23,13 @@ export class Spinner {
         this.build();
     }
 
+    public get position(): Vector3 {
+        return this.spinner.position;
+    }
     public show() {
+        if (!this.spinner || !this.particleSystem) {
+            this.build();
+        }
         this.spinner.setEnabled(true);
         this.particleSystem.start();
     }
@@ -30,10 +37,18 @@ export class Spinner {
     public hide() {
         this.spinner.setEnabled(false);
         this.particleSystem.stop(true);
+        this.spinner.dispose();
+        this.particleSystem.dispose();
+        this.spinner = null;
+        this.particleSystem = null;
     }
 
     private build() {
-        const spinner: AbstractMesh = MeshBuilder.CreateSphere("spinner", {diameter: 2}, this._scene);
+        const camera = this._scene.activeCamera;
+        if (!camera) {
+            return;
+        }
+        const spinner: AbstractMesh = MeshBuilder.CreateSphere("spinner", {diameter: .5}, this._scene);
         const material = new StandardMaterial("spinner", this._scene);
         const text = new DynamicTexture("spinner", {width: 1024, height: 1024}, this._scene, false);
         text.drawText("Please Wait", 250, 500, "bold 150px Segoe UI", "white", "transparent", true, true);
@@ -59,14 +74,14 @@ export class Spinner {
         spinner.material = material;
         let particleSystem;
         if (GPUParticleSystem.IsSupported) {
-            particleSystem = new GPUParticleSystem("particles", {capacity: 100000}, this._scene);
-            particleSystem.activeParticleCount = 2048;
+            particleSystem = new GPUParticleSystem("particles", {capacity: 1024}, this._scene);
+            particleSystem.activeParticleCount = 512;
         } else {
-            particleSystem = new ParticleSystem("particles", 2048, this._scene);
+            particleSystem = new ParticleSystem("particles", 512, this._scene);
         }
-        particleSystem.emitRate = 10;
-        const emitter = new SphereParticleEmitter(.9);
-        emitter.radiusRange = .2;
+        particleSystem.emitRate = 512;
+        const emitter = new SphereParticleEmitter(.2);
+        emitter.radiusRange = .1;
         particleSystem.particleEmitterType = emitter;
 
         particleSystem.particleTexture = new Texture("/assets/textures/flare.png", this._scene);
@@ -81,8 +96,9 @@ export class Spinner {
         particleSystem.maxSize = 0.05;
         particleSystem.emitter = spinner;
         particleSystem.parent = spinner;
-        spinner.position.y = 1;
-        spinner.position.z = 6;
+
+        const ray = camera.position.add(camera.getForwardRay(1).direction.scale(2));
+        spinner.position = ray;
 
         this.spinner = spinner;
         this.spinner.setEnabled(false);
