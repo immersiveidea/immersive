@@ -14,13 +14,9 @@ import {isDiagramEntity} from "./functions/isDiagramEntity";
 import {DefaultScene} from "../defaultScene";
 import {DiagramMenuManager} from "./diagramMenuManager";
 import {ClickMenu} from "../menus/clickMenu";
+import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 
 
-export enum DiagramEventObserverMask {
-    ALL = -1,
-    FROM_DB = 1,
-    TO_DB = 2,
-}
 export class DiagramManager {
     private logger = log.getLogger('DiagramManager');
     public readonly _config: AppConfig;

@@ -1,6 +1,5 @@
 import {DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
-import {DiagramEventObserverMask} from "./diagramManager";
 import {InputTextView} from "../information/inputTextView";
 import {toDiagramEntity} from "./functions/toDiagramEntity";
 import {DefaultScene} from "../defaultScene";
@@ -11,6 +10,7 @@ import {ScaleMenu} from "../menus/scaleMenu";
 import {ClickMenu} from "../menus/clickMenu";
 import {ConfigMenu} from "../menus/configMenu";
 import {AppConfig} from "../util/appConfig";
+import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 
 
 export class DiagramMenuManager {

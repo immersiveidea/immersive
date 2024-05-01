@@ -1,15 +1,17 @@
 import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
-import {DiagramEventObserverMask} from "../diagram/diagramManager";
 import {DiagramConnection} from "../diagram/diagramConnection";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 import {HtmlButton} from "babylon-html";
+import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
 
+const POINTER_UP = "pointerup";
 export class ClickMenu {
     private readonly _mesh: AbstractMesh;
     private readonly transform: TransformNode;
     private connection: DiagramConnection = null;
+
     public onClickMenuObservable: Observable<ActionEvent> = new Observable<ActionEvent>();
     private _diagramEventObservable: Observable<DiagramEvent>;
 
@@ -23,7 +25,7 @@ export class ClickMenu {
 
         const removeButton: HtmlButton = this.makeNewButton("Remove", "remove", scene, x += .11);
         removeButton.onPointerObservable.add((eventData) => {
-            if (eventData.sourceEvent.type == "pointerup") {
+            if (isUp(eventData)) {
                 this.onClickMenuObservable.notifyObservers(eventData);
                 this.dispose();
             }
@@ -32,7 +34,7 @@ export class ClickMenu {
 
         const labelButton: HtmlButton = this.makeNewButton("Label", "label", scene, x += .11);
         labelButton.onPointerObservable.add((eventData) => {
-            if (eventData.sourceEvent.type == "pointerup") {
+            if (isUp(eventData)) {
                 this.onClickMenuObservable.notifyObservers(eventData);
                 this.dispose();
             }
@@ -40,15 +42,14 @@ export class ClickMenu {
 
         const connectButton: HtmlButton = this.makeNewButton("Connect", "connect", scene, x += .11);
         connectButton.onPointerObservable.add((eventData) => {
-            if (eventData.sourceEvent.type == "pointerup") {
+            if (isUp(eventData)) {
                 this.createMeshConnection(this._mesh, grip, eventData.additionalData.pickedPoint.clone());
-
             }
         }, -1, false, this, false);
 
         const closeButton: HtmlButton = this.makeNewButton("Close", "close", scene, x += .11);
         closeButton.onPointerObservable.add((eventData) => {
-            if (eventData.sourceEvent.type == "pointerup") {
+            if (isUp(eventData)) {
                 this.onClickMenuObservable.notifyObservers(eventData);
                 this.dispose();
             }
@@ -56,7 +57,7 @@ export class ClickMenu {
 
         const sizeButton: HtmlButton = this.makeNewButton("Size", "size", scene, x += .11);
         sizeButton.onPointerObservable.add((eventData) => {
-            if (eventData.sourceEvent.type == "pointerup") {
+            if (isUp(eventData)) {
                 this.onClickMenuObservable.notifyObservers(eventData);
             }
         }, -1, false, this, false);
@@ -107,4 +108,8 @@ export class ClickMenu {
     private dispose() {
         this.transform.dispose(false, true);
     }
+}
+
+function isUp(event: ActionEvent): boolean {
+    return event?.sourceEvent?.type == POINTER_UP;
 }
