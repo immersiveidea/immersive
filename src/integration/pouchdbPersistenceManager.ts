@@ -2,10 +2,11 @@ import PouchDB from 'pouchdb';
 import {DiagramEntity, DiagramEventType} from "../diagram/types/diagramEntity";
 import {Observable} from "@babylonjs/core";
 import axios from "axios";
-import {DiagramEventObserverMask, DiagramManager} from "../diagram/diagramManager";
+import {DiagramManager} from "../diagram/diagramManager";
 import log, {Logger} from "loglevel";
 import {ascii_to_hex} from "./functions/hexFunctions";
 import {getPath} from "../util/functions/getPath";
+import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
 
 
 export class PouchdbPersistenceManager {

@@ -1,13 +1,14 @@
 import {AbstractMesh, KeyboardEventTypes, MeshBuilder, Scene} from "@babylonjs/core";
 import {Rigplatform} from "./rigplatform";
 import {ControllerEventType, Controllers} from "./controllers";
-import {DiagramEventObserverMask, DiagramManager} from "../diagram/diagramManager";
+import {DiagramManager} from "../diagram/diagramManager";
 import {GridMaterial} from "@babylonjs/materials";
 import {wheelHandler} from "./functions/wheelHandler";
 import log, {Logger} from "loglevel";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 import {DiagramEventType} from "../diagram/types/diagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
+import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
 
 export class WebController {
     private readonly scene: Scene;

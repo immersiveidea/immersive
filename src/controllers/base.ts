@@ -8,7 +8,7 @@ import {
     WebXRDefaultExperience,
     WebXRInputSource
 } from "@babylonjs/core";
-import {DiagramEventObserverMask, DiagramManager} from "../diagram/diagramManager";
+import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import log from "loglevel";
 import {ControllerEventType, Controllers} from "./controllers";
@@ -27,6 +27,7 @@ import {handleWasGrabbed} from "./functions/handleWasGrabbed";
 import {buildDrop} from "./functions/buildDrop";
 import {pointable} from "./functions/pointable";
 import {DefaultScene} from "../defaultScene";
+import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
 
 const CLICK_TIME = 300;
 

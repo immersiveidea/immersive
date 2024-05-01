@@ -173,7 +173,7 @@ export class Rigplatform {
                     }
                     break;
                 case LEFT:
-                    if (!this.leftController) {
+                    if (this.leftController) {
                         this.leftController = new Left(source, this.xr, this.diagramManager);
                     }
                     break;
@@ -189,6 +189,9 @@ export class Rigplatform {
     }
 
     private fixRotation() {
+        if (!this.scene) {
+            return;
+        }
         this.scene.onAfterPhysicsObservable.add(() => {
             const turnSnap = this.turnSnap;
             if (turnSnap && turnSnap > 0) {

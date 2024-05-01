@@ -7,15 +7,14 @@ const uploadImage = async (evt) => {
     }
     const formData = new FormData();
     formData.append('file', file);
+    //formData.append('requireSignedURLs', 'false');
     //formData.append('requireSignedURLs', 'true');
     const formInitData = new FormData();
-    formInitData.append('requireSignedURLs', 'true');
+    formInitData.append('requireSignedURLs', 'false');
 
     const initialUpload = await fetch('/api/images', {
         method: 'POST',
         body: formInitData
-
-
     });
     try {
         const initialData = await initialUpload.json();
