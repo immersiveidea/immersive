@@ -75,15 +75,15 @@ export class VrApp {
 
          */
         /*
-        const chair = new GaussianSplattingMesh('chair', null, scene);
-        const m = await chair.loadFileAsync('https://models.deepdiagram.com/drill1.ply');
+                const chair = new GaussianSplattingMesh('chair', null, scene);
+                const m = await chair.loadFileAsync('https://models.deepdiagram.com/house.ply');
 
-        chair.position.y = 1.6;
-        chair.rotation.y = Math.PI;
-        chair.scaling = chair.scaling.scale(3);
-        chair.showBoundingBox = true;
+                chair.position.y = 1.6;
+                chair.rotation.y = Math.PI;
+                chair.scaling = chair.scaling.scale(1);
+                chair.showBoundingBox = true;
 
-         */
+        */
         const el = document.querySelector('#download');
         if (el) {
             el.addEventListener('click', () => {

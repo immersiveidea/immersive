@@ -1,5 +1,5 @@
 import {DiagramEvent, DiagramEventType} from "./types/diagramEntity";
-import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, ActionEvent, Observable, Scene, Vector3, WebXRInputSource} from "@babylonjs/core";
 import {InputTextView} from "../information/inputTextView";
 import {toDiagramEntity} from "./functions/toDiagramEntity";
 import {DefaultScene} from "../defaultScene";
@@ -79,8 +79,8 @@ export class DiagramMenuManager {
         this._inputTextView.show(mesh);
     }
 
-    public createClickMenu(mesh: AbstractMesh, grip: TransformNode): ClickMenu {
-        const clickMenu = new ClickMenu(mesh, grip, this._notifier);
+    public createClickMenu(mesh: AbstractMesh, input: WebXRInputSource): ClickMenu {
+        const clickMenu = new ClickMenu(mesh, input, this._notifier);
         clickMenu.onClickMenuObservable.add((evt: ActionEvent) => {
             console.log(evt);
             switch (evt.source.id) {

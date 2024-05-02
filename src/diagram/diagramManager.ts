@@ -1,4 +1,4 @@
-import {AbstractMesh, ActionManager, InstancedMesh, Mesh, Observable, Scene, TransformNode} from "@babylonjs/core";
+import {AbstractMesh, ActionManager, InstancedMesh, Mesh, Observable, Scene, WebXRInputSource} from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
@@ -74,7 +74,7 @@ export class DiagramManager {
         return this._diagramMenuManager;
     }
 
-    public createClickMenu(mesh: AbstractMesh, grip: TransformNode): ClickMenu {
+    public createClickMenu(mesh: AbstractMesh, grip: WebXRInputSource): ClickMenu {
         return this._diagramMenuManager.createClickMenu(mesh, grip);
     }
     private notifyAll(event: DiagramEvent) {

@@ -251,7 +251,7 @@ export class Base {
                     this.clickMenu = null;
                 }
             } else {
-                this.clickMenu = this.diagramManager.diagramMenuManager.createClickMenu(mesh, this.xrInputSource.grip);
+                this.clickMenu = this.diagramManager.diagramMenuManager.createClickMenu(mesh, this.xrInputSource);
             }
 
         } else {

@@ -1,4 +1,4 @@
-import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode, Vector3, WebXRInputSource} from "@babylonjs/core";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {DiagramConnection} from "../diagram/diagramConnection";
@@ -15,7 +15,8 @@ export class ClickMenu {
     public onClickMenuObservable: Observable<ActionEvent> = new Observable<ActionEvent>();
     private _diagramEventObservable: Observable<DiagramEvent>;
 
-    constructor(mesh: AbstractMesh, grip: TransformNode, diagramEventObservable: Observable<DiagramEvent>) {
+    constructor(mesh: AbstractMesh, input: WebXRInputSource, diagramEventObservable: Observable<DiagramEvent>) {
+        const grip = input.grip;
         this._mesh = mesh;
         this._diagramEventObservable = diagramEventObservable;
         //this.diagramManager = diagramManager;
@@ -63,9 +64,22 @@ export class ClickMenu {
         }, -1, false, this, false);
 
 
-        this.transform.position = mesh.absolutePosition.clone();
-        this.transform.position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
-        this.transform.billboardMode = TransformNode.BILLBOARDMODE_Y;
+        const meshPos = mesh.absolutePosition.clone();
+        const camPos = scene.activeCamera.globalPosition.clone();
+        const direction = meshPos.subtract(camPos).normalize();
+
+        //const {min, max} = mesh.getHierarchyBoundingVectors(true);
+
+        this.transform.position = camPos.add(direction.scale(.8));
+        this.transform.lookAt(meshPos);
+        this.transform.position.y = this.transform.position.y - .2;
+
+        //this.transform.billboardMode = TransformNode.BILLBOARDMODE_Y;
+        const platform = scene.getMeshByName("platform");
+        this.transform.setParent(platform);
+
+
+
     }
 
     private makeNewButton(name: string, id: string, scene: Scene, x: number): HtmlButton {
