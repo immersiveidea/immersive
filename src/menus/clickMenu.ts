@@ -7,6 +7,7 @@ import {HtmlButton} from "babylon-html";
 import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
 
 const POINTER_UP = "pointerup";
+
 export class ClickMenu {
     private readonly _mesh: AbstractMesh;
     private readonly transform: TransformNode;
@@ -15,8 +16,9 @@ export class ClickMenu {
     public onClickMenuObservable: Observable<ActionEvent> = new Observable<ActionEvent>();
     private _diagramEventObservable: Observable<DiagramEvent>;
 
-    constructor(mesh: AbstractMesh, input: WebXRInputSource, diagramEventObservable: Observable<DiagramEvent>) {
-        const grip = input.grip;
+    constructor(mesh: AbstractMesh, input: WebXRInputSource | TransformNode, diagramEventObservable: Observable<DiagramEvent>) {
+
+        const grip: TransformNode = this.getTransform(input);
         this._mesh = mesh;
         this._diagramEventObservable = diagramEventObservable;
         //this.diagramManager = diagramManager;
@@ -63,23 +65,21 @@ export class ClickMenu {
             }
         }, -1, false, this, false);
 
-
-        const meshPos = mesh.absolutePosition.clone();
-        const camPos = scene.activeCamera.globalPosition.clone();
-        const direction = meshPos.subtract(camPos).normalize();
-
-        //const {min, max} = mesh.getHierarchyBoundingVectors(true);
-
-        this.transform.position = camPos.add(direction.scale(.8));
-        this.transform.lookAt(meshPos);
-        this.transform.position.y = this.transform.position.y - .2;
-
-        //this.transform.billboardMode = TransformNode.BILLBOARDMODE_Y;
         const platform = scene.getMeshByName("platform");
+        this.transform.parent = scene.activeCamera;
+        this.transform.position.z = .7;
+        this.transform.position.y = -.1;
         this.transform.setParent(platform);
+        this.transform.rotation.z = 0;
+    }
 
-
-
+    private getTransform(input: WebXRInputSource | TransformNode): TransformNode {
+        if (input == null) return null;
+        if ('grip' in input) {
+            return input.grip;
+        } else {
+            return input as TransformNode;
+        }
     }
 
     private makeNewButton(name: string, id: string, scene: Scene, x: number): HtmlButton {

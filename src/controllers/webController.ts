@@ -177,6 +177,13 @@ export class WebController {
                     this.referencePlane.setEnabled(true);
                 } else {
                     this.mouseDown = true;
+                    /*
+                    if (state.pickedMesh) {
+
+                        new ClickMenu(state.pickedMesh, state.gripTransform, this.diagramManager.onDiagramEventObservable);
+                    }
+
+                     */
                 }
             }
         };
