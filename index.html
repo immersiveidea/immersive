@@ -11,7 +11,9 @@
     <link href="/assets/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png">
     <title>Deep Diagram</title>
     <link as="script" href="/newRelic.js" rel="preload">
-    <script src="/newRelic.js"></script>
+    <script defer src="/newRelic.js"></script>
+    <script defer src="/src/webApp.ts" type="module"></script>
+    <script defer src="/src/vrApp.ts" type="module"></script>
     <link href="/manifest.webmanifest" rel="manifest"/>
     <!--<script src='/niceware.js'></script>-->
 </head>
@@ -45,8 +47,6 @@
 
 
 </div>
-<script src="/src/webApp.ts" type="module"></script>
-<script src="/src/vrApp.ts" type="module"></script>
 
 
 <div class="scene">
