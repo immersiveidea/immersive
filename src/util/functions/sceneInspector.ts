@@ -10,7 +10,15 @@ export function addSceneInspector() {
             //voiceManager.stopRecording();
         }
         if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-            import("@babylonjs/core/Debug").then(() => {
+            import ("@babylonjs/inspector").then((inspector) => {
+                inspector.Inspector.Show(DefaultScene.Scene, {
+                    overlay: true,
+                    showExplorer: true
+                });
+                const web = document.querySelector('#webApp');
+                (web as HTMLDivElement).style.display = 'none';
+            });
+            /*import("@babylonjs/core/Debug").then(() => {
                 import("@babylonjs/inspector").then(() => {
                     const web = document.querySelector('#webApp');
                     if (scene.debugLayer.isVisible()) {
@@ -25,7 +33,7 @@ export function addSceneInspector() {
                         }
                     }
                 });
-            });
+            });*/
         }
     });
 }
