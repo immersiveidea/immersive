@@ -40,9 +40,9 @@
       "label": "Example of menus on the web"
     },
     {
-      "src": "/assets/screenshots3.png",
+      "src": "/assets/screenshot3.png",
       "sizes": "1024x1024",
-      "type": "image/jpg",
+      "type": "image/png",
       "label": "Example showing the web app on the Oculus Quest"
     }
   ]
