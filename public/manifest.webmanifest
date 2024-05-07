@@ -2,7 +2,7 @@
   "name": "Deep Diagram",
   "display": "standalone",
   "start_url": "https://www.deepdiagram.com",
-  "id": "/",
+  "id": "com.deepdiagram",
   "scope": "https://www.deepdiagram.com",
   "short_name": "Deep Diagram",
   "theme_color": "#000000",
