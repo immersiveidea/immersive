@@ -20,6 +20,11 @@
 <body>
 <img id="loadingGrid" src="/assets/grid6.jpg"/>
 <script>
+    if (typeof navigator.serviceWorker !== 'undefined') {
+        navigator.serviceWorker.register('/sw.js')
+    }
+</script>
+<script>
     /*
         var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
         var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList

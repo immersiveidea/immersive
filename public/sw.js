@@ -1,7 +1,9 @@
-const VERSION = '0';
-const CACHE = "pwabuilder-offline";
-const PRECACHE_ASSETS = []
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-sw.js');
+const VERSION = '2';
+const CACHE = "deepdiagram";
+
+// TODO: replace the following with the correct offline fallback page i.e.: const offlineFallbackPage = "offline.html";
+const offlineFallbackPage = "/";
 
 self.addEventListener("message", (event) => {
     if (event.data && event.data.type === "SKIP_WAITING") {
@@ -9,7 +11,16 @@ self.addEventListener("message", (event) => {
     }
 });
 
+self.addEventListener('install', async (event) => {
+    event.waitUntil(
+        caches.open(CACHE)
+            .then((cache) => cache.add(offlineFallbackPage))
+    );
+});
 
+if (workbox.navigationPreload.isSupported()) {
+    workbox.navigationPreload.enable();
+}
 workbox.routing.registerRoute(
     new RegExp('/.*\\.png'),
     new workbox.strategies.StaleWhileRevalidate({
@@ -34,9 +45,40 @@ workbox.routing.registerRoute(
         cacheName: CACHE
     })
 );
-
-
 workbox.routing.registerRoute(
-    new RegExp('/login'),
-    new workbox.strategies.NetworkFirst()
-)
+    new RegExp('/.*\\.css'),
+    new workbox.strategies.StaleWhileRevalidate({
+        cacheName: CACHE
+    })
+);
+workbox.routing.registerRoute(
+    new RegExp('/.*\\.js'),
+    new workbox.strategies.StaleWhileRevalidate({
+        cacheName: CACHE
+    })
+);
+workbox.routing.registerRoute(
+    new RegExp('/.*\\.wasm'),
+    new workbox.strategies.StaleWhileRevalidate({
+        cacheName: CACHE
+    })
+);
+self.addEventListener('fetch', (event) => {
+    if (event.request.mode === 'navigate') {
+        event.respondWith((async () => {
+            try {
+                const preloadResp = await event.preloadResponse;
+                if (preloadResp) {
+                    return preloadResp;
+                }
+                const networkResp = await fetch(event.request);
+                return networkResp;
+            } catch (error) {
+
+                const cache = await caches.open(CACHE);
+                const cachedResp = await cache.match(offlineFallbackPage);
+                return cachedResp;
+            }
+        })());
+    }
+});
