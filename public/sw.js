@@ -1,6 +1,7 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-sw.js');
-const VERSION = '2';
+const VERSION = '3';
 const CACHE = "deepdiagram";
+const IMAGEDELIVERY_CACHE = "deepdiagram-images";
 
 // TODO: replace the following with the correct offline fallback page i.e.: const offlineFallbackPage = "offline.html";
 const offlineFallbackPage = "/";
@@ -25,6 +26,13 @@ workbox.routing.registerRoute(
     new RegExp('/.*\\.png'),
     new workbox.strategies.CacheFirst({
         cacheName: CACHE
+    })
+);
+
+workbox.routing.registerRoute(
+    new RegExp('.*imagedelivery.net.*'),
+    new workbox.strategies.CacheFirst({
+        cacheName: IMAGEDELIVERY_CACHE
     })
 );
 workbox.routing.registerRoute(
