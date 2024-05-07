@@ -28,6 +28,18 @@ workbox.routing.registerRoute(
     })
 );
 workbox.routing.registerRoute(
+    new RegExp('/db/.*'),
+    new workbox.strategies.CacheFirst({
+        cacheName: CACHE
+    })
+);
+workbox.routing.registerRoute(
+    new RegExp('/.*\\.svg'),
+    new workbox.strategies.CacheFirst({
+        cacheName: CACHE
+    })
+);
+workbox.routing.registerRoute(
     new RegExp('/.*\\.jpeg'),
     new workbox.strategies.CacheFirst({
         cacheName: CACHE
