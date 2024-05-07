@@ -23,43 +23,43 @@ if (workbox.navigationPreload.isSupported()) {
 }
 workbox.routing.registerRoute(
     new RegExp('/.*\\.png'),
-    new workbox.strategies.StaleWhileRevalidate({
+    new workbox.strategies.CacheFirst({
         cacheName: CACHE
     })
 );
 workbox.routing.registerRoute(
     new RegExp('/.*\\.jpeg'),
-    new workbox.strategies.StaleWhileRevalidate({
+    new workbox.strategies.CacheFirst({
         cacheName: CACHE
     })
 );
 workbox.routing.registerRoute(
     new RegExp('/.*\\.jpg'),
-    new workbox.strategies.StaleWhileRevalidate({
+    new workbox.strategies.CacheFirst({
         cacheName: CACHE
     })
 );
 workbox.routing.registerRoute(
     new RegExp('/.*\\.glb'),
-    new workbox.strategies.StaleWhileRevalidate({
+    new workbox.strategies.CacheFirst({
         cacheName: CACHE
     })
 );
 workbox.routing.registerRoute(
     new RegExp('/.*\\.css'),
-    new workbox.strategies.StaleWhileRevalidate({
+    new workbox.strategies.CacheFirst({
         cacheName: CACHE
     })
 );
 workbox.routing.registerRoute(
     new RegExp('/.*\\.js'),
-    new workbox.strategies.StaleWhileRevalidate({
+    new workbox.strategies.CacheFirst({
         cacheName: CACHE
     })
 );
 workbox.routing.registerRoute(
     new RegExp('/.*\\.wasm'),
-    new workbox.strategies.StaleWhileRevalidate({
+    new workbox.strategies.CacheFirst({
         cacheName: CACHE
     })
 );
