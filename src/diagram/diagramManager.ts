@@ -1,4 +1,4 @@
-import {AbstractMesh, ActionManager, InstancedMesh, Mesh, Observable, Scene, WebXRInputSource} from "@babylonjs/core";
+import {AbstractMesh, ActionManager, InstancedMesh, Mesh, Observable, Scene} from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
@@ -13,7 +13,6 @@ import {buildEntityActionManager} from "./functions/buildEntityActionManager";
 import {isDiagramEntity} from "./functions/isDiagramEntity";
 import {DefaultScene} from "../defaultScene";
 import {DiagramMenuManager} from "./diagramMenuManager";
-import {ClickMenu} from "../menus/clickMenu";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 
 
@@ -68,30 +67,15 @@ export class DiagramManager {
         return this._diagramMenuManager;
     }
 
-    public createClickMenu(mesh: AbstractMesh, grip: WebXRInputSource): ClickMenu {
-        return this._diagramMenuManager.createClickMenu(mesh, grip);
-    }
-
-    private notifyAll(event: DiagramEvent) {
-        this.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
-    }
-
     public get controllers(): Controllers {
         return this._controllers;
     }
 
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
-        let newMesh;
-        if (!mesh.isAnInstance) {
-            newMesh = new InstancedMesh('id' + uuidv4(), (mesh as Mesh));
-        } else {
-            newMesh = new InstancedMesh('id' + uuidv4(), (mesh as InstancedMesh).sourceMesh);
-        }
+        const newMesh = newInstanceFromMeshOrInstance(mesh);
         newMesh.id = 'id' + uuidv4();
-
         newMesh.actionManager = this._diagramEntityActionManager;
         newMesh.position = mesh.absolutePosition.clone();
-
         if (mesh.absoluteRotationQuaternion) {
             newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
         } else {
@@ -118,6 +102,13 @@ export class DiagramManager {
     }
 }
 
+function newInstanceFromMeshOrInstance(mesh: AbstractMesh): AbstractMesh {
+    if (!mesh.isAnInstance) {
+        return new InstancedMesh('id' + uuidv4(), (mesh as Mesh));
+    } else {
+        return new InstancedMesh('id' + uuidv4(), (mesh as InstancedMesh).sourceMesh);
+    }
+}
 function cleanupOrphanConnections(mesh: AbstractMesh, diagramEventObservable: Observable<DiagramEvent>) {
     if (isDiagramEntity(mesh)) {
         if (mesh.metadata.template != '#connection-template') {
