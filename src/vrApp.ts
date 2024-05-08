@@ -15,7 +15,7 @@ import {Introduction} from "./tutorial/introduction";
 
 const webGpu = false;
 
-log.setLevel('error', false);
+log.setLevel('debug', false);
 const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
 export class VrApp {
 

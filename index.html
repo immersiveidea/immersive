@@ -21,7 +21,15 @@
 <img id="loadingGrid" src="/assets/grid6.jpg"/>
 <script>
     if (typeof navigator.serviceWorker !== 'undefined') {
-        navigator.serviceWorker.register('/sw.js')
+        if (localStorage.getItem('serviceWorkerVersion') != '8') {
+            caches.keys().then(cacheNames => {
+                cacheNames.forEach(cacheName => {
+                    caches.delete(cacheName);
+                });
+            });
+            localStorage.setItem('serviceWorkerVersion', '8');
+        }
+        navigator.serviceWorker.register('/sw.js', {updateViaCache: 'none'});
     }
 </script>
 <script>

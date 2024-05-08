@@ -1,29 +1,52 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-sw.js');
-const VERSION = '6';
+const VERSION = '8';
 const CACHE = "deepdiagram";
 const IMAGEDELIVERY_CACHE = "deepdiagram-images";
 
 // TODO: replace the following with the correct offline fallback page i.e.: const offlineFallbackPage = "offline.html";
 const offlineFallbackPage = "/";
-
+/*self.addEventListener('install', async (event) => {
+   self.skipWaiting();
+});
+self.addEventListener('activate', async (event) => {
+    self.skipWaiting();
+    self.clients.matchAll({
+        type: 'window'
+    }).then(windowClients => {
+        windowClients.forEach((windowClient) => {
+            windowClient.navigate(windowClient.url);
+        });
+    });
+});
+*/
 self.addEventListener("message", (event) => {
     if (event.data && event.data.type === "SKIP_WAITING") {
         self.skipWaiting();
     }
 });
 
-self.addEventListener('install', async (event) => {
+
+/*self.addEventListener('install', async (event) => {
     event.waitUntil(
         caches.open(CACHE)
             .then((cache) => cache.add(offlineFallbackPage))
     );
 });
-
-if (workbox.navigationPreload.isSupported()) {
+*/
+/*if (workbox.navigationPreload.isSupported()) {
     workbox.navigationPreload.enable();
-}
+}*/
+
 workbox.routing.registerRoute(
-    new RegExp('/.*\\.png'),
+    new RegExp('/.*\\.wasm'),
+    new workbox.strategies.CacheFirst({
+        cacheName: CACHE
+    })
+);
+console.warn('workbox');
+
+workbox.routing.registerRoute(
+    new RegExp('/assets/.*'),
     new workbox.strategies.CacheFirst({
         cacheName: CACHE
     })
@@ -41,24 +64,7 @@ workbox.routing.registerRoute(
         cacheName: CACHE
     })
 );
-workbox.routing.registerRoute(
-    new RegExp('/.*\\.svg'),
-    new workbox.strategies.CacheFirst({
-        cacheName: CACHE
-    })
-);
-workbox.routing.registerRoute(
-    new RegExp('/.*\\.jpeg'),
-    new workbox.strategies.CacheFirst({
-        cacheName: CACHE
-    })
-);
-workbox.routing.registerRoute(
-    new RegExp('/.*\\.jpg'),
-    new workbox.strategies.CacheFirst({
-        cacheName: CACHE
-    })
-);
+
 workbox.routing.registerRoute(
     new RegExp('/.*\\.glb'),
     new workbox.strategies.CacheFirst({
@@ -71,34 +77,5 @@ workbox.routing.registerRoute(
         cacheName: CACHE
     })
 );
-workbox.routing.registerRoute(
-    new RegExp('/.*\\.js'),
-    new workbox.strategies.CacheFirst({
-        cacheName: CACHE
-    })
-);
-workbox.routing.registerRoute(
-    new RegExp('/.*\\.wasm'),
-    new workbox.strategies.CacheFirst({
-        cacheName: CACHE
-    })
-);
-self.addEventListener('fetch', (event) => {
-    if (event.request.mode === 'navigate') {
-        event.respondWith((async () => {
-            try {
-                const preloadResp = await event.preloadResponse;
-                if (preloadResp) {
-                    return preloadResp;
-                }
-                const networkResp = await fetch(event.request);
-                return networkResp;
-            } catch (error) {
 
-                const cache = await caches.open(CACHE);
-                const cachedResp = await cache.match(offlineFallbackPage);
-                return cachedResp;
-            }
-        })());
-    }
-});
+
