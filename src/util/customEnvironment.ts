@@ -10,6 +10,7 @@ import {
     PhysicsShapeType,
     PointsCloudSystem,
     Scene,
+    Sound,
     Texture,
     TransformNode,
     Vector3
@@ -32,58 +33,36 @@ export class CustomEnvironment {
         if (loading) {
             loading.remove();
         }
+        this.scene.ambientColor = new Color3(.2, .2, .2);
         const light = new HemisphericLight("light1", new Vector3(1, 2, 1), this.scene);
         light.groundColor = new Color3(.1, .1, .1)
         light.diffuse = new Color3(1, 1, 1);
-        light.intensity = .8;
+        light.setDirectionToTarget(new Vector3(.4, .5, .5).normalize());
+        light.intensity = .5;
 
         const physics = new CustomPhysics(this.scene, config);
         physics
             .initializeAsync()
             .then(() => {
                 const ground = this.createGround();
+                new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, this.scene);
+                createPoints(20, 20);
+                this.createBackgroundAudio();
                 this._groundMeshObservable.notifyObservers(ground);
+                this.createWalls();
             });
-    }
-
-    private initSounds() {
-        /* try {
-            const sounds = new DiaSounds(this.scene);
-            window.setTimeout((sound) => {
-                sound.play()
-            }, 2000, sounds.background);
-            const effects: Array<Sound> = sounds.backgroundEffects;
-
-            window.setInterval((sounds: Array<Sound>) => {
-                if (Math.random() < .5) {
-                    return;
-                }
-                const MAX_DISTANCE = 40;
-                const sound = Math.floor(Math.random() * sounds.length);
-                const x = (Math.random() * MAX_DISTANCE) - (MAX_DISTANCE / 2);
-                const y = Math.random() * (MAX_DISTANCE / 2);
-                const z = (Math.random() * MAX_DISTANCE) - (MAX_DISTANCE / 2);
-
-                const position = new Vector3(x, y, z);
-                if (sounds[sound].isPlaying) {
-
-                } else {
-                    sounds[sound].setPosition(position);
-                    sounds[sound].setVolume(Math.random() * .3);
-                    sounds[sound].play();
-                }
-
-            }, 2000, effects);
-        } catch (error) {
-
-        }
-
-             */
     }
     public get groundMeshObservable() {
         return this._groundMeshObservable;
     }
 
+    private createBackgroundAudio() {
+        const noise = new Sound("backgroundNoise", "/assets/sounds/noise.mp3", this.scene, null, {
+            loop: true,
+            volume: .2,
+            autoplay: true
+        });
+    }
     private createGround() {
         const scene = this.scene;
 
@@ -92,24 +71,23 @@ export class CustomEnvironment {
             height: 20,
             subdivisions: 1
         }, scene);
-        createPoints(20, 20);
         ground.material = createGridMaterial(Color3.FromHexString("#aaffaa"), Color3.FromHexString("#111511"));
+
+        //buildAvatar(scene);
+        return ground;
+    }
+
+    private createWalls() {
         const color1 = Color3.FromHexString("#ff9999");
         const color2 = Color3.FromHexString("#221111");
         const color3 = Color3.FromHexString("#9999ff");
         const color4 = Color3.FromHexString("#111115");
 
-
         this.createWall(new Vector3(0, 10, 10), new Vector3(0, 0, 0), color3, color4);
         this.createWall(new Vector3(0, 10, -10), new Vector3(0, Math.PI, 0), color3, color4);
         this.createWall(new Vector3(10, 10, 0), new Vector3(0, Math.PI / 2, 0), color1, color2);
         this.createWall(new Vector3(-10, 10, 0), new Vector3(0, -Math.PI / 2, 0), color1, color2);
-
-        new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, scene);
-        //buildAvatar(scene);
-        return ground;
     }
-
     private createWall(position: Vector3, rotation: Vector3, color1: Color3, color2: Color3) {
         const scene = this.scene;
         const wall = MeshBuilder.CreatePlane("wall", {width: 20, height: 20}, scene);
@@ -121,6 +99,7 @@ export class CustomEnvironment {
         return wall;
     }
 }
+
 
 async function createPoints(divisions: number = 10, scale: number = 80) {
     const scene = DefaultScene.Scene;

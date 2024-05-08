@@ -32,19 +32,11 @@ export class DiagramManager {
         this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, this._controllers, this._config);
         this._diagramEntityActionManager = buildEntityActionManager(this._controllers);
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
-        this.logger.debug("DiagramManager constructed");
+
         this._scene.onMeshRemovedObservable.add((mesh) => {
             cleanupOrphanConnections(mesh, this.onDiagramEventObservable);
         });
         document.addEventListener('uploadImage', (event: CustomEvent) => {
-            let position = {x: 0, y: 1.6, z: 0};
-            if (event.detail.position) {
-                position = {
-                    x: event.detail.position.x,
-                    y: event.detail.position.y,
-                    z: event.detail.position.z
-                }
-            }
             const diagramEntity: DiagramEntity = {
                 template: '#image-template',
                 image: event.detail.data,
@@ -60,7 +52,8 @@ export class DiagramManager {
                     entity: diagramEntity
                 }, DiagramEventObserverMask.ALL);
             }
-        })
+        });
+        this.logger.debug("DiagramManager constructed");
     }
 
     public get diagramMenuManager(): DiagramMenuManager {
@@ -70,6 +63,7 @@ export class DiagramManager {
     public get controllers(): Controllers {
         return this._controllers;
     }
+
 
     public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
         const newMesh = newInstanceFromMeshOrInstance(mesh);
@@ -109,14 +103,13 @@ function newInstanceFromMeshOrInstance(mesh: AbstractMesh): AbstractMesh {
         return new InstancedMesh('id' + uuidv4(), (mesh as InstancedMesh).sourceMesh);
     }
 }
+
 function cleanupOrphanConnections(mesh: AbstractMesh, diagramEventObservable: Observable<DiagramEvent>) {
-    if (isDiagramEntity(mesh)) {
-        if (mesh.metadata.template != '#connection-template') {
-            mesh.getScene().meshes.forEach((m) => {
-                if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {
-                    diagramEventObservable.notifyObservers({type: DiagramEventType.REMOVE, entity: toDiagramEntity(m)});
-                }
-            });
-        }
+    if (isDiagramEntity(mesh) && mesh.metadata.template != '#connection-template') {
+        mesh.getScene().meshes.forEach((m) => {
+            if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {
+                diagramEventObservable.notifyObservers({type: DiagramEventType.REMOVE, entity: toDiagramEntity(m)});
+            }
+        });
     }
 }

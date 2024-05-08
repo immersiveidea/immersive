@@ -29,28 +29,6 @@ export class VrApp {
         });
     }
 
-    public async initialize(scene: Scene) {
-        setMainCamera(scene);
-        const spinner = new Spinner();
-        spinner.show();
-        const diagramManager = new DiagramManager();
-        await initDb(diagramManager);
-        initEnvironment(diagramManager, spinner);
-        const gamepadManager = new GamepadManager(scene);
-        addSceneInspector();
-        const el = document.querySelector('#download');
-        if (el) {
-            el.addEventListener('click', () => {
-                exportGltf();
-            })
-        }
-        if (!localStorage.getItem('tutorialCompleted')) {
-            this.logger.info('Starting tutorial');
-            const intro = new Introduction();
-        }
-        this.logger.info('Render loop started');
-    }
-
     private async initializeEngine() {
         let engine: WebGPUEngine | Engine = null;
         if (webGpu) {
@@ -73,6 +51,29 @@ export class VrApp {
             scene.render();
         });
     }
+    public async initialize(scene: Scene) {
+        setMainCamera(scene);
+        const spinner = new Spinner();
+        spinner.show();
+        const diagramManager = new DiagramManager();
+        await initDb(diagramManager);
+        initEnvironment(diagramManager, spinner);
+        const gamepadManager = new GamepadManager(scene);
+        addSceneInspector();
+        const el = document.querySelector('#download');
+        if (el) {
+            el.addEventListener('click', () => {
+                exportGltf();
+            })
+        }
+        if (!localStorage.getItem('tutorialCompleted')) {
+            this.logger.info('Starting tutorial');
+            const intro = new Introduction();
+        }
+        this.logger.info('Render loop started');
+    }
+
+
 }
 const vrApp = new VrApp();
 buildQuestLink();
