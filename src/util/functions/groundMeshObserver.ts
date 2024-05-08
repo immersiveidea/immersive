@@ -56,7 +56,10 @@ export async function groundMeshObserver(ground: AbstractMesh,
             logger.debug(ev);
         });
     });
-
+    xr.baseExperience.sessionManager.onXRSessionEnded.add(() => {
+        logger.debug('session ended');
+        window.location.reload();
+    });
     xr.baseExperience.onStateChangedObservable.add((state) => {
         logger.debug(WebXRState[state]);
         switch (state) {
@@ -70,9 +73,8 @@ export async function groundMeshObserver(ground: AbstractMesh,
                 break;
             case WebXRState.EXITING_XR:
                 setTimeout(() => {
-                    logger.debug('reloading');
+                    logger.debug('EXITING_XR, reloading');
                     window.location.reload();
-
                 }, 500);
 
         }

@@ -35,9 +35,7 @@ export class DiagramManager {
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
         this.logger.debug("DiagramManager constructed");
         this._scene.onMeshRemovedObservable.add((mesh) => {
-            if (isDiagramEntity(mesh)) {
-                this.cleanupOrphanConnections(mesh)
-            }
+            cleanupOrphanConnections(mesh, this.onDiagramEventObservable);
         });
         document.addEventListener('uploadImage', (event: CustomEvent) => {
             let position = {x: 0, y: 1.6, z: 0};
@@ -56,16 +54,12 @@ export class DiagramManager {
                 rotation: {x: 0, y: Math.PI, z: 0},
                 scale: {x: 1, y: 1, z: 1},
             }
-
-            console.log(diagramEntity);
             //const newMesh = buildMeshFromDiagramEntity(diagramEntity, this._scene);
             if (this.onDiagramEventObservable) {
                 this.onDiagramEventObservable.notifyObservers({
                     type: DiagramEventType.ADD,
                     entity: diagramEntity
                 }, DiagramEventObserverMask.ALL);
-
-                //this.onDiagramEventObservable.notifyObservers({type: DiagramEventType.ADD, entity: diagramEntity}, DiagramEventObserverMask.FROM_DB);
             }
         })
     }
@@ -77,6 +71,7 @@ export class DiagramManager {
     public createClickMenu(mesh: AbstractMesh, grip: WebXRInputSource): ClickMenu {
         return this._diagramMenuManager.createClickMenu(mesh, grip);
     }
+
     private notifyAll(event: DiagramEvent) {
         this.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
     }
@@ -110,24 +105,27 @@ export class DiagramManager {
         }
         return newMesh;
     }
+
     public get config(): AppConfig {
         return this._config;
     }
 
-    private cleanupOrphanConnections(mesh: AbstractMesh) {
-        if (mesh.metadata.template != '#connection-template') {
-            this._scene.meshes.forEach((m) => {
-                if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {
-                    this.logger.debug("removing connection", m.id);
-                    this.notifyAll({type: DiagramEventType.REMOVE, entity: toDiagramEntity(m)});
-                }
-            });
-        }
-    }
 
     private onDiagramEvent(event: DiagramEvent) {
         diagramEventHandler(
             event, this._scene, this._diagramMenuManager.toolbox, this._config.current.physicsEnabled,
             this._diagramEntityActionManager);
+    }
+}
+
+function cleanupOrphanConnections(mesh: AbstractMesh, diagramEventObservable: Observable<DiagramEvent>) {
+    if (isDiagramEntity(mesh)) {
+        if (mesh.metadata.template != '#connection-template') {
+            mesh.getScene().meshes.forEach((m) => {
+                if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {
+                    diagramEventObservable.notifyObservers({type: DiagramEventType.REMOVE, entity: toDiagramEntity(m)});
+                }
+            });
+        }
     }
 }

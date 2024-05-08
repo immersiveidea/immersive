@@ -13,7 +13,6 @@ export class AppConfig {
         newRelicKey: null,
         newRelicAccount: null,
         physicsEnabled: false,
-        demoCompleted: false,
         flyMode: true
     }
 
@@ -72,11 +71,6 @@ export class AppConfig {
 
     public setPhysicsEnabled(physicsEnabled: boolean) {
         this._currentConfig.physicsEnabled = physicsEnabled;
-        this.save();
-    }
-
-    public setDemoCompleted(demoCompleted: boolean) {
-        this._currentConfig.demoCompleted = demoCompleted;
         this.save();
     }
 

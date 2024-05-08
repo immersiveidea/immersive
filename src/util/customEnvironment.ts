@@ -113,6 +113,8 @@ export class CustomEnvironment {
     private createWall(position: Vector3, rotation: Vector3, color1: Color3, color2: Color3) {
         const scene = this.scene;
         const wall = MeshBuilder.CreatePlane("wall", {width: 20, height: 20}, scene);
+        wall.isPickable = false;
+        wall.isNearPickable = false;
         wall.position = position;
         wall.rotation = rotation;
         wall.material = createGridMaterial(color1, color2);
@@ -163,7 +165,6 @@ function createGridMaterial(lineColor: Color3, mainColor: Color3): Material {
     material.majorUnitFrequency = 10;
     material.mainColor = mainColor;
     material.lineColor = lineColor;
-
     return material;
 }
 
