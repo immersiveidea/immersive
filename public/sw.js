@@ -39,7 +39,7 @@ self.addEventListener("message", (event) => {
 
 workbox.routing.registerRoute(
     new RegExp('/.*\\.wasm'),
-    new workbox.strategies.CacheFirst({
+    new workbox.strategies.StaleWhileRevalidate({
         cacheName: CACHE
     })
 );
@@ -47,33 +47,33 @@ console.warn('workbox');
 
 workbox.routing.registerRoute(
     new RegExp('/assets/.*'),
-    new workbox.strategies.CacheFirst({
+    new workbox.strategies.StaleWhileRevalidate({
         cacheName: CACHE
     })
 );
 
 workbox.routing.registerRoute(
     new RegExp('.*imagedelivery.net.*'),
-    new workbox.strategies.CacheFirst({
+    new workbox.strategies.StaleWhileRevalidate({
         cacheName: IMAGEDELIVERY_CACHE
     })
 );
 workbox.routing.registerRoute(
     new RegExp('/db/.*'),
-    new workbox.strategies.CacheFirst({
+    new workbox.strategies.StaleWhileRevalidate({
         cacheName: CACHE
     })
 );
 
 workbox.routing.registerRoute(
     new RegExp('/.*\\.glb'),
-    new workbox.strategies.CacheFirst({
+    new workbox.strategies.StaleWhileRevalidate({
         cacheName: CACHE
     })
 );
 workbox.routing.registerRoute(
     new RegExp('/.*\\.css'),
-    new workbox.strategies.CacheFirst({
+    new workbox.strategies.StaleWhileRevalidate({
         cacheName: CACHE
     })
 );

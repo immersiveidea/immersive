@@ -16,6 +16,27 @@
     <script defer src="/src/vrApp.ts" type="module"></script>
     <link href="/manifest.webmanifest" rel="manifest"/>
     <!--<script src='/niceware.js'></script>-->
+    <style>
+        #keyboardHelp {
+            display: none;
+            width: 665px;
+            height: 312px;
+        }
+
+        #keyboardHelp .button {
+
+            background-color: white;
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            text-align: center;
+            color: #000000;
+        }
+
+        #keyboardHelp div {
+            background: transparent;
+        }
+    </style>
 </head>
 <body>
 <img id="loadingGrid" src="/assets/grid6.jpg"/>
@@ -55,37 +76,14 @@
       */
 
 </script>
-
 <div class="webApp" id="webApp">
 
-
 </div>
-
 
 <div class="scene">
     <canvas id="gameCanvas"></canvas>
 </div>
 
 </body>
-<style>
-    #keyboardHelp {
-        display: none;
-        width: 665px;
-        height: 312px;
-    }
 
-    #keyboardHelp .button {
-
-        background-color: white;
-        width: 16px;
-        height: 16px;
-        display: inline-block;
-        text-align: center;
-        color: #000000;
-    }
-
-    #keyboardHelp div {
-        background: transparent;
-    }
-</style>
 </html>
