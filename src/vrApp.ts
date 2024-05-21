@@ -60,6 +60,7 @@ export class VrApp {
         initEnvironment(diagramManager, spinner);
         const gamepadManager = new GamepadManager(scene);
         addSceneInspector();
+        //const camMenu = new CameraMenu(scene);
         const el = document.querySelector('#download');
         if (el) {
             el.addEventListener('click', () => {

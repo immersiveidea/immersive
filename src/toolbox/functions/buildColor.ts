@@ -8,9 +8,10 @@ export function buildColor(color: Color3, scene: Scene, parent: TransformNode, i
     const height = .1;
     const material = new StandardMaterial("material-" + color.toHexString(), scene);
     material.diffuseColor = color;
-    material.ambientColor = color;
-    material.roughness = .1;
-    material.maxSimultaneousLights = 1;
+
+    //     material.ambientColor = color;
+    //material.roughness = .1;
+    //material.maxSimultaneousLights = 2;
 
     const colorBoxMesh = MeshBuilder.CreatePlane("toolbox-color-" + color.toHexString(), {
         width: width,

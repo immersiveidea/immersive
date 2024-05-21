@@ -2,6 +2,7 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox
 const VERSION = '8';
 const CACHE = "deepdiagram";
 const IMAGEDELIVERY_CACHE = "deepdiagram-images";
+const MAPTILE_CACHE = 'maptiler';
 
 // TODO: replace the following with the correct offline fallback page i.e.: const offlineFallbackPage = "offline.html";
 const offlineFallbackPage = "/";
@@ -43,7 +44,27 @@ workbox.routing.registerRoute(
         cacheName: CACHE
     })
 );
-console.warn('workbox');
+
+workbox.routing.registerRoute(
+    new RegExp('.*api.maptiler.com/.*'),
+    new workbox.strategies.CacheFirst({
+        plugins: [
+            new workbox.expiration.ExpirationPlugin({
+                maxEntries: 256,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+                purgeOnQuotaError: true,
+                matchOptions: {
+                    ignoreVary: true
+                }
+            }),
+            new workbox.cacheableResponse.CacheableResponsePlugin({
+                statuses: [0, 200]
+            })
+        ],
+        cacheName: MAPTILE_CACHE
+
+    })
+);
 
 workbox.routing.registerRoute(
     new RegExp('/assets/.*'),
