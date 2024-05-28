@@ -1,9 +1,18 @@
-import {Color3, MeshBuilder, Node, Scene, StandardMaterial, TransformNode, Vector3} from "@babylonjs/core";
+import {
+    AbstractMesh,
+    Color3,
+    MeshBuilder,
+    Node,
+    Scene,
+    StandardMaterial,
+    TransformNode,
+    Vector3
+} from "@babylonjs/core";
 import {enumKeys} from "../../util/functions/enumKeys";
 import {ToolType} from "../types/toolType";
 import {buildTool} from "./buildTool";
 
-export function buildColor(color: Color3, scene: Scene, parent: TransformNode, index: number): Node {
+export function buildColor(color: Color3, scene: Scene, parent: TransformNode, index: number, toolMap: Map<string, AbstractMesh>): Node {
     const width = .1;
     const height = .1;
     const material = new StandardMaterial("material-" + color.toHexString(), scene);
@@ -34,6 +43,7 @@ export function buildColor(color: Color3, scene: Scene, parent: TransformNode, i
             //buildColorPicker(scene, color, newItem, material, i, colorChangeObservable);
             newItem.position = new Vector3(calculatePosition(++i), .1, 0);
             tools.push(newItem.id);
+            toolMap.set(newItem.id, newItem);
         }
     }
     colorBoxMesh.metadata.tools = tools;

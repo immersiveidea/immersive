@@ -6,9 +6,6 @@ import {GridMaterial} from "@babylonjs/materials";
 import {wheelHandler} from "./functions/wheelHandler";
 import log, {Logger} from "loglevel";
 import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
-import {DiagramEventType} from "../diagram/types/diagramEntity";
-import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
-import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
 
 export class WebController {
     private readonly scene: Scene;
@@ -211,10 +208,10 @@ export class WebController {
                 }
             } else {
                 if (this.mesh) {
-                    this.diagramManager.onDiagramEventObservable.notifyObservers({
+                    /*this.diagramManager.onDiagramEventObservable.notifyObservers({
                         type: DiagramEventType.MODIFY,
                         entity: toDiagramEntity(this.mesh)
-                    }, DiagramEventObserverMask.ALL);
+                    }, DiagramEventObserverMask.ALL); */
                 }
                 this.mesh = null;
             }

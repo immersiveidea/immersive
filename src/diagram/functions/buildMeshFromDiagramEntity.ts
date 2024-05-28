@@ -4,14 +4,11 @@ import {
     InstancedMesh,
     Mesh,
     MeshBuilder,
-    Quaternion,
     Scene,
     StandardMaterial,
     Texture,
     Vector3
 } from "@babylonjs/core";
-import {DiagramConnection} from "../diagramConnection";
-import {updateTextNode} from "../../util/functions/updateTextNode";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
 import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
@@ -31,6 +28,11 @@ export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene):
     generateId(entity);
 
     const newMesh: AbstractMesh = createNewInstanceIfNecessary(entity, scene);
+
+    if (!newMesh) {
+        logger.error("buildMeshFromDiagramEntity: newMesh is null", JSON.stringify((entity)));
+        return null;
+    }
     return mapMetadata(entity, newMesh, scene);
 }
 
@@ -43,16 +45,13 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
         newMesh = oldMesh;
     } else {
         switch (entity.template) {
-            case DiagramTemplates.CONNECTION:
-                const connection: DiagramConnection = new DiagramConnection(entity.from, entity.to, entity.id, scene);
-                logger.debug(`connection.mesh = ${connection.mesh.id}`);
-                newMesh = connection.mesh;
-                break;
             case DiagramTemplates.USER:
                 break;
             case DiagramTemplates.IMAGE:
                 newMesh = buildImage(entity, scene);
-                newMesh.metadata = {template: entity.template, exportable: true, tool: false}
+                break;
+            case DiagramTemplates.CONNECTION:
+                newMesh = MeshBuilder.CreateCylinder(entity.id, {diameter: .025, height: 1}, scene);
                 break;
             case DiagramTemplates.BOX:
             case DiagramTemplates.SPHERE:
@@ -62,7 +61,7 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
                 const toolMesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
                 if (toolMesh && !oldMesh) {
                     newMesh = new InstancedMesh(entity.id, (toolMesh as Mesh));
-                    newMesh.metadata = {template: entity.template, exportable: true, tool: false};
+                    //                  newMesh.metadata = {template: entity.template, exportable: true, tool: false};
                 } else {
                     logger.warn('no tool mesh found for ' + entity.template + "-" + entity.color);
                 }
@@ -70,6 +69,15 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
             default:
                 logger.warn('no tool mesh found for ' + entity.template + "-" + entity.color);
                 break;
+        }
+        if (newMesh) {
+            if (!newMesh.metadata) {
+                newMesh.metadata = {template: entity.template, exportable: true, tool: false};
+            } else {
+                newMesh.metadata.template = entity.template;
+                newMesh.metadata.exportable = true;
+                newMesh.metadata.tool = false;
+            }
 
         }
     }
@@ -83,8 +91,7 @@ function buildImage(entity: DiagramEntity, scene: Scene): AbstractMesh {
     const material = new StandardMaterial("planeMaterial", scene);
     const image = new Image();
     image.src = entity.image;
-    const texture = new Texture(entity.image, scene);
-    material.emissiveTexture = texture;
+    material.emissiveTexture = new Texture(entity.image, scene);
     material.backFaceCulling = false;
     material.disableLighting = true;
     plane.material = material;
@@ -106,7 +113,7 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
         if (!newMesh.metadata) {
             newMesh.metadata = {};
         }
-        if (entity.position) {
+        /*if (entity.position) {
             newMesh.position = xyztovec(entity.position);
         }
         if (entity.rotation) {
@@ -115,25 +122,25 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
             } else {
                 newMesh.rotation = xyztovec(entity.rotation);
             }
-        }
-        if (entity.parent) {
+        }*/
+        /*if (entity.parent) {
             const parent_node = scene.getNodeById(entity.parent);
             if (parent_node) {
                 newMesh.parent = parent_node;
                 newMesh.metadata.parent = entity.parent;
             }
 
-        }
-        if (entity.scale) {
+        }*/
+        /*if (entity.scale) {
             newMesh.scaling = xyztovec(entity.scale);
-        }
+        }*/
         if (!newMesh.material && newMesh?.metadata?.template != "#object-template") {
             logger.warn("new material created, this shouldn't happen");
             newMesh.material = buildStandardMaterial("material-" + entity.id, scene, entity.color);
         }
         if (entity.text) {
             newMesh.metadata.text = entity.text;
-            updateTextNode(newMesh, entity.text);
+            //updateTextNode(newMesh, entity.text);
         }
         if (entity.from) {
             newMesh.metadata.from = entity.from;
@@ -149,4 +156,8 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
 
 function xyztovec(xyz: { x, y, z }): Vector3 {
     return new Vector3(xyz.x, xyz.y, xyz.z);
+}
+
+function vectoxys(v: Vector3): { x, y, z } {
+    return {x: v.x, y: v.y, z: v.z};
 }

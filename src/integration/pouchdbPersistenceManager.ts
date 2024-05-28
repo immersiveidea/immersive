@@ -40,10 +40,13 @@ export class PouchdbPersistenceManager {
 
         this.onDBUpdateObservable.add((evt) => {
             this.logger.debug(evt);
-            diagramManager.onDiagramEventObservable.notifyObservers({
-                type: DiagramEventType.ADD,
-                entity: evt
-            }, DiagramEventObserverMask.FROM_DB);
+            if (!evt.friendly) {
+                diagramManager.onDiagramEventObservable.notifyObservers({
+                    type: DiagramEventType.ADD,
+                    entity: evt
+                }, DiagramEventObserverMask.FROM_DB);
+            }
+
         });
 
         this.onDBRemoveObservable.add((entity) => {
@@ -140,11 +143,20 @@ export class PouchdbPersistenceManager {
     }
 
     private async sendLocalDataToScene() {
+        const clear = localStorage.getItem('clearLocal');
         try {
             const all = await this.db.allDocs({include_docs: true});
             for (const entity of all.rows) {
                 this.logger.debug(entity.doc);
-                this.onDBUpdateObservable.notifyObservers(entity.doc, 1);
+                if (clear) {
+                    this.remove(entity.id);
+                } else {
+                    this.onDBUpdateObservable.notifyObservers(entity.doc, 1);
+                }
+
+            }
+            if (clear) {
+                localStorage.removeItem('clearLocal');
             }
         } catch (err) {
             this.logger.error(err);

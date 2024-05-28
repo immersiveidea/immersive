@@ -15,8 +15,8 @@ export function toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
         mesh.id = "id" + uuidv4();
     }
     entity.id = mesh.id;
-    entity.position = vectoxys(mesh.position);
-    entity.rotation = vectoxys(mesh.rotation);
+    entity.position = vectoxys(mesh.absolutePosition);
+    entity.rotation = vectoxys(mesh.absoluteRotationQuaternion.toEulerAngles());
     entity.last_seen = new Date();
     entity.template = mesh?.metadata?.template;
     entity.text = mesh?.metadata?.text;

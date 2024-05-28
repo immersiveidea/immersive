@@ -1,5 +1,4 @@
-import {AbstractMesh, AxesViewer, Color3, Node, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
-import {GUI3DManager, StackPanel3D,} from "@babylonjs/gui";
+import {AbstractMesh, Color3, InstancedMesh, Node, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {buildColor} from "./functions/buildColor";
 import log from "loglevel";
 import {Handle} from "../objects/handle";
@@ -14,6 +13,17 @@ const colors: string[] = [
 
 
 export class Toolbox {
+    private readonly tools: Map<string, InstancedMesh> = new Map<string, InstancedMesh>();
+
+    constructor() {
+        this.scene = DefaultScene.Scene;
+        this.toolboxBaseNode = new TransformNode("toolbox", this.scene);
+        this.handle = new Handle(this.toolboxBaseNode);
+        this.toolboxBaseNode.position.y = .2;
+        this.toolboxBaseNode.scaling = new Vector3(0.6, 0.6, 0.6);
+        this.buildToolbox();
+        Toolbox._instance = this;
+    }
     private readonly logger = log.getLogger('Toolbox');
     private index = 0;
     public readonly toolboxBaseNode: TransformNode;
@@ -21,45 +31,25 @@ export class Toolbox {
     private colorPicker: TransformNode;
     private changing = false;
     private readonly handle: Handle;
-    private readonly manager: GUI3DManager;
-    private readonly addPanel: StackPanel3D;
-    public readonly colorChangeObservable: Observable<{ oldColor: string, newColor: string }> =
-        new Observable<{ oldColor: string; newColor: string }>()
-    private axes: AxesViewer;
 
-    constructor() {
-        this.scene = DefaultScene.Scene;
-        this.addPanel = new StackPanel3D();
-        this.manager = new GUI3DManager(this.scene);
-        this.manager.addControl(this.addPanel);
-        this.toolboxBaseNode = new TransformNode("toolbox", this.scene);
-        this.handle = new Handle(this.toolboxBaseNode);
-        this.toolboxBaseNode.position.y = .2;
-        this.toolboxBaseNode.scaling = new Vector3(0.6, 0.6, 0.6);
-        this.buildToolbox();
+    public static _instance;
+
+    public static get instance() {
+        return Toolbox._instance;
     }
 
-    public updateToolbox(color: string) {
-        if (color) {
-            if (this.scene.getMeshById("toolbox-color-" + color)) {
-                return;
-            } else {
-                buildColor(Color3.FromHexString(color), this.scene, this.toolboxBaseNode, this.index++);
-            }
-        } else {
-            this.logger.warn("updateToolbox called with no color");
-        }
-
+    public isTool(mesh: AbstractMesh) {
+        return this.tools.has(mesh.id);
     }
-
     private nodePredicate = (node: Node) => {
         return node.getClassName() == "InstancedMesh" &&
             node.isEnabled(false) == true
     };
 
-    private buildToolbox() {
+    private setupPointerObservable() {
         this.scene.onPointerObservable.add((pointerInfo) => {
-            if (pointerInfo.type == 1 && pointerInfo.pickInfo.pickedMesh?.metadata?.tool == 'color') {
+            if (pointerInfo.type == 1 &&
+                pointerInfo.pickInfo.pickedMesh?.metadata?.tool == 'color') {
                 if (this.changing) {
                     this.colorPicker.setEnabled(true);
                     return;
@@ -77,9 +67,12 @@ export class Toolbox {
                 }
             }
         });
+    }
+
+    private buildColorPicker() {
         let initial = true;
         for (const c of colors) {
-            const cnode = buildColor(Color3.FromHexString(c), this.scene, this.toolboxBaseNode, this.index++);
+            const cnode = buildColor(Color3.FromHexString(c), this.scene, this.toolboxBaseNode, this.index++, this.tools);
             if (initial) {
                 initial = false;
                 for (const id of cnode.metadata.tools) {
@@ -89,41 +82,38 @@ export class Toolbox {
             }
         }
 
+    }
+
+    private assignHandleParentAndStore(mesh: TransformNode) {
         const offset = new Vector3(-.50, 1.6, .38);
         const rotation = new Vector3(.5, -.6, .18);
 
+        const handle = this.handle;
+        handle.mesh.parent = mesh;
+        if (!handle.idStored) {
+            handle.mesh.position = offset;
+            handle.mesh.rotation = rotation;
+        }
+
+    }
+
+    private buildToolbox() {
+        this.setupPointerObservable();
+        this.buildColorPicker();
         if (this.toolboxBaseNode.parent) {
-            const platform = this.scene.getNodeById("platform");
-
+            const platform = this.scene.getMeshById("platform");
             if (platform) {
-                const handle = this.handle;
-                handle.mesh.parent = platform;
-                if (!handle.idStored) {
-                    handle.mesh.position = offset;
-                    handle.mesh.rotation = rotation;
-                }
-
+                this.assignHandleParentAndStore(platform);
             } else {
-                this.scene.onNewMeshAddedObservable.add((mesh: AbstractMesh) => {
+                const observer = this.scene.onNewMeshAddedObservable.add((mesh: AbstractMesh) => {
                     if (mesh && mesh.id == "platform") {
-                        const handle = this.handle;
-                        handle.mesh.parent = mesh;
-                        if (!handle.idStored) {
-                            handle.mesh.position = offset;
-                            handle.mesh.rotation = rotation;
-                        }
-                        //handle.mesh.parent = mesh;
-
+                        this.assignHandleParentAndStore(mesh);
+                        this.scene.onNewMeshAddedObservable.remove(observer);
                     }
                 }, -1, false, this, false);
             }
-
         }
-
-        /*setMenuPosition(this.toolboxBaseNode.parent as Mesh, this.scene,
-            Vector3.Zero());*/
     }
-
     public get handleMesh(): AbstractMesh {
         return this.handle.mesh;
     }

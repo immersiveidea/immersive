@@ -6,12 +6,15 @@ const WIDGET_SIZE = .1;
 
 export function buildTool(tool: ToolType, colorParent: AbstractMesh, material: Material) {
     let id = "ID";
+    let color = "#000000";
     switch (material.getClassName()) {
         case "StandardMaterial":
             id = toolId(tool, (material as StandardMaterial).diffuseColor);
+            color = (material as StandardMaterial).diffuseColor.toHexString();
             break;
         case "PBRMaterial":
             id = toolId(tool, (material as PBRMaterial).albedoColor);
+            color = (material as PBRMaterial).albedoColor.toHexString();
             break;
         default:
             this.logger.warn("buildTool: parent.material is null");
@@ -30,9 +33,9 @@ export function buildTool(tool: ToolType, colorParent: AbstractMesh, material: M
         WIDGET_SIZE,
         WIDGET_SIZE);
     newItem.parent = colorParent.parent;
-    newItem.metadata = {template: tool, tool: true, grabClone: true};
-    const instance = new InstancedMesh("instance-" + id, newItem);
-    instance.metadata = {template: tool, tool: true, grabClone: true};
+    newItem.metadata = {template: tool, tool: true, grabClone: true, color: color};
+    const instance = new InstancedMesh("tool-instance-" + id, newItem);
+    instance.metadata = {template: tool, tool: true, grabClone: true, color: color};
     instance.parent = colorParent.parent;
     instance.setEnabled(false);
     newItem.setEnabled(false);

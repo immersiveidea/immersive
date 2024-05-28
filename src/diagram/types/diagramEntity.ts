@@ -54,4 +54,5 @@ export type DiagramEntity = {
     scale?: { x: number, y: number, z: number };
     parent?: string;
     diagramlistingid?: string;
+    friendly?: string;
 }

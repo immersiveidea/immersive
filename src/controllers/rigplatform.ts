@@ -184,6 +184,18 @@ export class Rigplatform {
             }
         });
         this.xr.input.onControllerRemovedObservable.add((source) => {
+            switch (source.inputSource.handedness) {
+                case RIGHT:
+                    if (this.rightController) {
+                        this.rightController = null;
+                    }
+                    break;
+                case LEFT:
+                    if (this.leftController) {
+                        this.leftController = null;
+                    }
+                    break;
+            }
             this.logger.debug('controller removed', source);
         });
     }

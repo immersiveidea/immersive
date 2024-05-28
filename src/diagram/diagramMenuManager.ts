@@ -1,7 +1,6 @@
 import {DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import {AbstractMesh, ActionEvent, Observable, Scene, Vector3, WebXRInputSource} from "@babylonjs/core";
 import {InputTextView} from "../information/inputTextView";
-import {toDiagramEntity} from "./functions/toDiagramEntity";
 import {DefaultScene} from "../defaultScene";
 import {ControllerEvent, ControllerEventType, Controllers} from "../controllers/controllers";
 import log from "loglevel";
@@ -29,19 +28,12 @@ export class DiagramMenuManager {
         this.configMenu = new ConfigMenu(config);
 
         this._inputTextView.onTextObservable.add((evt) => {
-            const mesh = this._scene.getMeshById(evt.id);
-            if (mesh) {
-                const entity = toDiagramEntity(mesh);
-                entity.text = evt.text;
-                this.notifyAll({type: DiagramEventType.MODIFY, entity: entity});
-            } else {
-                this.logger.error("mesh not found", evt.id);
-            }
+            this.notifyAll({type: DiagramEventType.MODIFY, entity: {id: evt.id, text: evt.text}});
         });
         this.toolbox = new Toolbox();
         this.scaleMenu = new ScaleMenu();
         this.scaleMenu.onScaleChangeObservable.add((mesh: AbstractMesh) => {
-            this.notifyAll({type: DiagramEventType.MODIFY, entity: toDiagramEntity(mesh)});
+            this.notifyAll({type: DiagramEventType.MODIFY, entity: {id: mesh.id, scale: mesh.scaling}});
             const position = mesh.absolutePosition.clone();
             position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
             this.scaleMenu.changePosition(position);
@@ -68,8 +60,6 @@ export class DiagramMenuManager {
                     if (configY > (cameraPos.y - .2)) {
                         this.configMenu.handleMesh.position.y = localCamera.y - .2;
                     }
-
-
                 }
             }
         });
@@ -85,7 +75,7 @@ export class DiagramMenuManager {
             console.log(evt);
             switch (evt.source.id) {
                 case "remove":
-                    this.notifyAll({type: DiagramEventType.REMOVE, entity: toDiagramEntity(clickMenu.mesh)});
+                    this.notifyAll({type: DiagramEventType.REMOVE, entity: {id: clickMenu.mesh.id}});
                     break;
                 case "label":
                     this.editText(clickMenu.mesh);

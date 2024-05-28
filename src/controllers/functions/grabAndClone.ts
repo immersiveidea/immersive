@@ -1,20 +1,33 @@
-import {AbstractMesh, TransformNode} from "@babylonjs/core";
+import {AbstractMesh, Vector3} from "@babylonjs/core";
 import {DiagramManager} from "../../diagram/diagramManager";
-import {DefaultScene} from "../../defaultScene";
+import {DiagramObject} from "../../objects/diagramObject";
 
 export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh):
-    { transformNode: TransformNode, newMesh: AbstractMesh } {
-    const scene = DefaultScene.Scene;
-    const newMesh = diagramManager.createCopy(mesh, true);
-    const transformNode = new TransformNode("grabAnchor", scene);
-    transformNode.id = "grabAnchor";
-    transformNode.position = newMesh.position.clone();
-    if (newMesh.rotationQuaternion) {
-        transformNode.rotationQuaternion = newMesh.rotationQuaternion.clone();
+    DiagramObject {
+    if (diagramManager.isDiagramObject(mesh)) {
+        const diagramObject = diagramManager.createCopy(mesh.id);
+        if (!diagramObject) {
+            return null;
+        }
+        diagramObject.baseTransform.setParent(parent);
+        return diagramObject;
     } else {
-        transformNode.rotation = newMesh.rotation.clone();
+        const entity = {
+            template: mesh.metadata.template,
+            color: mesh.metadata.color,
+            position: vectoxys(mesh.absolutePosition),
+            rotation: vectoxys(mesh.absoluteRotationQuaternion.toEulerAngles()),
+            scale: vectoxys(mesh.scaling)
+
+        }
+        const obj = new DiagramObject(parent.getScene(), {diagramEntity: entity});
+        obj.baseTransform.setParent(parent);
+        return obj;
+
     }
-    transformNode.setParent(parent);
-    newMesh.setParent(transformNode);
-    return {transformNode: transformNode, newMesh: newMesh};
+
+}
+
+function vectoxys(v: Vector3): { x, y, z } {
+    return {x: v.x, y: v.y, z: v.z};
 }

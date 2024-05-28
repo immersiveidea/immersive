@@ -1,19 +1,14 @@
-import {AbstractMesh, ActionManager, InstancedMesh, Mesh, Observable, Scene} from "@babylonjs/core";
+import {AbstractMesh, ActionManager, Observable, Scene} from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
 import {AppConfig} from "../util/appConfig";
-import {diagramEventHandler} from "./functions/diagramEventHandler";
-import {deepCopy} from "../util/functions/deepCopy";
-import {applyPhysics} from "./functions/diagramShapePhysics";
-import {applyScaling} from "./functions/applyScaling";
-import {toDiagramEntity} from "./functions/toDiagramEntity";
-import {v4 as uuidv4} from 'uuid';
 import {buildEntityActionManager} from "./functions/buildEntityActionManager";
-import {isDiagramEntity} from "./functions/isDiagramEntity";
 import {DefaultScene} from "../defaultScene";
 import {DiagramMenuManager} from "./diagramMenuManager";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
+import {DiagramObject} from "../objects/diagramObject";
+import {DiagramConnection} from "./diagramConnection";
 
 
 export class DiagramManager {
@@ -24,6 +19,8 @@ export class DiagramManager {
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
     private readonly _diagramMenuManager: DiagramMenuManager;
     private readonly _scene: Scene;
+    private readonly _diagramObjects: Map<string, DiagramObject> = new Map<string, DiagramObject>();
+    private readonly _diagramConnections: Map<string, DiagramConnection> = new Map<string, DiagramConnection>();
 
     constructor() {
         this._scene = DefaultScene.Scene;
@@ -33,9 +30,6 @@ export class DiagramManager {
         this._diagramEntityActionManager = buildEntityActionManager(this._controllers);
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
 
-        this._scene.onMeshRemovedObservable.add((mesh) => {
-            cleanupOrphanConnections(mesh, this.onDiagramEventObservable);
-        });
         document.addEventListener('uploadImage', (event: CustomEvent) => {
             const diagramEntity: DiagramEntity = {
                 template: '#image-template',
@@ -45,13 +39,17 @@ export class DiagramManager {
                 rotation: {x: 0, y: Math.PI, z: 0},
                 scale: {x: 1, y: 1, z: 1},
             }
+            const object = new DiagramObject(this._scene, {diagramEntity: diagramEntity});
+            this._diagramObjects.set(diagramEntity.id, object);
+
             //const newMesh = buildMeshFromDiagramEntity(diagramEntity, this._scene);
             if (this.onDiagramEventObservable) {
                 this.onDiagramEventObservable.notifyObservers({
                     type: DiagramEventType.ADD,
                     entity: diagramEntity
-                }, DiagramEventObserverMask.ALL);
+                }, DiagramEventObserverMask.TO_DB);
             }
+
         });
         this.logger.debug("DiagramManager constructed");
     }
@@ -60,28 +58,24 @@ export class DiagramManager {
         return this._diagramMenuManager;
     }
 
+    public getDiagramObject(id: string) {
+        return this._diagramObjects.get(id);
+    }
+
+    public isDiagramObject(mesh: AbstractMesh) {
+        return this._diagramObjects.has(mesh?.id)
+    }
+
     public get controllers(): Controllers {
         return this._controllers;
     }
 
-
-    public createCopy(mesh: AbstractMesh, copy: boolean = false): AbstractMesh {
-        const newMesh = newInstanceFromMeshOrInstance(mesh);
-        newMesh.id = 'id' + uuidv4();
-        newMesh.actionManager = this._diagramEntityActionManager;
-        newMesh.position = mesh.absolutePosition.clone();
-        if (mesh.absoluteRotationQuaternion) {
-            newMesh.rotation = mesh.absoluteRotationQuaternion.toEulerAngles().clone();
-        } else {
-            this.logger.error("no rotation quaternion");
+    public createCopy(id: string): DiagramObject {
+        const diagramObject = this._diagramObjects.get(id);
+        if (!diagramObject) {
+            return null;
         }
-        applyScaling(mesh, newMesh, copy, this._config.current?.createSnap);
-        newMesh.material = mesh.material;
-        newMesh.metadata = deepCopy(mesh.metadata);
-        if (this._config.current?.physicsEnabled) {
-            applyPhysics(newMesh, this._scene);
-        }
-        return newMesh;
+        return diagramObject.clone();
     }
 
     public get config(): AppConfig {
@@ -90,26 +84,33 @@ export class DiagramManager {
 
 
     private onDiagramEvent(event: DiagramEvent) {
-        diagramEventHandler(
-            event, this._scene, this._diagramMenuManager.toolbox, this._config.current.physicsEnabled,
-            this._diagramEntityActionManager);
-    }
-}
-
-function newInstanceFromMeshOrInstance(mesh: AbstractMesh): AbstractMesh {
-    if (!mesh.isAnInstance) {
-        return new InstancedMesh('id' + uuidv4(), (mesh as Mesh));
-    } else {
-        return new InstancedMesh('id' + uuidv4(), (mesh as InstancedMesh).sourceMesh);
-    }
-}
-
-function cleanupOrphanConnections(mesh: AbstractMesh, diagramEventObservable: Observable<DiagramEvent>) {
-    if (isDiagramEntity(mesh) && mesh.metadata.template != '#connection-template') {
-        mesh.getScene().meshes.forEach((m) => {
-            if (m?.metadata?.to == mesh.id || m?.metadata?.from == mesh.id) {
-                diagramEventObservable.notifyObservers({type: DiagramEventType.REMOVE, entity: toDiagramEntity(m)});
-            }
-        });
+        switch (event.type) {
+            case DiagramEventType.ADD:
+                let diagramObject = this._diagramObjects.get(event.entity.id);
+                if (diagramObject) {
+                    diagramObject.fromDiagramEntity(event.entity);
+                } else {
+                    diagramObject = new DiagramObject(this._scene,
+                        {diagramEntity: event.entity, actionManager: this._diagramEntityActionManager});
+                }
+                if (diagramObject) {
+                    this._diagramObjects.set(event.entity.id, diagramObject);
+                }
+                break;
+            case DiagramEventType.REMOVE:
+                const object = this._diagramObjects.get(event.entity.id);
+                if (object) {
+                    object.dispose();
+                }
+                this._diagramObjects.delete(event.entity.id);
+                break;
+            case DiagramEventType.MODIFY:
+                console.log(event);
+                if (event.entity.text) {
+                    const diagramObject = this._diagramObjects.get(event.entity.id);
+                    diagramObject.text = event.entity.text;
+                }
+                break;
+        }
     }
 }

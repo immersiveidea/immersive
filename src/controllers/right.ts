@@ -4,12 +4,9 @@ import {ControllerEventType} from "./controllers";
 
 import {DiagramManager} from "../diagram/diagramManager";
 import log from "loglevel";
-import {DefaultScene} from "../defaultScene";
 
 
 export class Right extends Base {
-
-    private startPosition: Vector3 = null;
     private rightLogger = log.getLogger("Right");
     private initBButton(bbutton: WebXRControllerComponent) {
         if (bbutton) {
@@ -24,18 +21,12 @@ export class Right extends Base {
             });
         }
     }
-
-    private startTime: number = null;
-    private endPosition: Vector3 = null;
-
     constructor(controller: WebXRInputSource,
                 xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager
 
     ) {
         super(controller, xr, diagramManager);
-        const scene = DefaultScene.Scene;
-
         this.xrInputSource.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
             this.initBButton(init.components['b-button']);
