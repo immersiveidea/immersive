@@ -20,6 +20,7 @@ export async function groundMeshObserver(ground: AbstractMesh,
         disableNearInteraction: true,
         outputCanvasOptions: {
             canvasOptions: {
+
                 framebufferScaleFactor: 1
             }
         },

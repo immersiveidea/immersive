@@ -148,10 +148,12 @@ export class DiagramObject {
     public dispose() {
         this._scene.onAfterRenderObservable.remove(this._sceneObserver);
         this._sceneObserver = null;
-        this._mesh?.dispose(false, true);
+        this._mesh.setParent(null);
+        this._mesh?.dispose(true, false);
         this._mesh = null;
         this._label?.dispose();
         this._label = null;
+        this._baseTransform.dispose();
         this._diagramEntity = null;
         this._scene = null;
     }
@@ -160,6 +162,7 @@ export class DiagramObject {
         this._baseTransform.position = Vector3.Center(fromMesh.getAbsolutePosition().clone(), toMesh.getAbsolutePosition().clone());
         this._baseTransform.lookAt(toMesh.getAbsolutePosition());
         this._mesh.scaling.y = Vector3.Distance(fromMesh.getAbsolutePosition(), toMesh.getAbsolutePosition());
+        this._mesh.material = fromMesh.material;
         if (!this._mesh.parent) {
             this._mesh.parent = this._baseTransform;
         }

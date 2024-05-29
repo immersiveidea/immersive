@@ -1,4 +1,4 @@
-import {AbstractMesh, ActionManager, Observable, Scene} from "@babylonjs/core";
+import {AbstractActionManager, AbstractMesh, ActionManager, Observable, Scene} from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
 import {Controllers} from "../controllers/controllers";
@@ -54,6 +54,10 @@ export class DiagramManager {
         this.logger.debug("DiagramManager constructed");
     }
 
+    public get actionManager(): AbstractActionManager {
+        return this._diagramEntityActionManager;
+    }
+
     public get diagramMenuManager(): DiagramMenuManager {
         return this._diagramMenuManager;
     }
@@ -66,6 +70,7 @@ export class DiagramManager {
         return this._diagramObjects.has(mesh?.id)
     }
 
+
     public get controllers(): Controllers {
         return this._controllers;
     }
@@ -75,9 +80,13 @@ export class DiagramManager {
         if (!diagramObject) {
             return null;
         }
-        return diagramObject.clone();
+        const obj = diagramObject.clone();
+        return obj;
     }
 
+    public addObject(diagramObject: DiagramObject) {
+        this._diagramObjects.set(diagramObject.diagramEntity.id, diagramObject);
+    }
     public get config(): AppConfig {
         return this._config;
     }

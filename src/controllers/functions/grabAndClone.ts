@@ -10,6 +10,7 @@ export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh,
             return null;
         }
         diagramObject.baseTransform.setParent(parent);
+        diagramManager.addObject(diagramObject);
         return diagramObject;
     } else {
         const entity = {
@@ -20,8 +21,12 @@ export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh,
             scale: vectoxys(mesh.scaling)
 
         }
-        const obj = new DiagramObject(parent.getScene(), {diagramEntity: entity});
+        const obj = new DiagramObject(parent.getScene(), {
+            diagramEntity: entity,
+            actionManager: diagramManager.actionManager
+        });
         obj.baseTransform.setParent(parent);
+        diagramManager.addObject(obj);
         return obj;
 
     }
