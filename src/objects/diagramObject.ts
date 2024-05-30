@@ -109,9 +109,18 @@ export class DiagramObject {
 
     public clone(): DiagramObject {
         const clone = new DiagramObject(this._scene, this._eventObservable, {actionManager: this._mesh.actionManager});
-        const newEntity: DiagramEntity = {...this._diagramEntity};
-        newEntity.id = 'id' + uuidv4();
-        clone.fromDiagramEntity(this._diagramEntity);
+        const oldEntity = this._diagramEntity;
+        const newEntity: DiagramEntity = {
+            id: 'id' + uuidv4(),
+            position: oldEntity.position,
+            rotation: oldEntity.rotation,
+            scale: oldEntity.scale,
+            template: oldEntity.template,
+            color: oldEntity.color,
+            text: oldEntity.text
+        };
+
+        clone.fromDiagramEntity(newEntity);
         this._logger.debug('DiagramObject clone called', clone, this._diagramEntity, newEntity);
         return clone;
     }

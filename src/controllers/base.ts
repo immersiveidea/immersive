@@ -24,52 +24,57 @@ import {getMeshType} from "./functions/getMeshType";
 const CLICK_TIME = 300;
 
 
-
 export class Base {
     static stickVector = Vector3.Zero();
+    protected readonly scene: Scene;
+    protected readonly xr: WebXRDefaultExperience;
+    protected readonly diagramManager: DiagramManager;
     protected xrInputSource: WebXRInputSource;
     protected speedFactor = 4;
-    protected readonly scene: Scene;
     protected grabbedObject: DiagramObject = null;
     protected grabbedMesh: AbstractMesh = null;
     protected grabbedMeshType: MeshTypeEnum = null;
-    private clickStart: number = 0;
-    protected readonly xr: WebXRDefaultExperience;
-    protected readonly diagramManager: DiagramManager;
     protected controllers: Controllers;
-    private clickMenu: ClickMenu;
-    private pickPoint: Vector3 = new Vector3();
-    private meshUnderPointer: AbstractMesh;
-    private logger = log.getLogger('Base');
+
+    private readonly _logger = log.getLogger('Base');
+    private _clickStart: number = 0;
+    private _clickMenu: ClickMenu;
+    private _pickPoint: Vector3 = new Vector3();
+    private _meshUnderPointer: AbstractMesh;
+
 
     constructor(controller: WebXRInputSource,
                 xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager) {
-        this.logger.debug('Base Controller Constructor called');
+        this._logger.debug('Base Controller Constructor called');
         this.xrInputSource = controller;
         this.controllers = diagramManager.controllers;
         this.scene = DefaultScene.Scene;
         this.xr = xr;
+
         this.scene.onPointerObservable.add((pointerInfo) => {
-            if (pointerInfo.pickInfo.pickedMesh) {
-                this.meshUnderPointer = pointerInfo.pickInfo.pickedMesh;
-                if (this.diagramManager.getDiagramObject(pointerInfo.pickInfo.pickedMesh.id)) {
-                    this.pickPoint.copyFrom(pointerInfo.pickInfo.pickedPoint);
+            if (pointerInfo?.pickInfo?.gripTransform?.id == this.xrInputSource?.grip?.id) {
+                if (pointerInfo.pickInfo.pickedMesh) {
+                    this._pickPoint.copyFrom(pointerInfo.pickInfo.pickedPoint);
+                    this._meshUnderPointer = pointerInfo.pickInfo.pickedMesh;
+                } else {
+                    this._meshUnderPointer = null;
                 }
             }
+
         });
         this.diagramManager = diagramManager;
 
         //@TODO THis works, but it uses initGrip, not sure if this is the best idea
         this.xrInputSource.onMotionControllerInitObservable.add(motionControllerObserver, -1, false, this);
         this.controllers.controllerObservable.add((event) => {
-            this.logger.debug(event);
+            this._logger.debug(event);
             switch (event.type) {
                 case ControllerEventType.PULSE:
                     if (event.gripId == this?.xrInputSource?.grip?.id) {
                         this.xrInputSource?.motionController?.pulse(.35, 50)
                             .then(() => {
-                                this.logger.debug("pulse done");
+                                this._logger.debug("pulse done");
                             });
                     }
                     break;
@@ -96,31 +101,34 @@ export class Base {
     }
 
     protected initClicker(trigger: WebXRControllerComponent) {
-        this.logger.debug("initTrigger");
+        this._logger.debug("initTrigger");
         trigger.onButtonStateChangedObservable.add(() => {
             if (trigger.changes.pressed) {
                 if (trigger.pressed) {
-                    if (this.clickStart == 0) {
-                        this.clickStart = Date.now();
+                    if (this._clickStart == 0) {
+                        this._clickStart = Date.now();
                         window.setTimeout(() => {
-                            if (this.clickStart > 0) {
-                                this.logger.debug("grabbing and cloning");
-                                const clone = grabAndClone(this.diagramManager, this.meshUnderPointer, this.xrInputSource.motionController.rootMesh);
+                            if (this._clickStart > 0) {
+                                this._logger.debug("grabbing and cloning");
+                                const clone = grabAndClone(this.diagramManager, this._meshUnderPointer, this.xrInputSource.motionController.rootMesh);
+
                                 this.grabbedObject = clone;
                                 this.grabbedMesh = clone.mesh;
+                                this.grabbedMeshType = getMeshType(clone.mesh, this.diagramManager);
+                                this._meshUnderPointer = clone.mesh;
                             }
                         }, 300, this);
                     }
                 } else {
                     const clickEnd = Date.now();
-                    if (this.clickStart > 0 && (clickEnd - this.clickStart) < CLICK_TIME) {
+                    if (this._clickStart > 0 && (clickEnd - this._clickStart) < CLICK_TIME) {
                         this.click();
                     } else {
                         if (this.grabbedObject || this.grabbedMesh) {
                             this.drop();
                         }
                     }
-                    this.clickStart = 0;
+                    this._clickStart = 0;
                 }
             }
         }, -1, false, this);
@@ -128,7 +136,7 @@ export class Base {
 
 
     private grab() {
-        let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.xrInputSource.uniqueId);
+        let mesh = this._meshUnderPointer
         if (!mesh) {
             return;
         }
@@ -165,7 +173,7 @@ export class Base {
             case MeshTypeEnum.ENTITY:
                 if (diagramObject) {
                     diagramObject.baseTransform.setParent(null);
-                    snapAll(this.grabbedObject.baseTransform, this.diagramManager.config, this.pickPoint);
+                    snapAll(this.grabbedObject.baseTransform, this.diagramManager.config, this._pickPoint);
                     diagramObject.mesh.computeWorldMatrix(true);
                     const event: DiagramEvent =
                         {
@@ -182,7 +190,7 @@ export class Base {
                 break;
             case MeshTypeEnum.TOOL:
                 this.grabbedObject.baseTransform.setParent(null);
-                snapAll(this.grabbedObject.baseTransform, this.diagramManager.config, this.pickPoint);
+                snapAll(this.grabbedObject.baseTransform, this.diagramManager.config, this._pickPoint);
                 diagramObject.mesh.computeWorldMatrix(true);
                 const event: DiagramEvent =
                     {
@@ -212,18 +220,18 @@ export class Base {
     private click() {
         let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.xrInputSource.uniqueId);
         if (this.diagramManager.isDiagramObject(mesh)) {
-            this.logger.debug("click on " + mesh.id);
+            this._logger.debug("click on " + mesh.id);
             if (this.diagramManager.diagramMenuManager.connectionPreview) {
                 this.diagramManager.diagramMenuManager.connect(mesh);
 
             } else {
-                if (this.clickMenu) {
-                    this.clickMenu.dispose();
+                if (this._clickMenu) {
+                    this._clickMenu.dispose();
                 }
-                this.clickMenu = this.diagramManager.diagramMenuManager.createClickMenu(mesh, this.xrInputSource);
+                this._clickMenu = this.diagramManager.diagramMenuManager.createClickMenu(mesh, this.xrInputSource);
             }
         } else {
-            this.logger.debug("click on nothing");
+            this._logger.debug("click on nothing");
         }
     }
 
