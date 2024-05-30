@@ -5,13 +5,13 @@ const POINTER_UP = "pointerup";
 
 export class ClickMenu {
     private readonly _mesh: AbstractMesh;
-    private readonly transform: TransformNode;
+    private readonly _transformNode: TransformNode;
     public onClickMenuObservable: Observable<ActionEvent> = new Observable<ActionEvent>();
 
     constructor(mesh: AbstractMesh) {
         this._mesh = mesh;
         const scene = mesh.getScene();
-        this.transform = new TransformNode("transform", scene);
+        this._transformNode = new TransformNode("transform", scene);
         let x = -.54 / 2;
 
         this.makeNewButton("Remove", "remove", scene, x += .11)
@@ -55,28 +55,28 @@ export class ClickMenu {
         }, -1, false, this, false);
 
         const platform = scene.getMeshByName("platform");
-        this.transform.parent = scene.activeCamera;
-        this.transform.position.z = .7;
-        this.transform.position.y = -.1;
-        this.transform.setParent(platform);
-        this.transform.rotation.z = 0;
+        this._transformNode.parent = scene.activeCamera;
+        this._transformNode.position.z = .7;
+        this._transformNode.position.y = -.1;
+        this._transformNode.setParent(platform);
+        this._transformNode.rotation.z = 0;
     }
 
     public get mesh(): AbstractMesh {
         return this._mesh;
     }
 
+    public dispose() {
+        this._transformNode.dispose(false, true);
+    }
+
     private makeNewButton(name: string, id: string, scene: Scene, x: number): HtmlButton {
         const button = new HtmlButton(name, id, scene, null, {html: null, image: {width: 268, height: 268}});
         const transform = button.transform;
-        transform.parent = this.transform;
+        transform.parent = this._transformNode;
         transform.rotation.y = Math.PI;
         transform.position.x = x;
         return button;
-    }
-
-    private dispose() {
-        this.transform.dispose(false, true);
     }
 }
 

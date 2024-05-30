@@ -217,6 +217,9 @@ export class Base {
                 this.diagramManager.diagramMenuManager.connect(mesh);
 
             } else {
+                if (this.clickMenu) {
+                    this.clickMenu.dispose();
+                }
                 this.clickMenu = this.diagramManager.diagramMenuManager.createClickMenu(mesh, this.xrInputSource);
             }
         } else {
