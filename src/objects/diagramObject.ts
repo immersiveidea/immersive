@@ -71,6 +71,10 @@ export class DiagramObject {
         return this._baseTransform;
     }
 
+    public get isGrabbable() {
+        return this._diagramEntity?.template !== '#connection-template';
+    }
+
     public get diagramEntity(): DiagramEntity {
         if (this._mesh) {
             this._diagramEntity = toDiagramEntity(this._mesh);

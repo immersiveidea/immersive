@@ -139,8 +139,10 @@ export class Base {
         switch (this.grabbedMeshType) {
             case MeshTypeEnum.ENTITY:
                 const diagramObject = this.diagramManager.getDiagramObject(mesh.id);
-                diagramObject.baseTransform.setParent(this.xrInputSource.motionController.rootMesh);
-                this.grabbedObject = diagramObject;
+                if (diagramObject.isGrabbable) {
+                    diagramObject.baseTransform.setParent(this.xrInputSource.motionController.rootMesh);
+                    this.grabbedObject = diagramObject;
+                }
                 break;
             case MeshTypeEnum.HANDLE:
                 this.grabbedMesh.setParent(this.xrInputSource.motionController.rootMesh);
