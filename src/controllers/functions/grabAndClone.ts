@@ -1,12 +1,16 @@
 import {AbstractMesh, Vector3} from "@babylonjs/core";
 import {DiagramManager} from "../../diagram/diagramManager";
 import {DiagramObject} from "../../objects/diagramObject";
+import log from "loglevel";
 
 export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh):
     DiagramObject {
+    const logger = log.getLogger('grabAndClone');
     if (diagramManager.isDiagramObject(mesh)) {
+        logger.debug('grabAndClone called with diagram object', mesh.id);
         const diagramObject = diagramManager.createCopy(mesh.id);
         if (!diagramObject) {
+            logger.warn('grabAndClone called with invalid diagram object', mesh.id);
             return null;
         }
         diagramObject.baseTransform.setParent(parent);

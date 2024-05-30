@@ -11,7 +11,7 @@ import {DiagramObject} from "../objects/diagramObject";
 
 
 export class DiagramManager {
-    private logger = log.getLogger('DiagramManager');
+    private readonly _logger = log.getLogger('DiagramManager');
     public readonly _config: AppConfig;
     private readonly _controllers: Controllers;
     private readonly _diagramEntityActionManager: ActionManager;
@@ -49,7 +49,7 @@ export class DiagramManager {
             }
 
         });
-        this.logger.debug("DiagramManager constructed");
+        this._logger.debug("DiagramManager constructed");
     }
 
     public get actionManager(): AbstractActionManager {
@@ -76,6 +76,7 @@ export class DiagramManager {
     public createCopy(id: string): DiagramObject {
         const diagramObject = this._diagramObjects.get(id);
         if (!diagramObject) {
+            this._logger.warn('createCopy called with invalid diagram object', id);
             return null;
         }
         const obj = diagramObject.clone();
