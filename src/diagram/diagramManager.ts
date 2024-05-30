@@ -37,7 +37,7 @@ export class DiagramManager {
                 rotation: {x: 0, y: Math.PI, z: 0},
                 scale: {x: 1, y: 1, z: 1},
             }
-            const object = new DiagramObject(this._scene, {diagramEntity: diagramEntity});
+            const object = new DiagramObject(this._scene, this.onDiagramEventObservable, {diagramEntity: diagramEntity});
             this._diagramObjects.set(diagramEntity.id, object);
 
             //const newMesh = buildMeshFromDiagramEntity(diagramEntity, this._scene);
@@ -98,6 +98,7 @@ export class DiagramManager {
                     diagramObject.fromDiagramEntity(event.entity);
                 } else {
                     diagramObject = new DiagramObject(this._scene,
+                        this.onDiagramEventObservable,
                         {diagramEntity: event.entity, actionManager: this._diagramEntityActionManager});
                 }
                 if (diagramObject) {

@@ -1,9 +1,20 @@
-import {AbstractActionManager, AbstractMesh, Mesh, Observer, Scene, TransformNode, Vector3} from "@babylonjs/core";
-import {DiagramEntity} from "../diagram/types/diagramEntity";
+import {
+    AbstractActionManager,
+    AbstractMesh,
+    Mesh,
+    Observable,
+    Observer,
+    Scene,
+    TransformNode,
+    Vector3
+} from "@babylonjs/core";
+import {DiagramEntity, DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import {buildMeshFromDiagramEntity} from "../diagram/functions/buildMeshFromDiagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
 import {v4 as uuidv4} from 'uuid';
 import {createLabel} from "../diagram/functions/createLabel";
+import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
+import log, {Logger} from "loglevel";
 
 type DiagramObjectOptionsType = {
     diagramEntity?: DiagramEntity,
@@ -12,12 +23,13 @@ type DiagramObjectOptionsType = {
 }
 
 export class DiagramObject {
+    private readonly _logger: Logger = log.getLogger('DiagramObject');
     private _scene: Scene;
     private _from: string;
     private _to: string;
     private _observingStart: number;
     private _sceneObserver: Observer<Scene>;
-    private _observer: Observer<AbstractMesh>;
+    private _eventObservable: Observable<DiagramEvent>;
 
     private _mesh: AbstractMesh;
     private _label: AbstractMesh;
@@ -25,15 +37,19 @@ export class DiagramObject {
         return this._mesh;
     }
 
-    constructor(scene: Scene, options?: DiagramObjectOptionsType) {
+    constructor(scene: Scene, eventObservable: Observable<DiagramEvent>, options?: DiagramObjectOptionsType) {
+        this._eventObservable = eventObservable;
         this._scene = scene;
         if (options) {
+            this._logger.debug('DiagramObject constructor called with options', options);
             if (options.diagramEntity) {
+                this._logger.debug('DiagramObject constructor called with diagramEntity', options);
                 if (!options.diagramEntity.id) {
                     options.diagramEntity.id = 'id' + uuidv4();
                 }
                 const myEntity = this.fromDiagramEntity(options.diagramEntity);
                 if (!myEntity) {
+                    this._logger.warn('DiagramObject constructor called with invalid diagramEntity', options.diagramEntity);
                     return null;
                 }
             }
@@ -58,7 +74,6 @@ export class DiagramObject {
     public get diagramEntity(): DiagramEntity {
         if (this._mesh) {
             this._diagramEntity = toDiagramEntity(this._mesh);
-
         }
         return this._diagramEntity;
     }
@@ -89,11 +104,11 @@ export class DiagramObject {
     }
 
     public clone(): DiagramObject {
-        const clone = new DiagramObject(this._scene, {actionManager: this._mesh.actionManager});
+        const clone = new DiagramObject(this._scene, this._eventObservable, {actionManager: this._mesh.actionManager});
         const newEntity = {...this._diagramEntity};
         newEntity.id = 'id' + uuidv4();
         clone.fromDiagramEntity(this._diagramEntity);
-
+        this._logger.debug('DiagramObject clone called', clone, this._diagramEntity, newEntity);
         return clone;
     }
 
@@ -125,6 +140,11 @@ export class DiagramObject {
                         this.updateConnection(fromMesh, toMesh);
                     } else {
                         if (Date.now() - this._observingStart > 5000) {
+                            this._logger.warn('DiagramObject connection timeout for: ', this._from, this._to, ' removing');
+                            this._eventObservable.notifyObservers({
+                                type: DiagramEventType.REMOVE,
+                                entity: this._diagramEntity
+                            }, DiagramEventObserverMask.ALL);
                             this.dispose();
                         }
                     }
@@ -146,14 +166,15 @@ export class DiagramObject {
     }
 
     public dispose() {
-        this._scene.onAfterRenderObservable.remove(this._sceneObserver);
+        this._logger.debug('DiagramObject dispose called for ', this._diagramEntity?.id)
+        this._scene?.onAfterRenderObservable.remove(this._sceneObserver);
         this._sceneObserver = null;
-        this._mesh.setParent(null);
+        this._mesh?.setParent(null);
         this._mesh?.dispose(true, false);
         this._mesh = null;
         this._label?.dispose();
         this._label = null;
-        this._baseTransform.dispose();
+        this._baseTransform?.dispose();
         this._diagramEntity = null;
         this._scene = null;
     }
