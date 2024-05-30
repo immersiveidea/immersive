@@ -211,11 +211,9 @@ export class Base {
         let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.xrInputSource.uniqueId);
         if (this.diagramManager.isDiagramObject(mesh)) {
             this.logger.debug("click on " + mesh.id);
-            if (this.clickMenu && !this.clickMenu.isDisposed) {
-                if (this.clickMenu.isConnecting) {
-                    this.clickMenu.connect(mesh);
-                    this.clickMenu = null;
-                }
+            if (this.diagramManager.diagramMenuManager.connectionPreview) {
+                this.diagramManager.diagramMenuManager.connect(mesh);
+
             } else {
                 this.clickMenu = this.diagramManager.diagramMenuManager.createClickMenu(mesh, this.xrInputSource);
             }

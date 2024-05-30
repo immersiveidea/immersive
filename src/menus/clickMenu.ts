@@ -1,7 +1,5 @@
-import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode, WebXRInputSource} from "@babylonjs/core";
-import {DiagramEvent, DiagramEventType, DiagramTemplates} from "../diagram/types/diagramEntity";
+import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode} from "@babylonjs/core";
 import {HtmlButton} from "babylon-html";
-import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
 
 const POINTER_UP = "pointerup";
 
@@ -9,24 +7,9 @@ export class ClickMenu {
     private readonly _mesh: AbstractMesh;
     private readonly transform: TransformNode;
     public onClickMenuObservable: Observable<ActionEvent> = new Observable<ActionEvent>();
-    private _diagramEventObservable: Observable<DiagramEvent>;
 
-    private connectFromId: string = null;
-
-    private getTransform(input: WebXRInputSource | TransformNode): TransformNode {
-        if (input == null) return null;
-        if ('grip' in input) {
-            return input.grip;
-        } else {
-            return input as TransformNode;
-        }
-    }
-
-    constructor(mesh: AbstractMesh, input: WebXRInputSource | TransformNode, diagramEventObservable: Observable<DiagramEvent>) {
-
-        const grip: TransformNode = this.getTransform(input);
+    constructor(mesh: AbstractMesh) {
         this._mesh = mesh;
-        this._diagramEventObservable = diagramEventObservable;
         const scene = mesh.getScene();
         this.transform = new TransformNode("transform", scene);
         let x = -.54 / 2;
@@ -51,8 +34,8 @@ export class ClickMenu {
         this.makeNewButton("Connect", "connect", scene, x += .11)
             .onPointerObservable.add((eventData) => {
             if (isUp(eventData)) {
-                this.connectFromId = this._mesh.id;
-                //this.createMeshConnection(this._mesh, grip, eventData.additionalData.pickedPoint.clone());
+                this.onClickMenuObservable.notifyObservers(eventData);
+                this.dispose();
             }
         }, -1, false, this, false);
 
@@ -77,31 +60,6 @@ export class ClickMenu {
         this.transform.position.y = -.1;
         this.transform.setParent(platform);
         this.transform.rotation.z = 0;
-    }
-
-    public get isConnecting() {
-        return this.connectFromId != null;
-    }
-
-    public connect(mesh: AbstractMesh) {
-        if (this.isConnecting) {
-            if (mesh) {
-                this._diagramEventObservable.notifyObservers({
-                    type: DiagramEventType.ADD,
-                    entity: {
-                        from: this.connectFromId,
-                        to: mesh.id,
-                        template: DiagramTemplates.CONNECTION,
-                        color: '#000000'
-                    }
-                }, DiagramEventObserverMask.ALL);
-                this.connectFromId = null;
-                this.dispose();
-            }
-        }
-    }
-    public get isDisposed(): boolean {
-        return this.transform.isDisposed();
     }
 
     public get mesh(): AbstractMesh {

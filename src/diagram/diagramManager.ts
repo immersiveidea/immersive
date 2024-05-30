@@ -8,7 +8,6 @@ import {DefaultScene} from "../defaultScene";
 import {DiagramMenuManager} from "./diagramMenuManager";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import {DiagramObject} from "../objects/diagramObject";
-import {DiagramConnection} from "./diagramConnection";
 
 
 export class DiagramManager {
@@ -20,7 +19,6 @@ export class DiagramManager {
     private readonly _diagramMenuManager: DiagramMenuManager;
     private readonly _scene: Scene;
     private readonly _diagramObjects: Map<string, DiagramObject> = new Map<string, DiagramObject>();
-    private readonly _diagramConnections: Map<string, DiagramConnection> = new Map<string, DiagramConnection>();
 
     constructor() {
         this._scene = DefaultScene.Scene;

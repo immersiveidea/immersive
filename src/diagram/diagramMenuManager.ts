@@ -10,6 +10,7 @@ import {ClickMenu} from "../menus/clickMenu";
 import {ConfigMenu} from "../menus/configMenu";
 import {AppConfig} from "../util/appConfig";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
+import {ConnectionPreview} from "../menus/connectionPreview";
 
 
 export class DiagramMenuManager {
@@ -20,6 +21,7 @@ export class DiagramMenuManager {
     private readonly _inputTextView: InputTextView;
     private readonly _scene: Scene;
     private logger = log.getLogger('DiagramMenuManager');
+    private _connectionPreview: ConnectionPreview;
 
     constructor(notifier: Observable<DiagramEvent>, controllers: Controllers, config: AppConfig) {
         this._scene = DefaultScene.Scene;
@@ -65,12 +67,23 @@ export class DiagramMenuManager {
         });
     }
 
+    public get connectionPreview(): ConnectionPreview {
+        return this._connectionPreview;
+    }
+
+    public connect(mesh: AbstractMesh) {
+        if (this._connectionPreview) {
+            this._connectionPreview.connect(mesh);
+            this._connectionPreview = null;
+        }
+    }
+
     public editText(mesh: AbstractMesh) {
         this._inputTextView.show(mesh);
     }
 
     public createClickMenu(mesh: AbstractMesh, input: WebXRInputSource): ClickMenu {
-        const clickMenu = new ClickMenu(mesh, input, this._notifier);
+        const clickMenu = new ClickMenu(mesh);
         clickMenu.onClickMenuObservable.add((evt: ActionEvent) => {
             console.log(evt);
             switch (evt.source.id) {
@@ -81,6 +94,7 @@ export class DiagramMenuManager {
                     this.editText(clickMenu.mesh);
                     break;
                 case "connect":
+                    this._connectionPreview = new ConnectionPreview(clickMenu.mesh.id, input, evt.additionalData.pickedPoint, this._notifier);
                     break;
                 case "size":
                     this.scaleMenu.show(clickMenu.mesh);
