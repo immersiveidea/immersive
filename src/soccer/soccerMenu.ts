@@ -1,4 +1,4 @@
-import {Color3, MeshBuilder, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {Color3, MeshBuilder, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {AbstractMenu} from "../menus/abstractMenu";
 import {ControllerEvent, ControllerEventType, Controllers} from "../controllers/controllers";
 import {Control3D, GUI3DManager, PlanePanel, Slider3D} from "@babylonjs/gui";
@@ -19,12 +19,12 @@ export class SoccerMenu extends AbstractMenu {
     private manager: GUI3DManager;
     private state: SoccerMenuState = SoccerMenuState.NONE;
     private readonly field: Field;
-    private logger: Logger = log.getLogger('SoccerMenu')
+    private readonly logger: Logger = log.getLogger('SoccerMenu')
     private startTime: number;
     private startPosition: Vector3;
 
-    constructor(scene: Scene, xr: WebXRDefaultExperience, controllers: Controllers) {
-        super(scene, xr, controllers);
+    constructor(xr: WebXRDefaultExperience, controllers: Controllers) {
+        super(xr, controllers);
         this.field = new Field(this.scene);
         this.manager = new GUI3DManager(this.scene);
 
@@ -180,7 +180,7 @@ export class SoccerMenu extends AbstractMenu {
         this.manager.controlScaling = .2;
         //panel.updateLayout();
         //slider.position.x = 1;
-        this.createHandle(this.manager.rootContainer.children[0].node);
+        //this.createHandle(this.manager.rootContainer.children[0].node);
         //this.handle.mesh.position = getFrontPosition(3, this.scene).add(new Vector3(0, .5, 0));
     }
 

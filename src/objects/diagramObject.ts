@@ -30,9 +30,10 @@ export class DiagramObject {
     private _observingStart: number;
     private _sceneObserver: Observer<Scene>;
     private _eventObservable: Observable<DiagramEvent>;
-
     private _mesh: AbstractMesh;
     private _label: AbstractMesh;
+
+    public grabbed: boolean = false;
     public get mesh(): AbstractMesh {
         return this._mesh;
     }

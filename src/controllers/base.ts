@@ -61,7 +61,6 @@ export class Base {
                     this._meshUnderPointer = null;
                 }
             }
-
         });
         this.diagramManager = diagramManager;
 
@@ -116,6 +115,7 @@ export class Base {
                                 this.grabbedMesh = clone.mesh;
                                 this.grabbedMeshType = getMeshType(clone.mesh, this.diagramManager);
                                 this._meshUnderPointer = clone.mesh;
+                                clone.grabbed = true;
                             }
                         }, 300, this);
                     }
@@ -149,6 +149,7 @@ export class Base {
                 const diagramObject = this.diagramManager.getDiagramObject(mesh.id);
                 if (diagramObject.isGrabbable) {
                     diagramObject.baseTransform.setParent(this.xrInputSource.motionController.rootMesh);
+                    diagramObject.grabbed = true;
                     this.grabbedObject = diagramObject;
                 }
                 break;
@@ -159,6 +160,7 @@ export class Base {
                 const clone = grabAndClone(this.diagramManager, mesh, this.xrInputSource.motionController.rootMesh);
                 this.grabbedObject = clone;
                 this.grabbedMesh = clone.mesh;
+                clone.grabbed = true;
 
         }
     }
@@ -182,6 +184,7 @@ export class Base {
                         }
                     this.diagramManager.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
                     diagramObject.mesh.computeWorldMatrix(false);
+                    diagramObject.grabbed = false;
                 }
 
                 this.grabbedObject = null;
@@ -199,6 +202,7 @@ export class Base {
                     }
                 this.diagramManager.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
                 diagramObject.mesh.computeWorldMatrix(false);
+                this.grabbedObject.grabbed = false;
                 this.grabbedObject = null;
                 this.grabbedMesh = null;
                 this.grabbedMeshType = null;

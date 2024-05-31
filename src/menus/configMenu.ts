@@ -30,7 +30,7 @@ export class ConfigMenu {
         this._scene = DefaultScene.Scene;
         this.baseTransform = new TransformNode("configMenuBase", this._scene);
 
-        this._handle = new Handle(this.baseTransform);
+        this._handle = new Handle(this.baseTransform, 'Configuration');
         this.config = config;
         this.buildMenu();
     }

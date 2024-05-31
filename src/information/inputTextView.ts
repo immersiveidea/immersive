@@ -27,7 +27,7 @@ export class InputTextView {
         this.controllers = controllers;
         this.scene = DefaultScene.Scene;
         this.inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
-        this.handle = new Handle(this.inputMesh);
+        this.handle = new Handle(this.inputMesh, 'Input');
         this.inputMesh.position.y = .06;
         this.inputMesh.position.z = .02;
         this.createKeyboard();
