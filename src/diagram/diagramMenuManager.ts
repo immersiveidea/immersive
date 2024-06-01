@@ -5,17 +5,17 @@ import {DefaultScene} from "../defaultScene";
 import {ControllerEvent, ControllerEventType, Controllers} from "../controllers/controllers";
 import log from "loglevel";
 import {Toolbox} from "../toolbox/toolbox";
-import {ScaleMenu} from "../menus/scaleMenu";
 import {ClickMenu} from "../menus/clickMenu";
 import {ConfigMenu} from "../menus/configMenu";
 import {AppConfig} from "../util/appConfig";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import {ConnectionPreview} from "../menus/connectionPreview";
+import {ScaleMenu2} from "../menus/ScaleMenu2";
 
 
 export class DiagramMenuManager {
     public readonly toolbox: Toolbox;
-    public readonly scaleMenu: ScaleMenu;
+    public readonly scaleMenu: ScaleMenu2;
     public readonly configMenu: ConfigMenu;
     private readonly _notifier: Observable<DiagramEvent>;
     private readonly _inputTextView: InputTextView;
@@ -33,13 +33,13 @@ export class DiagramMenuManager {
             this.notifyAll({type: DiagramEventType.MODIFY, entity: {id: evt.id, text: evt.text}});
         });
         this.toolbox = new Toolbox();
-        this.scaleMenu = new ScaleMenu();
-        this.scaleMenu.onScaleChangeObservable.add((mesh: AbstractMesh) => {
+        this.scaleMenu = new ScaleMenu2(this._notifier);
+        /*this.scaleMenu.onScaleChangeObservable.add((mesh: AbstractMesh) => {
             this.notifyAll({type: DiagramEventType.MODIFY, entity: {id: mesh.id, scale: mesh.scaling}});
             const position = mesh.absolutePosition.clone();
             position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
             this.scaleMenu.changePosition(position);
-        });
+        });*/
         controllers.controllerObservable.add((event: ControllerEvent) => {
             if (event.type == ControllerEventType.B_BUTTON) {
                 if (event.value > .8) {

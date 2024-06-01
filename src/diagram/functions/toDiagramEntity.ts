@@ -1,7 +1,8 @@
-import {AbstractMesh, Vector3} from "@babylonjs/core";
+import {AbstractMesh} from "@babylonjs/core";
 import {DiagramEntity} from "../types/diagramEntity";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
+import {vectoxys} from "./vectorConversion";
 
 
 export function toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
@@ -40,8 +41,4 @@ export function toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
 
     }
     return entity;
-}
-
-function vectoxys(v: Vector3): { x, y, z } {
-    return {x: v.x, y: v.y, z: v.z};
 }

@@ -1,7 +1,8 @@
-import {AbstractMesh, Vector3} from "@babylonjs/core";
+import {AbstractMesh} from "@babylonjs/core";
 import {DiagramManager} from "../../diagram/diagramManager";
 import {DiagramObject} from "../../diagram/diagramObject";
 import log from "loglevel";
+import {vectoxys} from "../../diagram/functions/vectorConversion";
 
 export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh):
     DiagramObject {
@@ -37,8 +38,4 @@ export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh,
 
     }
 
-}
-
-function vectoxys(v: Vector3): { x, y, z } {
-    return {x: v.x, y: v.y, z: v.z};
 }

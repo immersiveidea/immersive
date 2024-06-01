@@ -103,6 +103,10 @@ export class Base {
         trigger.onButtonStateChangedObservable.add(() => {
             if (trigger.changes.pressed) {
                 if (trigger.pressed) {
+                    if (this.diagramManager.diagramMenuManager.scaleMenu.mesh == this._meshUnderPointer) {
+                        return;
+                    }
+
                     if (this._clickStart == 0) {
                         this._clickStart = Date.now();
                         window.setTimeout(() => {
