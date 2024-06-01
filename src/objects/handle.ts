@@ -24,6 +24,10 @@ export class Handle {
         return this._isStored;
     }
 
+    public staort() {
+
+    }
+
     private buildHandle() {
         const scene: Scene = this._menuItem.getScene();
         const handle = HtmlMeshBuilder.CreatePlaneSync('handle-' + this._menuItem.id, {
@@ -41,14 +45,16 @@ export class Handle {
             try {
                 const locationdata = JSON.parse(stored);
                 this._logger.debug('Stored location data found ', locationdata);
+
                 handle.position = new Vector3(locationdata.position.x, locationdata.position.y, locationdata.position.z);
-                handle.rotation = new Vector3(locationdata._rotation.x, locationdata._rotation.y, locationdata._rotation.z);
+                handle.rotation = new Vector3(locationdata.rotation.x, locationdata.rotation.y, locationdata.rotation.z);
                 this._isStored = true;
             } catch (e) {
                 this._logger.error(e);
                 handle.position = Vector3.Zero();
             }
         } else {
+            this._logger.debug('No stored location found for ' + handle.id + ', using defaults');
             handle.position = this._offset;
             handle.rotation = this._rotation;
         }

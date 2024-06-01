@@ -12,11 +12,10 @@ import log from "loglevel";
 import {ControllerEventType, Controllers} from "./controllers";
 import {grabAndClone} from "./functions/grabAndClone";
 import {ClickMenu} from "../menus/clickMenu";
-import {displayDebug} from "../util/displayDebug";
 import {motionControllerObserver} from "./functions/motionControllerObserver";
 import {DefaultScene} from "../defaultScene";
 import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
-import {DiagramObject} from "../objects/diagramObject";
+import {DiagramObject} from "../diagram/diagramObject";
 import {snapAll} from "./functions/snapAll";
 import {MeshTypeEnum} from "../diagram/types/meshTypeEnum";
 import {getMeshType} from "./functions/getMeshType";
@@ -143,7 +142,8 @@ export class Base {
         this.grabbedMesh = mesh;
         this.grabbedMeshType = getMeshType(mesh, this.diagramManager);
 
-        displayDebug(mesh);
+        //displayDebug(mesh);
+        this._logger.debug("grabbing " + mesh.id + " type " + this.grabbedMeshType);
         switch (this.grabbedMeshType) {
             case MeshTypeEnum.ENTITY:
                 const diagramObject = this.diagramManager.getDiagramObject(mesh.id);

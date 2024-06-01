@@ -1,6 +1,6 @@
 import {AbstractMesh, Vector3} from "@babylonjs/core";
 import {DiagramManager} from "../../diagram/diagramManager";
-import {DiagramObject} from "../../objects/diagramObject";
+import {DiagramObject} from "../../diagram/diagramObject";
 import log from "loglevel";
 
 export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh):

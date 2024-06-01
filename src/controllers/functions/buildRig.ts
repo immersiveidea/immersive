@@ -10,7 +10,6 @@ import {
     WebXRDefaultExperience
 } from "@babylonjs/core";
 
-import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
 import {DefaultScene} from "../../defaultScene";
 
 export function buildRig(xr: WebXRDefaultExperience): Mesh {
@@ -31,7 +30,7 @@ export function buildRig(xr: WebXRDefaultExperience): Mesh {
         }
         cameratransform.rotation.set(0, Math.PI, 0);
     });
-    rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
+    //rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
     rigMesh.setAbsolutePosition(new Vector3(0, .01, 4));
     rigMesh.isPickable = false;
     const axis = new AxesViewer(scene, .25);

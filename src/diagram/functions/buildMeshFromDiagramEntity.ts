@@ -1,6 +1,7 @@
 import {DiagramEntity, DiagramEntityType, DiagramTemplates} from "../types/diagramEntity";
 import {
     AbstractMesh,
+    Color3,
     InstancedMesh,
     Mesh,
     MeshBuilder,
@@ -11,7 +12,6 @@ import {
 } from "@babylonjs/core";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
-import {buildStandardMaterial} from "../../materials/functions/buildStandardMaterial";
 
 export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene): AbstractMesh {
     const logger = log.getLogger('buildMeshFromDiagramEntity');
@@ -136,7 +136,7 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
         }*/
         if (!newMesh.material && newMesh?.metadata?.template != "#object-template") {
             logger.warn("new material created, this shouldn't happen");
-            newMesh.material = buildStandardMaterial("material-" + entity.id, scene, entity.color);
+            newMesh.material = buildMissingMaterial("material-" + entity.id, scene, entity.color);
         }
         if (entity.text) {
             newMesh.metadata.text = entity.text;
@@ -160,4 +160,16 @@ function xyztovec(xyz: { x, y, z }): Vector3 {
 
 function vectoxys(v: Vector3): { x, y, z } {
     return {x: v.x, y: v.y, z: v.z};
+}
+
+export function buildMissingMaterial(name: string, scene: Scene, color: string): StandardMaterial {
+    const existingMaterial = scene.getMaterialById(name);
+    if (existingMaterial) {
+        return (existingMaterial as StandardMaterial);
+    }
+    const newMaterial = new StandardMaterial(name, scene);
+    newMaterial.id = name;
+    newMaterial.diffuseColor = Color3.FromHexString(color);
+    newMaterial.alpha = 1;
+    return newMaterial;
 }

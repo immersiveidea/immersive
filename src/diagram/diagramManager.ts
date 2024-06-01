@@ -7,7 +7,7 @@ import {buildEntityActionManager} from "./functions/buildEntityActionManager";
 import {DefaultScene} from "../defaultScene";
 import {DiagramMenuManager} from "./diagramMenuManager";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
-import {DiagramObject} from "../objects/diagramObject";
+import {DiagramObject} from "./diagramObject";
 
 
 export class DiagramManager {

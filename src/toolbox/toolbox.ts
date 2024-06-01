@@ -106,7 +106,6 @@ export class Toolbox {
 
             }
         }
-
     }
 
     private assignHandleParentAndStore(mesh: TransformNode) {

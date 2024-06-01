@@ -8,12 +8,12 @@ import {
     TransformNode,
     Vector3
 } from "@babylonjs/core";
-import {DiagramEntity, DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
-import {buildMeshFromDiagramEntity} from "../diagram/functions/buildMeshFromDiagramEntity";
-import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
+import {DiagramEntity, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
+import {buildMeshFromDiagramEntity} from "./functions/buildMeshFromDiagramEntity";
+import {toDiagramEntity} from "./functions/toDiagramEntity";
 import {v4 as uuidv4} from 'uuid';
-import {createLabel} from "../diagram/functions/createLabel";
-import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
+import {createLabel} from "./functions/createLabel";
+import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import log, {Logger} from "loglevel";
 
 type DiagramObjectOptionsType = {

@@ -89,8 +89,6 @@ export class SoccerMenu extends AbstractMenu {
                         //start.applyRotationQuaternionInPlace(Quaternion.FromEulerAngles(0, e.y, 0));
                         this.startPosition = start;
                     }
-
-
                 } else {
                     if (this.startTime) {
                         const end = event.controller.grip.absolutePosition.clone();
