@@ -18,7 +18,7 @@ export class ScaleMenu2 {
         configureGizmo(this._gizmoManager.gizmos.scaleGizmo.yGizmo);
         configureGizmo(this._gizmoManager.gizmos.scaleGizmo.xGizmo);
         configureGizmo(this._gizmoManager.gizmos.scaleGizmo.zGizmo);
-        this._gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add((event) => {
+        this._gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
             if (this.mesh.scaling.x < .01) {
                 this.mesh.scaling.x = .01;
             }
