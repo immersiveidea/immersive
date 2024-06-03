@@ -11,6 +11,7 @@ import {AppConfig} from "../util/appConfig";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import {ConnectionPreview} from "../menus/connectionPreview";
 import {ScaleMenu2} from "../menus/ScaleMenu2";
+import {CameraMenu} from "../menus/cameraMenu";
 
 
 export class DiagramMenuManager {
@@ -20,11 +21,14 @@ export class DiagramMenuManager {
     private readonly _notifier: Observable<DiagramEvent>;
     private readonly _inputTextView: InputTextView;
     private readonly _scene: Scene;
+    private _cameraMenu: CameraMenu;
     private logger = log.getLogger('DiagramMenuManager');
     private _connectionPreview: ConnectionPreview;
 
     constructor(notifier: Observable<DiagramEvent>, controllers: Controllers, config: AppConfig) {
         this._scene = DefaultScene.Scene;
+
+
         this._notifier = notifier;
         this._inputTextView = new InputTextView(controllers);
         this.configMenu = new ConfigMenu(config);
@@ -34,12 +38,7 @@ export class DiagramMenuManager {
         });
         this.toolbox = new Toolbox();
         this.scaleMenu = new ScaleMenu2(this._notifier);
-        /*this.scaleMenu.onScaleChangeObservable.add((mesh: AbstractMesh) => {
-            this.notifyAll({type: DiagramEventType.MODIFY, entity: {id: mesh.id, scale: mesh.scaling}});
-            const position = mesh.absolutePosition.clone();
-            position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
-            this.scaleMenu.changePosition(position);
-        });*/
+
         controllers.controllerObservable.add((event: ControllerEvent) => {
             if (event.type == ControllerEventType.B_BUTTON) {
                 if (event.value > .8) {

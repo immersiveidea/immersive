@@ -35,12 +35,12 @@ export class VrApp {
         if (webGpu) {
             engine = new WebGPUEngine(canvas);
             await (engine as WebGPUEngine).initAsync();
-            console.log("WebGPU enabled");
+
         } else {
             engine = new Engine(canvas, true);
         }
         engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-        console.log(engine.getCaps().multiview);
+
         window.onresize = () => {
             engine.resize();
         }

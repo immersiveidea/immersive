@@ -8,6 +8,7 @@ import {DefaultScene} from "../defaultScene";
 import {DiagramMenuManager} from "./diagramMenuManager";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import {DiagramObject} from "./diagramObject";
+import {getMe} from "../util/me";
 
 
 export class DiagramManager {
@@ -19,8 +20,9 @@ export class DiagramManager {
     private readonly _diagramMenuManager: DiagramMenuManager;
     private readonly _scene: Scene;
     private readonly _diagramObjects: Map<string, DiagramObject> = new Map<string, DiagramObject>();
-
+    private readonly _me: string;
     constructor() {
+        this._me = getMe();
         this._scene = DefaultScene.Scene;
         this._config = new AppConfig();
         this._controllers = new Controllers();
@@ -104,6 +106,8 @@ export class DiagramManager {
                 }
                 if (diagramObject) {
                     this._diagramObjects.set(event.entity.id, diagramObject);
+                } else {
+                    this._logger.error('failed to create diagram object for ', event.entity);
                 }
                 break;
             case DiagramEventType.REMOVE:

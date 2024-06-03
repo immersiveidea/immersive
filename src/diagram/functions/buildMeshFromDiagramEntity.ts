@@ -7,8 +7,7 @@ import {
     MeshBuilder,
     Scene,
     StandardMaterial,
-    Texture,
-    Vector3
+    Texture
 } from "@babylonjs/core";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
@@ -152,10 +151,6 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
         logger.error("buildMeshFromDiagramEntity: mesh is null after it should have been created");
     }
     return newMesh;
-}
-
-function xyztovec(xyz: { x, y, z }): Vector3 {
-    return new Vector3(xyz.x, xyz.y, xyz.z);
 }
 
 

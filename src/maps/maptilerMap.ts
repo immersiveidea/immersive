@@ -1,6 +1,9 @@
 import * as mapTilerClient from '@maptiler/client';
 import {
     AbstractMesh,
+    ActionEvent,
+    ActionManager,
+    ExecuteCodeAction,
     MeshBuilder,
     Observable,
     Scene,
@@ -8,9 +11,9 @@ import {
     Texture,
     TransformNode,
     Vector2,
-    Vector3
 } from "@babylonjs/core";
-import {CameraIcon} from "./cameraIcon";
+import log from "loglevel";
+import {latOnTile, lonOnTile, tile2lat, tile2long} from "./functions/tileFunctions";
 
 export type MaptilerMapTile = {
     lat: number,
@@ -21,22 +24,29 @@ export type MaptilerMapTile = {
     y: number,
     bounds: Vector2[];
 }
+type PlotPointType = {
+    position: Vector2;
+    mesh: AbstractMesh;
+}
 
 
 export class MaptilerMap {
     public readonly onReadyObservable = new Observable<MaptilerMapTile>();
+    public readonly onPickObservable: Observable<{ lat: number, lon: number }> = new Observable()
+    private readonly _scene: Scene;
+    private readonly _baseNode: TransformNode;
+    private readonly _key: string;
+
     private _lat: number;
     private _lon: number;
     private _min: Vector2;
     private _max: Vector2;
     private _zoom: number;
-    //private _bounds: Vector2[];
-    private readonly _scene: Scene;
     private _tileXYCount: number = 2;
-    private readonly _baseNode: TransformNode;
-    private readonly _key: string;
     private _pendingPoints: Array<number> = [];
-    private _points: Vector2[] = [];
+    private readonly _logger = log.getLogger('MaptilerMap');
+    private _points: PlotPointType[] = [];
+    private _actionManager: ActionManager;
 
     public constructor(key: string, scene: Scene, name: string = 'map-node', tileXYCount: number = 2) {
         this._scene = scene;
@@ -45,6 +55,16 @@ export class MaptilerMap {
         this._baseNode = new TransformNode(name, this._scene);
         this.onReadyObservable.addOnce(this.buildNodes.bind(this));
         this.onReadyObservable.addOnce(this.waitForMeshAdded.bind(this));
+        this._actionManager = new ActionManager(this._scene);
+        this._actionManager.registerAction(new ExecuteCodeAction({trigger: ActionManager.OnPickDownTrigger},
+            (evt: ActionEvent) => {
+                const coordinates = evt.additionalData.getTextureCoordinates();
+                const tile = evt.meshUnderPointer.metadata.mapTile;
+                const lat = tile2lat(tile.y + (1 - coordinates.y), this._zoom);
+                const lon = tile2long(tile.x + coordinates.x, this._zoom);
+                this.onPickObservable.notifyObservers({lat: lat, lon: lon});
+            })
+        );
     }
 
     private _startFallback: number = 10;
@@ -80,7 +100,7 @@ export class MaptilerMap {
                 bounds: []
             });
         } else {
-            console.error(JSON.stringify(result));
+            this._logger.error(JSON.stringify(result));
         }
     }
 
@@ -99,8 +119,8 @@ export class MaptilerMap {
         });
     }
 
-    public async plotPoint(lat: number, lon: number) {
-        const len = this._points.push(new Vector2(lat, lon));
+    public async plotPoint(lat: number, lon: number, mesh: AbstractMesh) {
+        const len = this._points.push({position: new Vector2(lat, lon), mesh: mesh});
         this._pendingPoints.push(len - 1);
     }
 
@@ -113,21 +133,24 @@ export class MaptilerMap {
             if (this._pendingPoints.length > 0) {
                 this._pendingPoints = this._pendingPoints.filter((item) => {
                     const point = this._points[item];
-                    const tileXY = this.getTileXY(point.x, point.y);
-                    console.log(tileXY);
+                    const tileXY = this.getTileXY(point.position.x, point.position.y);
+                    this._logger.log(tileXY);
                     const mesh = this._scene.getMeshByName(`map-${tileXY[0]}-${tileXY[1]}-plane`);
-                    const oldPoint = this._scene.getMeshByName(`map-${point.x}-${point.y}-point`);
+                    const oldPoint = this._scene.getMeshByName(`map-${point.position.x}-${point.position.y}-point`);
                     if (!mesh) {
-                        console.error(`map-${tileXY[0]}-${tileXY[1]}-plane not found`);
+                        this._logger.error(`map-${tileXY[0]}-${tileXY[1]}-plane not found`);
                         return true;
                     } else {
                         if (!oldPoint) {
-                            const pixelx = lonOnTile(point.y, this._zoom) % 1;
-                            const pixely = latOnTile(point.x, this._zoom) % 1;
-                            console.log(`pixelx: ${pixelx}, pixely: ${pixely} found`);
+                            const pixely = latOnTile(point.position.x, this._zoom) % 1;
+                            const pixelx = lonOnTile(point.position.y, this._zoom) % 1;
+                            this._logger.log(`pixelx: ${pixelx}, pixely: ${pixely} found`);
                             try {
-                                const newIcon = new CameraIcon(this._scene, this._baseNode,
-                                    new Vector3(mesh.position.x - .5 + pixelx, mesh.position.y + .5 - pixely, mesh.position.z - .05));
+                                const pointMesh = point.mesh;
+                                pointMesh.parent = this._baseNode;
+                                pointMesh.position.x = mesh.position.x - .5 + pixelx;
+                                pointMesh.position.y = mesh.position.y + .5 - pixely;
+                                pointMesh.position.z = mesh.position.z - .05;
                                 return false;
                             } catch (err) {
                                 return true;
@@ -177,22 +200,22 @@ export class MaptilerMap {
     }
 
     private buildMapTile(x: number, y: number, url: string, xTile: number, yTile: number): AbstractMesh {
-        const map = MeshBuilder.CreatePlane(`map-${xTile}-${yTile}-plane`, {width: 1, height: 1}, this._scene);
+        const tile = MeshBuilder.CreatePlane(`map-${xTile}-${yTile}-plane`, {width: 1, height: 1}, this._scene);
         const mapMaterial = new StandardMaterial(`map-${xTile}-${yTile}-material`, this._scene);
         const mapTexture = new Texture(url, this._scene);
         const lon = tile2long(xTile, this._zoom);
         const lat = tile2lat(yTile, this._zoom);
         if (!this._min || lat < this._min.x || lon < this._min.y) {
             this._min = new Vector2(lat, lon);
-            console.log(`min: ${lat}, ${lon}`);
+            this._logger.log(`min: ${lat}, ${lon}`);
         }
         const maxLat = tile2lat(yTile + 1, this._zoom);
         const maxLon = tile2long(xTile + 1, this._zoom);
         if (!this._max || maxLat > this._max.y || maxLon > this._max.y) {
             this._min = new Vector2(maxLat, maxLon);
-            console.log(`max: ${maxLat}, ${maxLon}`);
+            this._logger.log(`max: ${maxLat}, ${maxLon}`);
         }
-        map.metadata = {
+        tile.metadata = {
             mapTile: {x: xTile, y: yTile}, bounds:
                 {
                     topleft:
@@ -208,49 +231,15 @@ export class MaptilerMap {
         mapMaterial.emissiveTexture = mapTexture;
         mapMaterial.disableLighting = true;
         mapMaterial.backFaceCulling = false;
-        map.material = mapMaterial;
-        map.position.x = x;
-        map.position.y = y;
-        map.isPickable = true;
-        return map;
+        tile.material = mapMaterial;
+        //tile.material.freeze();
+        tile.position.x = x;
+        tile.position.y = y;
+        tile.renderOutline = true;
+        tile.isPickable = true;
+        tile.actionManager = this._actionManager;
+
+        return tile;
     }
 }
 
-function tile2long(x, z) {
-    return (x / Math.pow(2, z) * 360 - 180);
-}
-
-function tile2lat(y, z) {
-    var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
-    return (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
-}
-
-const EARTH_CIR_METERS = 40075016.686;
-const TILE_SIZE = 512;
-const degreesPerMeter = 360 / EARTH_CIR_METERS;
-const LIMIT_Y = toDegrees(Math.atan(Math.sinh(Math.PI))) // around 85.0511...
-
-function toRadians(degrees) {
-    return degrees * Math.PI / 180;
-}
-
-function toDegrees(radians) {
-    return (radians / Math.PI) * 180
-}
-
-
-function lonOnTile(lon, zoom) {
-    return ((lon + 180) / 360) * Math.pow(2, zoom)
-}
-
-function latOnTile(lat, zoom) {
-    return (
-        ((1 -
-                Math.log(
-                    Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)
-                ) /
-                Math.PI) /
-            2) *
-        Math.pow(2, zoom)
-    )
-}

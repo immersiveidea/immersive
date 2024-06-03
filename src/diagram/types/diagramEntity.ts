@@ -55,4 +55,16 @@ export type DiagramEntity = {
     parent?: string;
     diagramlistingid?: string;
     friendly?: string;
+    rightHand?: {
+        position: { x: number, y: number, z: number },
+        rotation: { x: number, y: number, z: number }
+    },
+    leftHand?: {
+        position: { x: number, y: number, z: number },
+        rotation: { x: number, y: number, z: number }
+    },
+    head?: {
+        position: { x: number, y: number, z: number },
+        rotation: { x: number, y: number, z: number }
+    }
 }

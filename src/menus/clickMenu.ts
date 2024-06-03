@@ -39,6 +39,13 @@ export class ClickMenu {
             }
         }, -1, false, this, false);
 
+        this.makeNewButton("Size", "size", scene, x += .11)
+            .onPointerObservable.add((eventData) => {
+            if (isUp(eventData)) {
+                this.onClickMenuObservable.notifyObservers(eventData);
+            }
+        }, -1, false, this, false);
+
         this.makeNewButton("Close", "close", scene, x += .11)
             .onPointerObservable.add((eventData) => {
             if (isUp(eventData)) {
@@ -47,17 +54,11 @@ export class ClickMenu {
             }
         }, -1, false, this, false);
 
-        this.makeNewButton("Size", "size", scene, x += .11)
-            .onPointerObservable.add((eventData) => {
-            if (isUp(eventData)) {
-                this.onClickMenuObservable.notifyObservers(eventData);
-            }
-        }, -1, false, this, false);
 
         const platform = scene.getMeshByName("platform");
         this._transformNode.parent = scene.activeCamera;
         this._transformNode.position.z = .7;
-        this._transformNode.position.y = -.1;
+        this._transformNode.position.y = -.3;
         this._transformNode.setParent(platform);
         this._transformNode.rotation.z = 0;
     }

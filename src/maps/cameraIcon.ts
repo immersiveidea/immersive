@@ -12,12 +12,12 @@ import {
     Vector3
 } from "@babylonjs/core";
 import {DefaultScene} from "../defaultScene";
-import {CameraWindow} from "./cameraWindow";
+import {CameraWindow} from "../objects/cameraWindow";
 
 export class CameraIcon {
     private static _baseMesh: AbstractMesh;
     private readonly _scene: Scene;
-    private _cam: CameraWindow;
+    private _cams: CameraWindow[] = [];
 
     constructor(scene: Scene, mapNode: TransformNode, position: Vector3) {
         this._scene = scene;
@@ -29,14 +29,20 @@ export class CameraIcon {
         newInstance.position = position;
         newInstance.actionManager = new ActionManager(this._scene);
         newInstance.actionManager.registerAction(new ExecuteCodeAction(ActionManager.OnPickTrigger, () => {
-            if (this._cam) {
-                this._cam.dispose();
-                this._cam = null;
+            if (this._cams && this._cams.length > 0) {
+                for (const cam of this._cams) {
+                    cam.dispose();
+                }
+                this._cams = [];
             } else {
-                this._cam = new CameraWindow(scene, null, 'https://cameras.immersiveidea.com/mjpg/video.mjpg?camera=3');
-                this._cam.mesh.position.x = newInstance.absolutePosition.x;
-                this._cam.mesh.position.z = newInstance.absolutePosition.z;
-                this._cam.mesh.position.y = newInstance.absolutePosition.y + .5;
+                for (let i = 1; i < 7; i++) {
+                    const cam = new CameraWindow(scene, null, 'https://cameras.immersiveidea.com/mjpg/video.mjpg?camera=' + i);
+                    cam.mesh.position.x = newInstance.absolutePosition.x + (-2 + i);
+                    cam.mesh.position.z = newInstance.absolutePosition.z;
+                    cam.mesh.position.y = newInstance.absolutePosition.y + .5;
+                    this._cams.push(cam);
+                }
+
             }
         }));
 
