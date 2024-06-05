@@ -15,6 +15,7 @@ import {v4 as uuidv4} from 'uuid';
 import {createLabel} from "./functions/createLabel";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import log, {Logger} from "loglevel";
+import {xyztovec} from "./functions/vectorConversion";
 
 type DiagramObjectOptionsType = {
     diagramEntity?: DiagramEntity,
@@ -203,8 +204,4 @@ export class DiagramObject {
         }
         this._mesh.rotation.x = Math.PI / 2;
     }
-}
-
-function xyztovec(xyz: { x, y, z }): Vector3 {
-    return new Vector3(xyz.x, xyz.y, xyz.z);
 }

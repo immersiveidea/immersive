@@ -2,7 +2,7 @@ import {AbstractMesh, GizmoManager, IAxisScaleGizmo, Observable} from "@babylonj
 import {DefaultScene} from "../defaultScene";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import {toDiagramEntity} from "../diagram/functions/toDiagramEntity";
-import {displayDebug} from "../util/displayDebug";
+
 
 export class ScaleMenu2 {
     private readonly _gizmoManager: GizmoManager;
@@ -29,7 +29,7 @@ export class ScaleMenu2 {
             if (this.mesh.scaling.z < .01) {
                 this.mesh.scaling.z = .01;
             }
-            displayDebug([this.mesh.scaling.x.toString(), this.mesh.scaling.y.toString(), this.mesh.scaling.z.toString()])
+
             const entity = toDiagramEntity(this.mesh);
             this._notifier.notifyObservers({type: DiagramEventType.MODIFY, entity: entity});
         });

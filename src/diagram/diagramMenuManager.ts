@@ -38,7 +38,8 @@ export class DiagramMenuManager {
         });
         this.toolbox = new Toolbox();
         this.scaleMenu = new ScaleMenu2(this._notifier);
-
+        const clickMenu = this.createClickMenu(this.toolbox.handleMesh, null);
+        clickMenu.dispose();
         controllers.controllerObservable.add((event: ControllerEvent) => {
             if (event.type == ControllerEventType.B_BUTTON) {
                 if (event.value > .8) {
@@ -53,6 +54,7 @@ export class DiagramMenuManager {
                     if (toolY > (cameraPos.y - .2)) {
                         this.toolbox.handleMesh.position.y = localCamera.y - .2;
                     }
+
                     const inputY = this._inputTextView.handleMesh.absolutePosition.y;
                     if (inputY > (cameraPos.y - .2)) {
                         this._inputTextView.handleMesh.position.y = localCamera.y - .2;

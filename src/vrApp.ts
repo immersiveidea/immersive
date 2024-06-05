@@ -12,6 +12,8 @@ import {buildQuestLink} from "./util/functions/buildQuestLink";
 import {exportGltf} from "./util/functions/exportGltf";
 import {DefaultScene} from "./defaultScene";
 import {Introduction} from "./tutorial/introduction";
+import {UserManager} from "./users/userManager";
+
 
 const webGpu = false;
 
@@ -47,12 +49,14 @@ export class VrApp {
         const scene = new Scene(engine);
         DefaultScene.Scene = scene;
         scene.ambientColor = new Color3(.1, .1, .1);
+
         //log.resetLevel();
         //log.setDefaultLevel('error');
         await this.initialize(scene);
         engine.runRenderLoop(() => {
             scene.render();
         });
+
     }
     public async initialize(scene: Scene) {
         setMainCamera(scene);
@@ -91,8 +95,11 @@ function setMainCamera(scene: Scene) {
 
 async function initDb(diagramManager: DiagramManager) {
     const db = new PouchdbPersistenceManager();
+    const userManager = new UserManager(db.onUserObservable);
     db.setDiagramManager(diagramManager);
+
     await db.initialize();
+
 
 }
 

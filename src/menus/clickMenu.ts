@@ -1,4 +1,4 @@
-import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode} from "@babylonjs/core";
+import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {HtmlButton} from "babylon-html";
 
 const POINTER_UP = "pointerup";
@@ -56,11 +56,14 @@ export class ClickMenu {
 
 
         const platform = scene.getMeshByName("platform");
-        this._transformNode.parent = scene.activeCamera;
-        this._transformNode.position.z = .7;
-        this._transformNode.position.y = -.3;
+        const ray = scene.activeCamera.getForwardRay(1);
+        ray.direction.y = 0;
+        const fpos = scene.activeCamera.globalPosition.clone().add(ray.direction.scale(1));
+        this._transformNode.position = fpos;
+        this._transformNode.position.y -= .4;
+        this._transformNode.lookAt(scene.activeCamera.globalPosition);
+        this._transformNode.rotate(Vector3.Up(), Math.PI);
         this._transformNode.setParent(platform);
-        this._transformNode.rotation.z = 0;
     }
 
     public get mesh(): AbstractMesh {

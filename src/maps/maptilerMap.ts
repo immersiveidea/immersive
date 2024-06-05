@@ -88,7 +88,7 @@ export class MaptilerMap {
         const result = await mapTilerClient.geocoding.forward(name)
         if (result.features.length > 0) {
             this.setInitialData(result.features[0].center[1], result.features[0].center[0], zoom);
-            const tileXY = await this.getTileXY(this._lat, this._lon);
+            const tileXY = this.getTileXY(this._lat, this._lon);
             const output = this.getTile(tileXY[0], tileXY[1], zoom);
             this.onReadyObservable.notifyObservers({
                 lat: this._lat,
