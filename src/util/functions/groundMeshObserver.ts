@@ -33,17 +33,21 @@ export async function groundMeshObserver(ground: AbstractMesh,
     //xr.baseExperience.featuresManager.enableFeature(WebXRFeatureName.LAYERS, "latest", { preferMultiviewOnInit: true }, true, false);
     const enterButton = (document.querySelector('#enterXR') as HTMLAnchorElement);
     if (enterButton) {
-        const vrSupported = await xr.baseExperience.sessionManager.isSessionSupportedAsync('immersive-vr');
-        if (vrSupported) {
-            enterButton.classList.remove('inactive');
-            enterButton.addEventListener('click', async (evt) => {
-                evt.preventDefault();
-                //const voice = new VoiceRecognizer();
-                logger.debug('entering XR');
+        try {
+            const vrSupported = await xr.baseExperience.sessionManager.isSessionSupportedAsync('immersive-vr');
+            if (vrSupported) {
+                enterButton.classList.remove('inactive');
+                enterButton.addEventListener('click', async (evt) => {
+                    evt.preventDefault();
+                    //const voice = new VoiceRecognizer();
+                    logger.debug('entering XR');
 
-                const enter = await xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
-                logger.debug(enter);
-            });
+                    const enter = await xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
+                    logger.debug(enter);
+                });
+            }
+        } catch (err) {
+            logger.error(err);
         }
 
     }
