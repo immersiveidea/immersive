@@ -109,6 +109,7 @@ export class Button {
         this._textures.set(states.HOVER, this.drawText(this._mesh.name, this._hoverColor, this._hoverBackground));
         this._textures.set(states.CLICK, this.drawText(this._mesh.name, this._clickColor, this._clickBackground));
         mat.emissiveTexture = this._textures.get(states.NORMAL);
+        mat.opacityTexture = mat.emissiveTexture;
         mat.disableLighting = true;
         return mat;
     }
@@ -123,8 +124,9 @@ export class Button {
         ctx2d.font = font;
         ctx2d.textBaseline = 'middle';
         ctx2d.textAlign = 'center';
+        ctx2d.roundRect(0, 0, this._width * this._density, this._height * this._density, 32);
         ctx2d.fillStyle = background.toHexString();
-        ctx2d.fillRect(0, 0, this._width * this._density, this._height * this._density);
+        ctx2d.fill();
         ctx2d.fillStyle = foreground.toHexString();
         const lines = split(ctx2d, name, font, this._width * this._density, true);
         const x = this._width * this._density / 2;

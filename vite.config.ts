@@ -5,6 +5,9 @@ import {defineConfig} from "vite";
 export default defineConfig({
     test: {},
     define: {},
+    build: {
+        sourcemap: "inline"
+    },
     optimizeDeps: {
         esbuildOptions: {
             define: {

@@ -46,6 +46,7 @@ export class Handle {
         const texture = this.drawText(this._label, Color3.White(), Color3.Black());
         const material = new StandardMaterial('handleMaterial', scene);
         material.emissiveTexture = texture;
+        material.opacityTexture = texture;
         material.disableLighting = true;
         handle.material = material;
         //handle.rotate(Vector3.Up(), Math.PI);
@@ -86,8 +87,9 @@ export class Handle {
         ctx2d.font = font;
         ctx2d.textBaseline = 'middle';
         ctx2d.textAlign = 'center';
+        ctx2d.roundRect(0, 0, 512, 64, 32);
         ctx2d.fillStyle = background.toHexString();
-        ctx2d.fillRect(0, 0, 512, 64);
+        ctx2d.fill();
         ctx2d.fillStyle = foreground.toHexString();
         const lines = split(ctx2d, name, font, 512, true);
         const x = 256;
