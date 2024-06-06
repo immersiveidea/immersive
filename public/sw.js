@@ -1,5 +1,5 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-sw.js');
-const VERSION = '9';
+const VERSION = '10';
 const CACHE = "deepdiagram";
 const IMAGEDELIVERY_CACHE = "deepdiagram-images";
 const MAPTILE_CACHE = 'maptiler';

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta content="An immersive vr diagramming experience based using webxr version 0.6 (2024-05-30)"
+    <meta content="An immersive vr diagramming experience based using webxr version 0.10 (2024-06-06)"
           name="description">
     <meta content="width=device-width, initial-scale=1, height=device-height" name="viewport">
     <link href="/styles.css" rel="stylesheet">
@@ -46,13 +46,13 @@
 <img id="loadingGrid" src="/assets/grid6.jpg"/>
 <script>
     if (typeof navigator.serviceWorker !== 'undefined') {
-        if (localStorage.getItem('serviceWorkerVersion') < '9') {
+        if (localStorage.getItem('serviceWorkerVersion') !== '10') {
             caches.keys().then(cacheNames => {
                 cacheNames.forEach(cacheName => {
                     caches.delete(cacheName);
                 });
             });
-            localStorage.setItem('serviceWorkerVersion', '9');
+            localStorage.setItem('serviceWorkerVersion', '10');
         }
         navigator.serviceWorker.register('/sw.js', {updateViaCache: 'none'});
     }
