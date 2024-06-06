@@ -38,8 +38,7 @@ export class DiagramMenuManager {
         });
         this.toolbox = new Toolbox();
         this.scaleMenu = new ScaleMenu2(this._notifier);
-        const clickMenu = this.createClickMenu(this.toolbox.handleMesh, null);
-        clickMenu.dispose();
+
         controllers.controllerObservable.add((event: ControllerEvent) => {
             if (event.type == ControllerEventType.B_BUTTON) {
                 if (event.value > .8) {

@@ -10,8 +10,8 @@ import {
     VideoTexture
 } from "@babylonjs/core";
 import {DefaultScene} from "../defaultScene";
-import {HtmlButton} from "babylon-html";
 import Hls from "hls.js";
+import {Button} from "../objects/Button";
 
 type Step = {
     name: string;
@@ -82,9 +82,13 @@ export class Introduction {
             hls.attachMedia(vid);
             hls.on(Hls.Events.MANIFEST_PARSED, function () {
                 vid.loop = false;
+
                 vid.play().then(() => {
-                    this.logger.debug("Video Playing");
+                    //this.logger.debug("Video Playing");
+                }).catch((err) => {
+                    console.error(err);
                 });
+
             });
         } else if (vid.canPlayType('application/vnd.apple.mpegurl')) {
             vid.src = src;
@@ -92,6 +96,8 @@ export class Introduction {
             vid.addEventListener('loadedmetadata', function () {
                 vid.play().then(() => {
 
+                }).catch((err) => {
+                    console.error(err);
                 });
             });
         }
@@ -109,15 +115,14 @@ export class Introduction {
         }, -1, true, this, false);
     }
 
-    private buildButton(name: string): HtmlButton {
-        const button = new HtmlButton(name, name, this._scene, null,
-            {html: null, image: {width: 512, height: 512}, width: .5, height: .5});
+    private buildButton(name: string): Button {
+        const button = new Button(name, name, this._scene, {width: .5, height: .5, fontSize: 400});
         button.transform.position.y = .4;
         return button;
     }
 
 
-    private step(index: number, prev?: HtmlButton, prevVideo?: AbstractMesh) {
+    private step(index: number, prev?: Button, prevVideo?: AbstractMesh) {
         if (prevVideo && prevVideo?.metadata) {
             prevVideo.metadata.video.pause();
             prevVideo.metadata.video.remove();

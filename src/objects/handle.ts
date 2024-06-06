@@ -1,9 +1,18 @@
-import {AbstractMesh, Scene, TransformNode, Vector3} from "@babylonjs/core";
-import {HtmlMeshBuilder} from "babylon-html";
+import {
+    Color3,
+    DynamicTexture,
+    ICanvasRenderingContext,
+    MeshBuilder,
+    Scene,
+    StandardMaterial,
+    TransformNode,
+    Vector3
+} from "@babylonjs/core";
 import log, {Logger} from "loglevel";
+import {split} from "canvas-hypertxt";
 
 export class Handle {
-    public mesh: AbstractMesh;
+    public mesh: TransformNode;
     private readonly _menuItem: TransformNode;
     private _isStored: boolean = false;
     private _offset: Vector3;
@@ -30,15 +39,21 @@ export class Handle {
 
     private buildHandle() {
         const scene: Scene = this._menuItem.getScene();
-        const handle = HtmlMeshBuilder.CreatePlaneSync('handle-' + this._menuItem.id, {
-            html:
-                `<div style="width: 100%; height: 100%; border-radius: 32px; background-color: #111122; color: #eeeeee"><center>${this._label}</center></div>
-        `, width: .5, height: .1, image: {width: 256, height: 51}
-        }, scene);
+
+
+        const handle = MeshBuilder.CreatePlane('handle-' + this._menuItem.id, {width: .4, height: .4 / 8}, scene);
+        //button.transform.scaling.set(.1,.1,.1);
+        const texture = this.drawText(this._label, Color3.White(), Color3.Black());
+        const material = new StandardMaterial('handleMaterial', scene);
+        material.emissiveTexture = texture;
+        material.disableLighting = true;
+        handle.material = material;
+        //handle.rotate(Vector3.Up(), Math.PI);
         handle.id = 'handle-' + this._menuItem.id;
         if (this._menuItem) {
             this._menuItem.setParent(handle);
         }
+
         const stored = localStorage.getItem(handle.id);
         if (stored) {
             this._logger.debug('Stored location found for ' + handle.id);
@@ -60,6 +75,30 @@ export class Handle {
         }
         handle.metadata = {handle: true};
         this.mesh = handle;
+
     }
+
+    private drawText(name: string, foreground: Color3, background: Color3): DynamicTexture {
+        const texture = new DynamicTexture('handleTexture', {width: 512, height: 64}, this._menuItem.getScene());
+        const ctx: ICanvasRenderingContext = texture.getContext();
+        const ctx2d: CanvasRenderingContext2D = (ctx.canvas.getContext('2d') as CanvasRenderingContext2D);
+        const font = `900 24px Arial`;
+        ctx2d.font = font;
+        ctx2d.textBaseline = 'middle';
+        ctx2d.textAlign = 'center';
+        ctx2d.fillStyle = background.toHexString();
+        ctx2d.fillRect(0, 0, 512, 64);
+        ctx2d.fillStyle = foreground.toHexString();
+        const lines = split(ctx2d, name, font, 512, true);
+        const x = 256;
+        let y = 32;
+        for (const line of lines) {
+            ctx2d.fillText(line, x, y);
+            y += 50;
+        }
+        texture.update();
+        return texture;
+    }
+
 
 }

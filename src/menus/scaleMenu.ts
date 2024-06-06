@@ -1,6 +1,6 @@
 import {DefaultScene} from "../defaultScene";
-import {HtmlButton, HtmlMeshBuilder} from "babylon-html";
 import {AbstractMesh, Observable, TransformNode, Vector3} from "@babylonjs/core";
+import {Button} from "../objects/Button";
 
 
 export class ScaleMenu {
@@ -17,21 +17,6 @@ export class ScaleMenu {
         this.build();
     }
 
-    public changePosition(position: Vector3) {
-        this.transform.position = position.clone();
-    }
-
-    public show(mesh: AbstractMesh) {
-        this.transform.position = mesh.absolutePosition.clone();
-        this.transform.position.y = mesh.getBoundingInfo().boundingBox.maximumWorld.y + .1;
-        this.transform.setEnabled(true);
-        this._mesh = mesh;
-    }
-
-    public hide() {
-        this.transform.setEnabled(false);
-        this._mesh = null;
-    }
 
     private async build() {
         let x = .12;
@@ -78,7 +63,7 @@ export class ScaleMenu {
     }
 
     private makeButton(name: string, x: number, y: number, parent: TransformNode = null) {
-        const button = new HtmlButton(name, name, DefaultScene.Scene);
+        const button = new Button(name, name, DefaultScene.Scene);
         button.transform.parent = parent;
         button.transform.position.x = x;
         //button.transform.position.y = y;
@@ -112,19 +97,5 @@ export class ScaleMenu {
         if (this._mesh) {
             this.onScaleChangeObservable.notifyObservers(this._mesh);
         }
-    }
-
-    private async createLabel(name: string, y: number) {
-        const label = await HtmlMeshBuilder.CreatePlane(`${name}-label`,
-            {
-                html: `<div style='margin: 0; padding-top: 40px; font-size: 32px; text-align: center; color:#ffffff; background: #000000; width: 128px; height: 128px'>${name}</div>`,
-                height: .1, image: {width: 128, height: 128}
-            },
-            DefaultScene.Scene);
-
-        label.parent = this.transform;
-        label.position.y = y;
-        label.position.x = -.42;
-        return label;
     }
 }

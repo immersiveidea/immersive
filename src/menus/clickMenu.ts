@@ -1,5 +1,5 @@
 import {AbstractMesh, ActionEvent, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
-import {HtmlButton} from "babylon-html";
+import {Button} from "../objects/Button";
 
 const POINTER_UP = "pointerup";
 
@@ -74,11 +74,13 @@ export class ClickMenu {
         this._transformNode.dispose(false, true);
     }
 
-    private makeNewButton(name: string, id: string, scene: Scene, x: number): HtmlButton {
-        const button = new HtmlButton(name, id, scene, null, {html: null, image: {width: 268, height: 268}});
+    private makeNewButton(name: string, id: string, scene: Scene, x: number): Button {
+        const button = new Button(name, id, scene)
+        button.transform.scaling = new Vector3(.2, .2, .2);
+        button.transform.rotate(Vector3.Up(), Math.PI);
         const transform = button.transform;
         transform.parent = this._transformNode;
-        transform.rotation.y = Math.PI;
+        //transform.rotation.y = Math.PI;
         transform.position.x = x;
         return button;
     }
