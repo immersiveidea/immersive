@@ -12,7 +12,6 @@ import {buildQuestLink} from "./util/functions/buildQuestLink";
 import {exportGltf} from "./util/functions/exportGltf";
 import {DefaultScene} from "./defaultScene";
 import {Introduction} from "./tutorial/introduction";
-import {UserManager} from "./users/userManager";
 
 
 const webGpu = false;
@@ -95,7 +94,7 @@ function setMainCamera(scene: Scene) {
 
 async function initDb(diagramManager: DiagramManager) {
     const db = new PouchdbPersistenceManager();
-    const userManager = new UserManager(db.onUserObservable);
+    //const userManager = new UserManager(db.onUserObservable);
     db.setDiagramManager(diagramManager);
 
     await db.initialize();

@@ -33,8 +33,11 @@ export class DiagramObject {
     private _eventObservable: Observable<DiagramEvent>;
     private _mesh: AbstractMesh;
     private _label: AbstractMesh;
+    private _meshesPresent: boolean = false;
+    private _positionHash: string;
 
     public grabbed: boolean = false;
+
     public get mesh(): AbstractMesh {
         return this._mesh;
     }
@@ -106,6 +109,7 @@ export class DiagramObject {
             temp.dispose();
             this._label.position.y = y + .06;
             this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
+
         }
     }
 
@@ -148,19 +152,37 @@ export class DiagramObject {
         if (this._from && this._to) {
             if (!this._sceneObserver) {
                 this._observingStart = Date.now();
+                let tick = 0;
                 this._sceneObserver = this._scene.onAfterRenderObservable.add(() => {
-                    const fromMesh = this._scene.getMeshById(this._from);
-                    const toMesh = this._scene.getMeshById(this._to);
-                    if (fromMesh && toMesh) {
-                        this.updateConnection(fromMesh, toMesh);
-                    } else {
-                        if (Date.now() - this._observingStart > 5000) {
-                            this._logger.warn('DiagramObject connection timeout for: ', this._from, this._to, ' removing');
-                            this._eventObservable.notifyObservers({
-                                type: DiagramEventType.REMOVE,
-                                entity: this._diagramEntity
-                            }, DiagramEventObserverMask.ALL);
-                            this.dispose();
+                    tick++;
+                    if (tick % 5 === 0) {
+                        if (this._meshesPresent) {
+
+                            const fromMesh = this._scene.getMeshById(this._from);
+                            const toMesh = this._scene.getMeshById(this._to);
+
+                            if (fromMesh && toMesh) {
+                                this.updateConnection(fromMesh, toMesh);
+                            }
+
+                        } else {
+                            const fromMesh = this._scene.getMeshById(this._from);
+                            const toMesh = this._scene.getMeshById(this._to);
+                            if (fromMesh && toMesh) {
+                                this.updateConnection(fromMesh, toMesh);
+                                this._meshesPresent = true;
+                            } else {
+                                if (Date.now() - this._observingStart > 5000) {
+                                    this._logger.warn('DiagramObject connection timeout for: ', this._from, this._to, ' removing');
+                                    this._eventObservable.notifyObservers({
+                                        type: DiagramEventType.REMOVE,
+                                        entity: this._diagramEntity
+                                    }, DiagramEventObserverMask.ALL);
+                                    this._scene.onAfterRenderObservable.remove(this._sceneObserver);
+                                    this.dispose();
+
+                                }
+                            }
                         }
                     }
                 }, -1, false, this);
