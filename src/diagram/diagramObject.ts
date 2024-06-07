@@ -35,6 +35,9 @@ export class DiagramObject {
     private _label: AbstractMesh;
     private _meshesPresent: boolean = false;
     private _positionHash: string;
+    private _fromMesh: AbstractMesh;
+    private _toMesh: AbstractMesh;
+    private _meshRemovedObserver: Observer<AbstractMesh>;
 
     public grabbed: boolean = false;
 
@@ -100,16 +103,21 @@ export class DiagramObject {
         if (this._label) {
             this._mesh.computeWorldMatrix(true);
             this._mesh.refreshBoundingInfo();
-            const top =
-                this._mesh.getBoundingInfo().boundingBox.maximumWorld;
-            const temp = new TransformNode("temp", this._scene);
-            temp.position = top;
-            temp.setParent(this._baseTransform);
-            const y = temp.position.y;
-            temp.dispose();
-            this._label.position.y = y + .06;
-            this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
-
+            if (this._from && this._to) {
+                this._label.position.x = .06;
+                this._label.position.z = .06;
+                this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
+            } else {
+                const top =
+                    this._mesh.getBoundingInfo().boundingBox.maximumWorld;
+                const temp = new TransformNode("temp", this._scene);
+                temp.position = top;
+                temp.setParent(this._baseTransform);
+                const y = temp.position.y;
+                temp.dispose();
+                this._label.position.y = y + .06;
+                this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
+            }
         }
     }
 
@@ -148,28 +156,48 @@ export class DiagramObject {
         if (!this._baseTransform) {
             this._baseTransform = new TransformNode("base-" + this._mesh.id, this._scene);
         }
-
         if (this._from && this._to) {
+            if (!this._meshRemovedObserver) {
+                this._meshRemovedObserver = this._scene.onMeshRemovedObservable.add((mesh) => {
+                    if (mesh && mesh.id) {
+                        switch (mesh.id) {
+                            case this._from:
+                                this._fromMesh = null;
+                                this._meshesPresent = false;
+                                this._eventObservable.notifyObservers({
+                                    type: DiagramEventType.REMOVE,
+                                    entity: this._diagramEntity
+                                }, DiagramEventObserverMask.ALL);
+                                this.dispose();
+                                break;
+                            case this._to:
+                                this._toMesh = null;
+                                this._meshesPresent = false;
+                                this._eventObservable.notifyObservers({
+                                    type: DiagramEventType.REMOVE,
+                                    entity: this._diagramEntity
+                                }, DiagramEventObserverMask.ALL);
+                                this.dispose();
+                        }
+                    }
+
+
+                }, -1, false, this);
+            }
             if (!this._sceneObserver) {
                 this._observingStart = Date.now();
                 let tick = 0;
                 this._sceneObserver = this._scene.onAfterRenderObservable.add(() => {
+
                     tick++;
                     if (tick % 5 === 0) {
                         if (this._meshesPresent) {
-
-                            const fromMesh = this._scene.getMeshById(this._from);
-                            const toMesh = this._scene.getMeshById(this._to);
-
-                            if (fromMesh && toMesh) {
-                                this.updateConnection(fromMesh, toMesh);
-                            }
-
+                            this.updateConnection();
                         } else {
-                            const fromMesh = this._scene.getMeshById(this._from);
-                            const toMesh = this._scene.getMeshById(this._to);
-                            if (fromMesh && toMesh) {
-                                this.updateConnection(fromMesh, toMesh);
+                            this._fromMesh = this._fromMesh || this._scene.getMeshById(this._from);
+                            this._toMesh = this._toMesh || this._scene.getMeshById(this._to);
+                            if (this._fromMesh && this._toMesh) {
+                                this.updateConnection();
                                 this._meshesPresent = true;
                             } else {
                                 if (Date.now() - this._observingStart > 5000) {
@@ -178,7 +206,6 @@ export class DiagramObject {
                                         type: DiagramEventType.REMOVE,
                                         entity: this._diagramEntity
                                     }, DiagramEventObserverMask.ALL);
-                                    this._scene.onAfterRenderObservable.remove(this._sceneObserver);
                                     this.dispose();
 
                                 }
@@ -214,13 +241,16 @@ export class DiagramObject {
         this._baseTransform?.dispose();
         this._diagramEntity = null;
         this._scene = null;
+        this._fromMesh = null;
+        this._toMesh = null;
+        this._scene?.onMeshRemovedObservable.remove(this._meshRemovedObserver);
     }
 
-    private updateConnection(fromMesh: AbstractMesh, toMesh: AbstractMesh) {
-        this._baseTransform.position = Vector3.Center(fromMesh.getAbsolutePosition().clone(), toMesh.getAbsolutePosition().clone());
-        this._baseTransform.lookAt(toMesh.getAbsolutePosition());
-        this._mesh.scaling.y = Vector3.Distance(fromMesh.getAbsolutePosition(), toMesh.getAbsolutePosition());
-        this._mesh.material = fromMesh.material;
+    private updateConnection() {
+        this._baseTransform.position = Vector3.Center(this._fromMesh.getAbsolutePosition().clone(), this._toMesh.getAbsolutePosition().clone());
+        this._baseTransform.lookAt(this._toMesh.getAbsolutePosition());
+        this._mesh.scaling.y = Vector3.Distance(this._fromMesh.getAbsolutePosition(), this._toMesh.getAbsolutePosition());
+        this._mesh.material = this._fromMesh.material;
         if (!this._mesh.parent) {
             this._mesh.parent = this._baseTransform;
         }

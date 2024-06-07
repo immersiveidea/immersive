@@ -50,7 +50,12 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
                 newMesh = buildImage(entity, scene);
                 break;
             case DiagramTemplates.CONNECTION:
-                newMesh = MeshBuilder.CreateCylinder(entity.id, {diameter: .025, height: 1}, scene);
+                newMesh = MeshBuilder.CreateCylinder(entity.id, {
+                    diameterBottom: .04,
+                    height: 1,
+                    diameterTop: .004,
+                    tessellation: 3
+                }, scene);
                 break;
             case DiagramTemplates.BOX:
             case DiagramTemplates.SPHERE:
