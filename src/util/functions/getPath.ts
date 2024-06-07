@@ -6,3 +6,12 @@ export function getPath(): string {
         return null;
     }
 }
+
+export function getParameter(name: string) {
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get(name);
+}
+
+export function viewOnly(): boolean {
+    return getParameter('viewonly') == 'true';
+}

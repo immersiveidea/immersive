@@ -189,7 +189,7 @@ h1 {
 
 }
 
-#enterXR.inactive a {
+div.overlay div.inactive a {
     background-color: #222222;
     color: #555555;
     border-color: #222222;

@@ -1,17 +1,30 @@
 import {useEffect, useState} from "react";
 import {uploadImage} from "./functions/uploadImage";
+import {viewOnly} from "../util/functions/getPath";
 
 function MainMenu({onClick}) {
-    return (
-        <div className="overlay mini" id="main">
-            <img height="120" src="/assets/ddd.svg" width="320"/>
-            <div id="enterXR" className="inactive"><a href="#" id="enterVRLink">Enter VR</a></div>
-            <QuestLink/>
-            <div id="diagrams"><a href="#" id="diagramsLink" onClick={onClick}>Diagrams</a></div>
-            <div id="imageUpload"><a href="#" id="imageUploadLink" onClick={onClick}>Upload Image</a></div>
-            <div id="download"><a href="#" id="downloadLink">Download Model</a></div>
-        </div>
-    )
+    if (viewOnly()) {
+        return (
+            <div className="overlay mini" id="main">
+                <img height="120" src="/assets/ddd.svg" width="320"/>
+                <div id="enterXR" className="inactive"><a href="#" id="enterVRLink">Enter VR</a></div>
+                <QuestLink/>
+                <div id="download"><a href="#" id="downloadLink">Download Model</a></div>
+            </div>)
+    } else {
+        return (
+            <div className="overlay mini" id="main">
+                <img height="120" src="/assets/ddd.svg" width="320"/>
+                <div id="enterXR" className="inactive"><a href="#" id="enterVRLink">Enter VR</a></div>
+                <QuestLink/>
+
+                <div id="diagrams"><a href="#" id="diagramsLink" onClick={onClick}>Diagrams</a></div>
+                <div id="imageUpload"><a href="#" id="imageUploadLink" onClick={onClick}>Upload Image</a></div>
+                <div id="download"><a href="#" id="downloadLink">Download Model</a></div>
+            </div>
+        )
+    }
+
 }
 
 function CreateMenu({display, toggleCreateMenu}) {

@@ -19,6 +19,7 @@ import {DiagramObject} from "../diagram/diagramObject";
 import {snapAll} from "./functions/snapAll";
 import {MeshTypeEnum} from "../diagram/types/meshTypeEnum";
 import {getMeshType} from "./functions/getMeshType";
+import {viewOnly} from "../util/functions/getPath";
 
 const CLICK_TIME = 300;
 
@@ -101,6 +102,9 @@ export class Base {
     protected initClicker(trigger: WebXRControllerComponent) {
         this._logger.debug("initTrigger");
         trigger.onButtonStateChangedObservable.add(() => {
+            if (viewOnly()) {
+                return;
+            }
             if (trigger.changes.pressed) {
                 if (trigger.pressed) {
                     if (this.diagramManager.diagramMenuManager.scaleMenu.mesh == this._meshUnderPointer) {
@@ -140,7 +144,7 @@ export class Base {
 
     private grab() {
         let mesh = this._meshUnderPointer
-        if (!mesh) {
+        if (!mesh || viewOnly()) {
             return;
         }
         this.grabbedMesh = mesh;

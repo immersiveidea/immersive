@@ -12,6 +12,7 @@ import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import {ConnectionPreview} from "../menus/connectionPreview";
 import {ScaleMenu2} from "../menus/ScaleMenu2";
 import {CameraMenu} from "../menus/cameraMenu";
+import {viewOnly} from "../util/functions/getPath";
 
 
 export class DiagramMenuManager {
@@ -38,7 +39,11 @@ export class DiagramMenuManager {
         });
         this.toolbox = new Toolbox();
         this.scaleMenu = new ScaleMenu2(this._notifier);
-
+        if (viewOnly()) {
+            this.toolbox.handleMesh.setEnabled(false);
+            //this.scaleMenu.handleMesh.setEnabled(false)
+            this.configMenu.handleMesh.setEnabled(false);
+        }
         controllers.controllerObservable.add((event: ControllerEvent) => {
             if (event.type == ControllerEventType.B_BUTTON) {
                 if (event.value > .8) {
