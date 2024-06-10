@@ -12,7 +12,7 @@ import log, {Logger} from "loglevel";
 import {split} from "canvas-hypertxt";
 
 export class Handle {
-    public mesh: TransformNode;
+    public transformNode: TransformNode;
     private readonly _menuItem: TransformNode;
     private _isStored: boolean = false;
     private _offset: Vector3;
@@ -75,7 +75,7 @@ export class Handle {
             handle.rotation = this._rotation;
         }
         handle.metadata = {handle: true};
-        this.mesh = handle;
+        this.transformNode = handle;
 
     }
 

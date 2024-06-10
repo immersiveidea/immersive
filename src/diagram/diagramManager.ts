@@ -94,13 +94,13 @@ export class DiagramManager {
 
 
     private onDiagramEvent(event: DiagramEvent) {
+        let diagramObject = this._diagramObjects.get(event.entity.id);
         switch (event.type) {
             case DiagramEventType.ADD:
-                let diagramObject = this._diagramObjects.get(event.entity.id);
                 if (diagramObject) {
                     diagramObject.fromDiagramEntity(event.entity);
                 } else {
-                    diagramObject = new DiagramObject(this._scene,
+                    diagramObject = DiagramObject.CreateObject(this._scene,
                         this.onDiagramEventObservable,
                         {diagramEntity: event.entity, actionManager: this._diagramEntityActionManager});
                 }
@@ -111,17 +111,19 @@ export class DiagramManager {
                 }
                 break;
             case DiagramEventType.REMOVE:
-                const object = this._diagramObjects.get(event.entity.id);
-                if (object) {
-                    object.dispose();
+                if (diagramObject) {
+                    diagramObject.dispose();
                 }
                 this._diagramObjects.delete(event.entity.id);
                 break;
             case DiagramEventType.MODIFY:
                 console.log(event);
-                if (event.entity.text) {
-                    const diagramObject = this._diagramObjects.get(event.entity.id);
+                //diagramObject = this._diagramObjects.get(event.entity.id);
+                if (diagramObject && event.entity.text) {
                     diagramObject.text = event.entity.text;
+                }
+                if (event.entity.position) {
+                    //diagramObject.position = event.entity.position;
                 }
                 break;
         }

@@ -26,24 +26,18 @@ type DiagramObjectOptionsType = {
 export class DiagramObject {
     private readonly _logger: Logger = log.getLogger('DiagramObject');
     private _scene: Scene;
+    public grabbed: boolean = false;
     private _from: string;
     private _to: string;
     private _observingStart: number;
     private _sceneObserver: Observer<Scene>;
     private _eventObservable: Observable<DiagramEvent>;
-    private _mesh: AbstractMesh;
     private _label: AbstractMesh;
     private _meshesPresent: boolean = false;
     private _positionHash: string;
     private _fromMesh: AbstractMesh;
     private _toMesh: AbstractMesh;
     private _meshRemovedObserver: Observer<AbstractMesh>;
-
-    public grabbed: boolean = false;
-
-    public get mesh(): AbstractMesh {
-        return this._mesh;
-    }
 
     constructor(scene: Scene, eventObservable: Observable<DiagramEvent>, options?: DiagramObjectOptionsType) {
         this._eventObservable = eventObservable;
@@ -58,7 +52,7 @@ export class DiagramObject {
                 const myEntity = this.fromDiagramEntity(options.diagramEntity);
                 if (!myEntity) {
                     this._logger.warn('DiagramObject constructor called with invalid diagramEntity', options.diagramEntity);
-                    return null;
+                    this._valid = false;
                 }
             }
             if (options.mesh) {
@@ -68,6 +62,28 @@ export class DiagramObject {
             if (options.actionManager && this._mesh) {
                 this._mesh.actionManager = options.actionManager;
             }
+        }
+        this._valid = true;
+    }
+
+    private _mesh: AbstractMesh;
+
+    public get mesh(): AbstractMesh {
+        return this._mesh;
+    }
+
+    private _valid: boolean = false;
+
+    public get valid(): boolean {
+        return this._valid;
+    }
+
+    public static CreateObject(scene: Scene, eventObservable: Observable<DiagramEvent>, options: DiagramObjectOptionsType): DiagramObject {
+        const newObj = new DiagramObject(scene, eventObservable, options);
+        if (newObj.valid) {
+            return newObj;
+        } else {
+            return null;
         }
     }
 
@@ -216,9 +232,18 @@ export class DiagramObject {
             }
         } else {
             this._mesh.setParent(this._baseTransform);
-            this._baseTransform.position = xyztovec(entity.position);
-            this._baseTransform.rotation = xyztovec(entity.rotation);
-            this._mesh.scaling = xyztovec(entity.scale);
+            if (entity.position) {
+                this._baseTransform.position = xyztovec(entity.position)
+            }
+            ;
+            if (entity.rotation) {
+                this._baseTransform.rotation = xyztovec(entity.rotation)
+            }
+            ;
+            if (entity.scale) {
+                this._mesh.scaling = xyztovec(entity.scale)
+            }
+            ;
             this._mesh.position = Vector3.Zero();
             this._mesh.rotation = Vector3.Zero();
         }

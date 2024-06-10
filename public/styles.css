@@ -162,6 +162,11 @@ h1 {
     height: 210px;
 }
 
+#password {
+    display: none;
+    left: 50%;
+    top: 50%;
+}
 #diagramList {
     left: 340px;
     top: 400px;

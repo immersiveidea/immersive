@@ -11,6 +11,7 @@ import {syncDoc} from "./functions/syncDoc";
 import {checkDb} from "./functions/checkDb";
 import {UserModelType} from "../users/userTypes";
 import {getMe} from "../util/me";
+import {Encryption} from "./encryption";
 
 export class PouchdbPersistenceManager {
     private _logger: Logger = log.getLogger('PouchdbPersistenceManager');
@@ -20,10 +21,16 @@ export class PouchdbPersistenceManager {
     private db: PouchDB;
     private remote: PouchDB;
     private user: string;
-
-
+    private _encryption = new Encryption();
+    private _encKey = null;
     constructor() {
-
+        document.addEventListener('passwordset', (evt) => {
+            this._encKey = evt.detail || null;
+            if (this._encKey && typeof (this._encKey) == 'string') {
+                this.initialize();
+            }
+            console.log(evt);
+        });
     }
     public setDiagramManager(diagramManager: DiagramManager) {
         diagramManager.onDiagramEventObservable.add((evt) => {
@@ -80,10 +87,7 @@ export class PouchdbPersistenceManager {
             } else {
                 this._logger.error(err);
             }
-
         }
-
-
     }
     public async remove(id: string) {
         if (!id) {
@@ -101,17 +105,41 @@ export class PouchdbPersistenceManager {
         if (!entity) {
             return;
         }
+        if (this._encKey && !this._encryption.ready) {
+            await this._encryption.setPassword(this._encKey);
+        }
         try {
             const doc = await this.db.get(entity.id);
-            if (doc) {
-                const newDoc = {...doc, ...entity};
-                this.db.put(newDoc);
+            if (this._encKey) {
+
+                await this._encryption.encryptObject(entity);
+                const newDoc = {
+                    _id: doc._id,
+                    _rev: doc._rev,
+                    encrypted: this._encryption.getEncrypted()
+                }
+                this.db.put(newDoc)
+            } else {
+                if (doc) {
+                    const newDoc = {...doc, ...entity};
+                    this.db.put(newDoc);
+                }
             }
+
         } catch (err) {
             if (err.status == 404) {
                 try {
-                    const newEntity = {...entity, _id: entity.id};
-                    this.db.put(newEntity);
+                    if (this._encKey) {
+                        await this._encryption.encryptObject(entity);
+                        const newDoc = {
+                            _id: entity.id,
+                            encrypted: this._encryption.getEncrypted()
+                        }
+                        this.db.put(newDoc);
+                    } else {
+                        const newEntity = {...entity, _id: entity.id};
+                        this.db.put(newEntity);
+                    }
                 } catch (err2) {
                     this._logger.error(err2);
                 }
@@ -128,28 +156,52 @@ export class PouchdbPersistenceManager {
         await this.sendLocalDataToScene();
     }
 
-    private async setupMetadata(current: string) {
+    private async setupMetadata(current: string): Promise<boolean> {
         try {
             const doc = await this.db.get('metadata');
-            if (doc && doc.friendly) {
-                localStorage.setItem(current, doc.friendly);
-            }
-            if (doc && doc.camera) {
+            if (doc.encrypted) {
+                if (!this._encKey) {
+                    const promptPassword = new CustomEvent('promptpassword', {detail: 'Please enter password'});
+                    document.dispatchEvent(promptPassword);
+                    return false;
+                }
+                if (!this._encryption.ready) {
+                    await this._encryption.setPassword(this._encKey, doc.encrypted.salt);
+                }
+                const decrypted = await this._encryption.decryptToObject(doc.encrypted.encrypted, doc.encrypted.iv);
+                if (decrypted.friendly) {
+                    localStorage.setItem(current, decrypted.friendly);
+                }
+            } else {
+                if (doc && doc.friendly) {
+                    localStorage.setItem(current, doc.friendly);
+                }
+                if (doc && doc.camera) {
 
+                }
             }
         } catch (err) {
             if (err.status == 404) {
                 this._logger.debug('no metadata found');
                 const friendly = localStorage.getItem(current);
                 if (friendly) {
-                    this._logger.debug('local friendly name found ', friendly, ' setting metadata');
-                    const newDoc = {_id: 'metadata', id: 'metadata', friendly: friendly};
-                    await this.db.put(newDoc);
+                    if (this._encKey) {
+                        if (!this._encryption.ready) {
+                            await this._encryption.setPassword(this._encKey);
+                        }
+                        await this._encryption.encryptObject({friendly: friendly});
+                        await this.db.put({_id: 'metadata', id: 'metadata', encrypted: this._encryption.getEncrypted()})
+                    } else {
+                        this._logger.debug('local friendly name found ', friendly, ' setting metadata');
+                        const newDoc = {_id: 'metadata', id: 'metadata', friendly: friendly};
+                        await this.db.put(newDoc);
+                    }
                 } else {
                     this._logger.debug('no friendly name found');
                 }
             }
         }
+        return true;
     }
 
     private async initLocal(): Promise<boolean> {
@@ -165,8 +217,9 @@ export class PouchdbPersistenceManager {
             this.db = new PouchDB(current, {auto_compaction: true});
             //await this.db.compact();
             if (sync) {
-                await this.setupMetadata(current);
-                await this.beginSync(current);
+                if (await this.setupMetadata(current)) {
+                    await this.beginSync(current);
+                }
             }
             return true;
         } catch (err) {
@@ -177,20 +230,38 @@ export class PouchdbPersistenceManager {
     }
 
     private async sendLocalDataToScene() {
+
+        let salt = null;
+
         const clear = localStorage.getItem('clearLocal');
         try {
 
             const all = await this.db.allDocs({include_docs: true});
-            for (const entity of all.rows) {
-                this._logger.debug(entity.doc);
+            for (const dbEntity of all.rows) {
+                this._logger.debug(dbEntity.doc);
                 if (clear) {
-                    this.remove(entity.id);
+                    this.remove(dbEntity.id);
                 } else {
-                    if (entity.type == 'user') {
-                        this.onUserObservable.notifyObservers(entity.doc);
+                    if (dbEntity.doc.encrypted) {
+                        if (!salt || salt != dbEntity.doc.encrypted.salt) {
+                            await this._encryption.setPassword(this._encKey, dbEntity.doc.encrypted.salt);
+                            salt = dbEntity.doc.encrypted.salt;
+                        }
+                        const decrypted = await this._encryption.decryptToObject(dbEntity.doc.encrypted.encrypted, dbEntity.doc.encrypted.iv);
+                        if (decrypted.type == 'user') {
+                            this.onUserObservable.notifyObservers(decrypted);
+                        } else {
+                            if (decrypted.id != 'metadata') {
+                                this.onDBEntityUpdateObservable.notifyObservers(decrypted, DiagramEventObserverMask.FROM_DB);
+                            }
+                        }
                     } else {
-                        if (entity.id != 'metadata') {
-                            this.onDBEntityUpdateObservable.notifyObservers(entity.doc, DiagramEventObserverMask.FROM_DB);
+                        if (dbEntity.type == 'user') {
+                            this.onUserObservable.notifyObservers(dbEntity.doc);
+                        } else {
+                            if (dbEntity.id != 'metadata') {
+                                this.onDBEntityUpdateObservable.notifyObservers(dbEntity.doc, DiagramEventObserverMask.FROM_DB);
+                            }
                         }
                     }
                 }
@@ -199,6 +270,12 @@ export class PouchdbPersistenceManager {
                 localStorage.removeItem('clearLocal');
             }
         } catch (err) {
+            switch (err.message) {
+                case 'WebCrypto_DecryptionFailure: ':
+                case 'Invalid data type!':
+                    const promptPassword = new CustomEvent('promptpassword', {detail: 'Please enter password'});
+                    document.dispatchEvent(promptPassword);
+            }
             this._logger.error(err);
         }
     }
@@ -242,9 +319,10 @@ export class PouchdbPersistenceManager {
                 {auth: {username: remoteUserName, password: password}, skip_setup: true});
             const dbInfo = await this.remote.info();
             this._logger.debug(dbInfo);
+
             this.db.sync(this.remote, {live: true, retry: true})
                 .on('change', (info) => {
-                    syncDoc(info, this.onDBEntityRemoveObservable, this.onDBEntityUpdateObservable, this.onUserObservable);
+                    syncDoc(info, this.onDBEntityRemoveObservable, this.onDBEntityUpdateObservable, this.onUserObservable, this._encryption, this._encKey);
                 })
                 .on('active', (info) => {
                     this._logger.debug('sync active', info)

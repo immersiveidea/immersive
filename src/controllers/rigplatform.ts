@@ -162,10 +162,8 @@ export class Rigplatform {
 
 
     private initializeControllers() {
-
         this.xr.input.onControllerAddedObservable.add((source) => {
             this.registerObserver();
-            let controller;
             switch (source.inputSource.handedness) {
                 case RIGHT:
                     if (!this.rightController) {
@@ -179,9 +177,6 @@ export class Rigplatform {
                     break;
             }
             //this.xr.baseExperience.camera.position = new Vector3(0, 0, 0);
-            if (controller) {
-                controller.setRig(this);
-            }
         });
         this.xr.input.onControllerRemovedObservable.add((source) => {
             switch (source.inputSource.handedness) {

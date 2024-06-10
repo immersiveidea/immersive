@@ -37,8 +37,8 @@ export class Button {
     public onPointerObservable: Observable<ActionEvent> = new Observable<ActionEvent>();
     private _scene: Scene;
     private _mesh: AbstractMesh;
-    private _width: number;
-    private _height: number;
+    private readonly _width: number;
+    private readonly _height: number;
     private _background: Color3;
     private _color: Color3;
     private _hoverBackground: Color3;

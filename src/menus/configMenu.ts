@@ -1,5 +1,5 @@
 import {AdvancedDynamicTexture, CheckboxGroup, RadioGroup, SelectionPanel, StackPanel} from "@babylonjs/gui";
-import {AbstractMesh, MeshBuilder, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {MeshBuilder, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {AppConfig} from "../util/appConfig";
 import log from "loglevel";
 import {DefaultScene} from "../defaultScene";
@@ -35,8 +35,8 @@ export class ConfigMenu {
         this.buildMenu();
     }
 
-    public get handleMesh(): AbstractMesh {
-        return this._handle.mesh;
+    public get handleTransformNode(): TransformNode {
+        return this._handle.transformNode;
     }
 
     private adjustRadio(radio: RadioGroup | CheckboxGroup) {
@@ -167,20 +167,20 @@ export class ConfigMenu {
 
         const platform = this._scene.getMeshById('platform');
         if (platform) {
-            this._handle.mesh.parent = platform;
+            this._handle.transformNode.parent = platform;
             if (!this._handle.idStored) {
-                this._handle.mesh.position = offset;
-                this._handle.mesh.rotation = rotation;
+                this._handle.transformNode.position = offset;
+                this._handle.transformNode.rotation = rotation;
             }
 
         } else {
             const handler = this._scene.onNewMeshAddedObservable.add((mesh) => {
                 if (mesh && mesh.id == 'platform') {
-                    this._handle.mesh.parent = mesh;
+                    this._handle.transformNode.parent = mesh;
 
                     if (!this._handle.idStored) {
-                        this._handle.mesh.position = offset;
-                        this._handle.mesh.rotation = rotation;
+                        this._handle.transformNode.position = offset;
+                        this._handle.transformNode.rotation = rotation;
                     }
 
 

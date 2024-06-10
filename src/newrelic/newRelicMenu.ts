@@ -14,18 +14,12 @@ export class NewRelicMenu extends AbstractMenu {
 
     buildMenu() {
         this.logger.debug('buildMenu');
-        this.makeButton("credentials", "credentials");
+        //this.makeButton("credentials", "credentials");
         const grid = new Grid("grid");
         grid.addColumnDefinition(.5);
         grid.addColumnDefinition(.5);
         grid.addRowDefinition(.5);
 
-    }
-
-    makeButton(name: string, id: string) {
-        const button = super.makeButton(name, id);
-        button.onPointerClickObservable.add(this.handleClick, -1, false, this);
-        return button;
     }
 
     private handleClick(_info, state) {

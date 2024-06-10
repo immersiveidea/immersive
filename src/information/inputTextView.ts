@@ -1,4 +1,4 @@
-import {AbstractMesh, MeshBuilder, Observable, Scene, Vector3} from "@babylonjs/core";
+import {AbstractMesh, MeshBuilder, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import log, {Logger} from "loglevel";
 import {AdvancedDynamicTexture, Control, InputText, VirtualKeyboard} from "@babylonjs/gui";
 import {ControllerEventType, Controllers} from "../controllers/controllers";
@@ -33,8 +33,12 @@ export class InputTextView {
         this.createKeyboard();
     }
 
+    public get handleMesh(): TransformNode {
+        return this.handle.transformNode;
+    }
+
     public show(mesh: AbstractMesh) {
-        this.handle.mesh.setEnabled(true);
+        this.handle.transformNode.setEnabled(true);
         if (mesh.metadata?.text) {
             this.inputText.text = mesh.metadata?.text;
         } else {
@@ -44,15 +48,6 @@ export class InputTextView {
         this.keyboard.isVisible = true;
         this.inputText.focus();
         this.logger.debug(mesh.metadata);
-    }
-
-    public get handleMesh(): AbstractMesh {
-        return this.handle.mesh;
-    }
-
-    private hide() {
-        this.handle.mesh.setEnabled(false);
-        this.diagramMesh = null;
     }
 
     public createKeyboard() {
@@ -70,18 +65,18 @@ export class InputTextView {
             this.scene.onNewMeshAddedObservable.add((mesh) => {
                 if (mesh.id == 'platform') {
                     this.logger.debug("platform added");
-                    handle.mesh.parent = mesh;
+                    handle.transformNode.parent = mesh;
                     if (!handle.idStored) {
-                        handle.mesh.position = position;
-                        handle.mesh.rotation = rotation;
+                        handle.transformNode.position = position;
+                        handle.transformNode.rotation = rotation;
                     }
                 }
             }, -1, false, this, false);
         } else {
-            handle.mesh.setParent(platform);
+            handle.transformNode.setParent(platform);
             if (!handle.idStored) {
-                handle.mesh.position = position;
-                handle.mesh.rotation = rotation;
+                handle.transformNode.position = position;
+                handle.transformNode.rotation = rotation;
             }
         }
 
@@ -143,6 +138,11 @@ export class InputTextView {
             }
         }, -1, false, this, false);
         this.keyboard = keyboard;
-        this.handle.mesh.setEnabled(false);
+        this.handle.transformNode.setEnabled(false);
+    }
+
+    private hide() {
+        this.handle.transformNode.setEnabled(false);
+        this.diagramMesh = null;
     }
 }

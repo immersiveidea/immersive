@@ -42,7 +42,7 @@ export class DiagramMenuManager {
         if (viewOnly()) {
             this.toolbox.handleMesh.setEnabled(false);
             //this.scaleMenu.handleMesh.setEnabled(false)
-            this.configMenu.handleMesh.setEnabled(false);
+            this.configMenu.handleTransformNode.setEnabled(false);
         }
         controllers.controllerObservable.add((event: ControllerEvent) => {
             if (event.type == ControllerEventType.B_BUTTON) {
@@ -65,7 +65,7 @@ export class DiagramMenuManager {
                     }
                     const configY = this._inputTextView.handleMesh.absolutePosition.y;
                     if (configY > (cameraPos.y - .2)) {
-                        this.configMenu.handleMesh.position.y = localCamera.y - .2;
+                        this.configMenu.handleTransformNode.position.y = localCamera.y - .2;
                     }
                 }
             }

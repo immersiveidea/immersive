@@ -53,7 +53,7 @@ export class NewRelicQuery {
         const plane = MeshBuilder.CreatePlane("plane", {width: .5, height: .25}, this.scene);
         plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
         const advancedTexture = AdvancedDynamicTexture.CreateForMesh(plane, 1024, 512, false);
-        var text1 = new TextBlock();
+        const text1 = new TextBlock();
         text1.text = text;
         advancedTexture.background = "#000000";
         text1.color = "white";

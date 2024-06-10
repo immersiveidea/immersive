@@ -38,8 +38,8 @@ export class Toolbox {
         return Toolbox._instance;
     }
 
-    public get handleMesh(): AbstractMesh {
-        return this._handle.mesh;
+    public get handleMesh(): TransformNode {
+        return this._handle.transformNode;
     }
 
     public isTool(mesh: AbstractMesh) {
@@ -113,10 +113,10 @@ export class Toolbox {
         const rotation = new Vector3(.5, -.6, .18);
 
         const handle = this._handle;
-        handle.mesh.parent = mesh;
+        handle.transformNode.parent = mesh;
         if (!handle.idStored) {
-            handle.mesh.position = offset;
-            handle.mesh.rotation = rotation;
+            handle.transformNode.position = offset;
+            handle.transformNode.rotation = rotation;
         }
 
     }
