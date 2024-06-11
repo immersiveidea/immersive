@@ -10,8 +10,7 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks: {
-                    'babylon': ['@babylonjs/core'],
-                    'crypto': ["js-crypto-aes", "hash-wasm", "uint8-to-b64"]
+                    'babylon': ['@babylonjs/core']
                 }
             }
         }
