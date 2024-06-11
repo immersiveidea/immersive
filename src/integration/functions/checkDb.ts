@@ -1,7 +1,7 @@
 import axios from "axios";
 import log from "loglevel";
 
-export async function checkDb(localName: string, remoteDbName: string) {
+export async function checkDb(localName: string, remoteDbName: string, password: string) {
     const logger = log.getLogger('checkDb');
     const dbs = await axios.get(import.meta.env.VITE_SYNCDB_ENDPOINT + 'list');
     logger.debug(dbs.data);
@@ -11,7 +11,7 @@ export async function checkDb(localName: string, remoteDbName: string) {
             {
                 "_id": "org.couchdb.user:" + localName,
                 "name": localName,
-                "password": localName,
+                "password": password,
                 "roles": ["readers"],
                 "type": "user"
             }

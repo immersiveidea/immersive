@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {uploadImage} from "./functions/uploadImage";
 import {viewOnly} from "../util/functions/getPath";
+import axios from "axios";
 
 function MainMenu({onClick}) {
     if (viewOnly()) {
@@ -58,10 +59,31 @@ function CreateMenu({display, toggleCreateMenu}) {
     const onCreateClick = (evt) => {
         evt.preventDefault();
         const name = (document.querySelector('#createName') as HTMLInputElement).value;
+        const password = (document.querySelector('#createPassword') as HTMLInputElement).value;
+        const password2 = (document.querySelector('#createPassword2') as HTMLInputElement).value;
+        if (password !== password2) {
+            window.alert('Passwords do not match');
+            return;
+        }
         const id = window.crypto.randomUUID().replace(/-/g, '_');
         localStorage.setItem(id, name);
         if (name && name.length > 4) {
-            document.location.href = '/db/' + id;
+            axios.post(import.meta.env.VITE_CREATE_ENDPOINT,
+                {
+                    "_id": "org.couchdb.user:" + id,
+                    "name": id,
+                    "password": password,
+                    "roles": ["readers"],
+                    "type": "user"
+                }
+            ).then(response => {
+                console.log(response);
+                document.location.href = '/db/' + id;
+            }).catch(error => {
+                console.error(error);
+            });
+
+
         } else {
             window.alert('Name must be longer than 4 characters');
         }
@@ -70,6 +92,8 @@ function CreateMenu({display, toggleCreateMenu}) {
         <div className="overlay" id="create" style={{'display': display}}>
             <div>
                 <div><input id="createName" placeholder="Enter a name for your diagram" type="text"/></div>
+                <div><input id="createPassword" placeholder="(Optional) Password" type="password"/></div>
+                <div><input id="createPassword2" placeholder="(Optional) Password" type="password"/></div>
                 <div><a href="#" id="createActionLink" onClick={onCreateClick}>Create</a></div>
                 <div><a className="cancel" onClick={toggleCreateMenu} href="#" id="cancelCreateLink">Cancel</a></div>
             </div>

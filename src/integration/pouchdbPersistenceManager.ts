@@ -285,9 +285,9 @@ export class PouchdbPersistenceManager {
             const userHex = ascii_to_hex(localName);
             const remoteDbName = 'userdb-' + userHex;
             const remoteUserName = localName;
-            const password = localName;
+            const password = this._encKey || localName;
 
-            if (await checkDb(localName, remoteDbName) == false) {
+            if (await checkDb(localName, remoteDbName, password) == false) {
                 return;
             }
 
@@ -301,15 +301,27 @@ export class PouchdbPersistenceManager {
             }
             if (target.data && target.data.userCtx) {
                 if (!target.data.userCtx.name || target.data.userCtx.name != remoteUserName) {
-                    const buildTarget = await axios.post(userEndpoint,
-                        {username: remoteUserName, password: password});
-                    if (buildTarget.status != 200) {
-                        this._logger.info(buildTarget.statusText);
-                        return;
-                    } else {
-                        this.user = buildTarget.data.userCtx;
-                        this._logger.debug(this.user);
+                    try {
+                        const buildTarget = await axios.post(userEndpoint,
+                            {username: remoteUserName, password: password});
+                        if (buildTarget.status != 200) {
+                            this._logger.error(buildTarget.statusText);
+                            return;
+                        } else {
+                            this.user = buildTarget.data.userCtx;
+                            this._logger.debug(this.user);
+                        }
+                    } catch (err) {
+                        if (err.response && err.response.status == 401) {
+                            this._logger.warn(err);
+                            const promptPassword = new CustomEvent('promptpassword', {detail: 'Please enter password'});
+                            document.dispatchEvent(promptPassword);
+                        }
+
+                        //                    } else {
+                        this._logger.error(err);
                     }
+
                 }
             }
 
