@@ -22,7 +22,8 @@ const getPackageJson = async () => {
     console.log(indexHtml);
     indexHtml = indexHtml.replace('@@VERSION', newVersion);
     indexHtml = indexHtml.replace('@@DATE', new Date().toISOString());
-    const gitId = await getGitId();
+    const gitId = (await getGitId()).replace('\n', '');
+
     indexHtml = indexHtml.replace('@@GIT', gitId);
     await fs.writeFile('index.html', indexHtml);
 }
