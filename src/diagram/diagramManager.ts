@@ -117,11 +117,14 @@ export class DiagramManager {
                 this._diagramObjects.delete(event.entity.id);
                 break;
             case DiagramEventType.MODIFY:
-                console.log(event);
+                this._logger.debug(event);
                 //diagramObject = this._diagramObjects.get(event.entity.id);
-                if (diagramObject && event.entity.text) {
+                if (diagramObject && event.entity.text && event.entity.text != diagramObject.text) {
                     diagramObject.text = event.entity.text;
+                } else {
+                    this._logger.warn('Skipping text update for', event);
                 }
+
                 if (event.entity.position) {
                     //diagramObject.position = event.entity.position;
                 }

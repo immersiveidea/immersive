@@ -3,6 +3,7 @@ import {DiagramEntity} from "../../diagram/types/diagramEntity";
 import {Observable} from "@babylonjs/core";
 import {UserModelType} from "../../users/userTypes";
 import {Encryption} from "../encryption";
+import {DiagramEventObserverMask} from "../../diagram/types/diagramEventObserverMask";
 
 export async function syncDoc(info: any, onDBRemoveObservable: Observable<DiagramEntity>, onDBUpdateObservable: Observable<DiagramEntity>,
                               onUserObservable: Observable<UserModelType>,
@@ -26,9 +27,12 @@ export async function syncDoc(info: any, onDBRemoveObservable: Observable<Diagra
                     logger.debug(decrypted);
                     if (doc._deleted) {
                         logger.debug('Delete', doc);
-                        onDBRemoveObservable.notifyObservers({id: doc._id, template: decrypted.template}, 1);
+                        onDBRemoveObservable.notifyObservers({
+                            id: doc._id,
+                            template: decrypted.template
+                        }, DiagramEventObserverMask.FROM_DB);
                     } else {
-                        onDBUpdateObservable.notifyObservers(decrypted, 1);
+                        onDBUpdateObservable.notifyObservers(decrypted, DiagramEventObserverMask.FROM_DB);
                     }
                 }
             } else {
@@ -38,9 +42,12 @@ export async function syncDoc(info: any, onDBRemoveObservable: Observable<Diagra
                     logger.debug(doc);
                     if (doc._deleted) {
                         logger.debug('Delete', doc);
-                        onDBRemoveObservable.notifyObservers({id: doc._id, template: doc.template}, 1);
+                        onDBRemoveObservable.notifyObservers({
+                            id: doc._id,
+                            template: doc.template
+                        }, DiagramEventObserverMask.FROM_DB);
                     } else {
-                        onDBUpdateObservable.notifyObservers(doc, 1);
+                        onDBUpdateObservable.notifyObservers(doc, DiagramEventObserverMask.FROM_DB);
                     }
                 }
             }

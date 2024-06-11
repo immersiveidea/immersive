@@ -35,6 +35,7 @@ export class DiagramObject {
     private _label: AbstractMesh;
     private _meshesPresent: boolean = false;
     private _positionHash: string;
+    private _disposed: boolean = false;
     private _fromMesh: AbstractMesh;
     private _toMesh: AbstractMesh;
     private _meshRemovedObserver: Observer<AbstractMesh>;
@@ -110,9 +111,18 @@ export class DiagramObject {
         if (this._label) {
             this._label.dispose();
         }
+        if (this._diagramEntity.text != value) {
+            this._eventObservable.notifyObservers({
+                type: DiagramEventType.MODIFY,
+                entity: this._diagramEntity
+            }, DiagramEventObserverMask.TO_DB);
+        }
+        this._diagramEntity.text = value;
         this._label = createLabel(value);
         this._label.parent = this._baseTransform;
         this.updateLabelPosition();
+
+
     }
 
     public updateLabelPosition() {
@@ -255,20 +265,25 @@ export class DiagramObject {
     }
 
     public dispose() {
+        if (this._disposed) {
+            this._logger.warn('DiagramObject dispose called for ', this._diagramEntity?.id, ' but it is already disposed');
+            return;
+        }
         this._logger.debug('DiagramObject dispose called for ', this._diagramEntity?.id)
         this._scene?.onAfterRenderObservable.remove(this._sceneObserver);
         this._sceneObserver = null;
         this._mesh?.setParent(null);
         this._mesh?.dispose(true, false);
         this._mesh = null;
-        this._label?.dispose();
+        this._label?.dispose(false, true);
         this._label = null;
-        this._baseTransform?.dispose();
+        this._baseTransform?.dispose(false);
         this._diagramEntity = null;
         this._scene = null;
         this._fromMesh = null;
         this._toMesh = null;
         this._scene?.onMeshRemovedObservable.remove(this._meshRemovedObserver);
+        this._disposed = true;
     }
 
     private updateConnection() {

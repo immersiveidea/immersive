@@ -109,9 +109,11 @@ export class PouchdbPersistenceManager {
             await this._encryption.setPassword(this._encKey);
         }
         try {
-            const doc = await this.db.get(entity.id);
+            const doc = await this.db.get(entity.id, {conflicts: true, include_docs: true});
+            if (doc && doc._conflicts) {
+                this._logger.warn('CONFLICTS!', doc._conflicts);
+            }
             if (this._encKey) {
-
                 await this._encryption.encryptObject(entity);
                 const newDoc = {
                     _id: doc._id,
@@ -121,8 +123,10 @@ export class PouchdbPersistenceManager {
                 this.db.put(newDoc)
             } else {
                 if (doc) {
-                    const newDoc = {...doc, ...entity};
+                    const newDoc = {_id: doc._id, _rev: doc._rev, ...entity};
                     this.db.put(newDoc);
+                } else {
+                    this.db.put({_id: entity.id, ...entity});
                 }
             }
 
@@ -137,7 +141,7 @@ export class PouchdbPersistenceManager {
                         }
                         this.db.put(newDoc);
                     } else {
-                        const newEntity = {...entity, _id: entity.id};
+                        const newEntity = {_id: entity.id, ...entity};
                         this.db.put(newEntity);
                     }
                 } catch (err2) {

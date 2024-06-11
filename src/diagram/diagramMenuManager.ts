@@ -23,7 +23,7 @@ export class DiagramMenuManager {
     private readonly _inputTextView: InputTextView;
     private readonly _scene: Scene;
     private _cameraMenu: CameraMenu;
-    private logger = log.getLogger('DiagramMenuManager');
+    private _logger = log.getLogger('DiagramMenuManager');
     private _connectionPreview: ConnectionPreview;
 
     constructor(notifier: Observable<DiagramEvent>, controllers: Controllers, config: AppConfig) {
@@ -35,7 +35,8 @@ export class DiagramMenuManager {
         this.configMenu = new ConfigMenu(config);
 
         this._inputTextView.onTextObservable.add((evt) => {
-            this.notifyAll({type: DiagramEventType.MODIFY, entity: {id: evt.id, text: evt.text}});
+            const event = {type: DiagramEventType.MODIFY, entity: {id: evt.id, text: evt.text}}
+            this._notifier.notifyObservers(event, DiagramEventObserverMask.FROM_DB);
         });
         this.toolbox = new Toolbox();
         this.scaleMenu = new ScaleMenu2(this._notifier);
@@ -90,7 +91,7 @@ export class DiagramMenuManager {
     public createClickMenu(mesh: AbstractMesh, input: WebXRInputSource): ClickMenu {
         const clickMenu = new ClickMenu(mesh);
         clickMenu.onClickMenuObservable.add((evt: ActionEvent) => {
-            console.log(evt);
+            this._logger.debug(evt);
             switch (evt.source.id) {
                 case "remove":
                     this.notifyAll({type: DiagramEventType.REMOVE, entity: {id: clickMenu.mesh.id}});
@@ -108,7 +109,7 @@ export class DiagramMenuManager {
                     this.scaleMenu.hide();
                     break;
             }
-            console.log(evt);
+            this._logger.debug(evt);
 
         }, -1, false, this, false);
 
