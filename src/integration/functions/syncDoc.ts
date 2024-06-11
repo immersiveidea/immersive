@@ -4,11 +4,13 @@ import {Observable} from "@babylonjs/core";
 import {UserModelType} from "../../users/userTypes";
 import {Encryption} from "../encryption";
 
-export async function syncDoc(info: any, onDBRemoveObservable: Observable<DiagramEntity>, onDBUpdateObservable: Observable<DiagramEntity>, onUserObservable: Observable<UserModelType>,
+export async function syncDoc(info: any, onDBRemoveObservable: Observable<DiagramEntity>, onDBUpdateObservable: Observable<DiagramEntity>,
+                              onUserObservable: Observable<UserModelType>,
                               encryption: Encryption, key: string) {
     const logger = log.getLogger('syncDoc');
     logger.debug(info);
     if (info.direction == 'pull') {
+        // @ts-ignore
         const docs = info.change.docs;
         let salt = null;
         for (const doc of docs) {
