@@ -19,11 +19,16 @@ const getPackageJson = async () => {
     json.version = newVersion;
     await fs.writeFile('package.json', JSON.stringify(json, null, 2));
     let indexHtml = await fs.readFile('index.html', 'utf8');
-    indexHtml = indexHtml.replace('@@VERSION', newVersion);
-    indexHtml = indexHtml.replace('@@DATE', new Date().toISOString());
+    indexHtml = indexHtml.replaceAll('@@VERSION', newVersion);
+    indexHtml = indexHtml.replaceAll('@@DATE', new Date().toISOString());
     const gitId = (await getGitId()).replace('\n', '');
 
-    indexHtml = indexHtml.replace('@@GIT', gitId);
+    indexHtml = indexHtml.replaceAll('@@GIT', gitId);
     await fs.writeFile('index.html', indexHtml);
+
+    let sw = await fs.readFile('public/sw.js', 'utf8');
+    sw = sw.replace('@@VERSION', newVersion);
+    fs.writeFile('public/sw.js', sw);
+
 }
 await getPackageJson();
