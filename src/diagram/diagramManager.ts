@@ -9,6 +9,8 @@ import {DiagramMenuManager} from "./diagramMenuManager";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import {DiagramObject} from "./diagramObject";
 import {getMe} from "../util/me";
+import {UserModelType} from "../users/userTypes";
+import {vectoxys} from "./functions/vectorConversion";
 
 
 export class DiagramManager {
@@ -17,10 +19,14 @@ export class DiagramManager {
     private readonly _controllers: Controllers;
     private readonly _diagramEntityActionManager: ActionManager;
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
+    public readonly onUserEventObservable: Observable<UserModelType> = new Observable();
     private readonly _diagramMenuManager: DiagramMenuManager;
     private readonly _scene: Scene;
     private readonly _diagramObjects: Map<string, DiagramObject> = new Map<string, DiagramObject>();
     private readonly _me: string;
+    private _moving: number = 10;
+    private _i: number = 0;
+
     constructor() {
         this._me = getMe();
         this._scene = DefaultScene.Scene;
@@ -29,6 +35,45 @@ export class DiagramManager {
         this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, this._controllers, this._config);
         this._diagramEntityActionManager = buildEntityActionManager(this._controllers);
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
+
+
+        this.onUserEventObservable.add((user) => {
+            if (user.id != this._me) {
+                this._logger.debug('user event', user);
+            }
+        });
+        window.setInterval(() => {
+            this._i++;
+            const platform = this._scene.getMeshByName('platform');
+
+            if (!platform || !platform.physicsBody) {
+                return;
+            }
+            if (platform.physicsBody) {
+                if ((this._i % this._moving) == 0) {
+                    this.onUserEventObservable.notifyObservers(
+                        {
+                            id: this._me,
+                            name: 'me',
+                            type: 'user',
+                            base: {
+                                position: vectoxys(platform.absolutePosition),
+                                rotation: vectoxys(platform.absoluteRotationQuaternion.toEulerAngles()),
+                                velocity: vectoxys(platform.physicsBody.getLinearVelocity())
+                            },
+                        }
+                    );
+                }
+                if (platform.physicsBody.getLinearVelocity().length() > 0.01) {
+                    this._moving = 1;
+                } else {
+                    this._moving = 10;
+                }
+
+            }
+
+
+        }, 100);
 
         document.addEventListener('uploadImage', (event: CustomEvent) => {
             const diagramEntity: DiagramEntity = {
@@ -88,6 +133,7 @@ export class DiagramManager {
     public addObject(diagramObject: DiagramObject) {
         this._diagramObjects.set(diagramObject.diagramEntity.id, diagramObject);
     }
+
     public get config(): AppConfig {
         return this._config;
     }

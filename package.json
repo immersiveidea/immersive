@@ -11,6 +11,7 @@
     "test": "vitest",
     "build": "node versionBump.js && vite build",
     "preview": "vite preview",
+    "socket": "node server/server.js",
     "serve": "node server.js",
     "serverBuild": "cd server && tsc",
     "havok": "cp ./node_modules/@babylonjs/havok/lib/esm/HavokPhysics.wasm ./node_modules/.vite/deps"
@@ -46,7 +47,10 @@
     "js-crypto-aes": "1.0.6",
     "events": "^3.3.0",
     "hash-wasm": "4.11.0",
-    "uint8-to-b64": "^1.0.2"
+    "uint8-to-b64": "^1.0.2",
+    "meaningful-string": "^1.4.0",
+    "websocket-ts": "^2.1.5",
+    "websocket": "^1.0.34"
   },
   "devDependencies": {
     "@types/dom-to-image": "^2.6.7",

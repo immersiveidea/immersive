@@ -1,12 +1,10 @@
 import log from "loglevel";
 import {DiagramEntity} from "../../diagram/types/diagramEntity";
 import {Observable} from "@babylonjs/core";
-import {UserModelType} from "../../users/userTypes";
 import {Encryption} from "../encryption";
 import {DiagramEventObserverMask} from "../../diagram/types/diagramEventObserverMask";
 
 export async function syncDoc(info: any, onDBRemoveObservable: Observable<DiagramEntity>, onDBUpdateObservable: Observable<DiagramEntity>,
-                              onUserObservable: Observable<UserModelType>,
                               encryption: Encryption, key: string) {
     const logger = log.getLogger('syncDoc');
     logger.debug(info);

@@ -10,7 +10,8 @@ export type UserModelType = {
     state?: string,
     base: {
         position: XYZType,
-        rotation: XYZType
+        rotation: XYZType,
+        velocity?: XYZType
     }
     head?: {
         position: XYZType,

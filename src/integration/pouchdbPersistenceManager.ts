@@ -12,27 +12,37 @@ import {checkDb} from "./functions/checkDb";
 import {UserModelType} from "../users/userTypes";
 import {getMe} from "../util/me";
 import {Encryption} from "./encryption";
+import {Presence} from "./presence";
 
+type PasswordEvent = {
+    detail: string;
+
+}
 export class PouchdbPersistenceManager {
     private _logger: Logger = log.getLogger('PouchdbPersistenceManager');
     onDBEntityUpdateObservable: Observable<DiagramEntity> = new Observable<DiagramEntity>();
     onDBEntityRemoveObservable: Observable<DiagramEntity> = new Observable<DiagramEntity>();
-    onUserObservable: Observable<UserModelType> = new Observable<UserModelType>();
     private db: PouchDB;
     private remote: PouchDB;
     private user: string;
     private _encryption = new Encryption();
     private _encKey = null;
+    private _diagramManager: DiagramManager;
+
     constructor() {
         document.addEventListener('passwordset', (evt) => {
-            this._encKey = evt.detail || null;
+            this._encKey = ((evt as unknown) as PasswordEvent).detail || null;
             if (this._encKey && typeof (this._encKey) == 'string') {
-                this.initialize();
+                this.initialize().then(() => {
+                    this._logger.debug('Initialized');
+                });
             }
             console.log(evt);
         });
     }
+
     public setDiagramManager(diagramManager: DiagramManager) {
+        this._diagramManager = diagramManager;
         diagramManager.onDiagramEventObservable.add((evt) => {
             this._logger.debug(evt);
             switch (evt.type) {
@@ -61,11 +71,7 @@ export class PouchdbPersistenceManager {
             }
 
         });
-        this.onUserObservable.add((evt) => {
-            if (evt.id == getMe()) {
-                this.updateUser(evt);
-            }
-        });
+
 
         this.onDBEntityRemoveObservable.add((entity) => {
             this._logger.debug(entity);
@@ -74,21 +80,6 @@ export class PouchdbPersistenceManager {
         });
     }
 
-    private async updateUser(user: UserModelType) {
-        try {
-            const doc = await this.db.get(user.id);
-            if (doc) {
-                const newDoc = {...doc, ...user};
-                await this.db.put(newDoc);
-            }
-        } catch (err) {
-            if (err.status == 404) {
-                await this.db.put({...user, _id: user.id});
-            } else {
-                this._logger.error(err);
-            }
-        }
-    }
     public async remove(id: string) {
         if (!id) {
             return;
@@ -252,26 +243,23 @@ export class PouchdbPersistenceManager {
                             salt = dbEntity.doc.encrypted.salt;
                         }
                         const decrypted = await this._encryption.decryptToObject(dbEntity.doc.encrypted.encrypted, dbEntity.doc.encrypted.iv);
-                        if (decrypted.type == 'user') {
-                            this.onUserObservable.notifyObservers(decrypted);
-                        } else {
-                            if (decrypted.id != 'metadata') {
-                                this.onDBEntityUpdateObservable.notifyObservers(decrypted, DiagramEventObserverMask.FROM_DB);
-                            }
+
+                        if (decrypted.id != 'metadata') {
+                            this.onDBEntityUpdateObservable.notifyObservers(decrypted, DiagramEventObserverMask.FROM_DB);
                         }
+
                     } else {
-                        if (dbEntity.type == 'user') {
-                            this.onUserObservable.notifyObservers(dbEntity.doc);
-                        } else {
-                            if (dbEntity.id != 'metadata') {
-                                this.onDBEntityUpdateObservable.notifyObservers(dbEntity.doc, DiagramEventObserverMask.FROM_DB);
-                            }
+
+                        if (dbEntity.id != 'metadata') {
+                            this.onDBEntityUpdateObservable.notifyObservers(dbEntity.doc, DiagramEventObserverMask.FROM_DB);
                         }
+
+
                     }
                 }
-            }
-            if (clear) {
-                localStorage.removeItem('clearLocal');
+                if (clear) {
+                    localStorage.removeItem('clearLocal');
+                }
             }
         } catch (err) {
             switch (err.message) {
@@ -335,10 +323,14 @@ export class PouchdbPersistenceManager {
                 {auth: {username: remoteUserName, password: password}, skip_setup: true});
             const dbInfo = await this.remote.info();
             this._logger.debug(dbInfo);
-
+            const presence: Presence = new Presence(getMe(), remoteDbName);
+            this._diagramManager.onUserEventObservable.add((user: UserModelType) => {
+                this._logger.debug(user);
+                presence.sendUser(user);
+            }, -1, false, this);
             this.db.sync(this.remote, {live: true, retry: true})
                 .on('change', (info) => {
-                    syncDoc(info, this.onDBEntityRemoveObservable, this.onDBEntityUpdateObservable, this.onUserObservable, this._encryption, this._encKey);
+                    syncDoc(info, this.onDBEntityRemoveObservable, this.onDBEntityUpdateObservable, this._encryption, this._encKey);
                 })
                 .on('active', (info) => {
                     this._logger.debug('sync active', info)
