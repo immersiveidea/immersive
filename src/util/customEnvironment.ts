@@ -47,7 +47,7 @@ export class CustomEnvironment {
             .then(() => {
                 const ground = this.createGround();
                 new PhysicsAggregate(ground, PhysicsShapeType.BOX, {mass: 0}, this.scene);
-                createPoints(20, 20);
+                //createPoints(20, 20);
                 this.createBackgroundAudio();
                 this._groundMeshObservable.notifyObservers(ground);
                 this.createWalls();

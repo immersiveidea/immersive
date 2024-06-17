@@ -181,6 +181,7 @@ export class DiagramObject {
         }
         if (!this._baseTransform) {
             this._baseTransform = new TransformNode("base-" + this._mesh.id, this._scene);
+            this._baseTransform.metadata = {exportable: true};
         }
         if (this._from && this._to) {
             if (!this._meshRemovedObserver) {

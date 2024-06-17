@@ -51,8 +51,7 @@ export async function buildColor(color: Color3, scene: Scene, parent: TransformN
 }
 
 
-
-const GRID_SIZE = 5;
+const GRID_SIZE = 6;
 
 function calculatePosition(i: number) {
     return (i / GRID_SIZE) - .5 - (1 / GRID_SIZE / 2);
