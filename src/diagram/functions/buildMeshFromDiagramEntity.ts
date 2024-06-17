@@ -62,6 +62,7 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
             case DiagramTemplates.CYLINDER:
             case DiagramTemplates.CONE:
             case DiagramTemplates.PLANE:
+            case DiagramTemplates.PERSON:
                 const toolMesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
                 if (toolMesh && !oldMesh) {
                     newMesh = new InstancedMesh(entity.id, (toolMesh as Mesh));

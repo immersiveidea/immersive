@@ -1,4 +1,4 @@
-import {Color3, Engine, FreeCamera, Scene, Vector3, WebGPUEngine} from "@babylonjs/core";
+import {Color3, Engine, FreeCamera, Observable, Scene, Vector3, WebGPUEngine} from "@babylonjs/core";
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
 import log, {Logger} from "loglevel";
@@ -16,7 +16,7 @@ import {Introduction} from "./tutorial/introduction";
 
 const webGpu = false;
 
-log.setLevel('error', false);
+log.setLevel('debug', false);
 const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
 export class VrApp {
 
@@ -30,7 +30,39 @@ export class VrApp {
         });
     }
 
+    public async initialize(scene: Scene) {
+        //const mesh = SceneLoader.ImportMesh(null, '/assets/models/', 'person.stl', DefaultScene.Scene);
+        setMainCamera(scene);
+        const spinner = new Spinner();
+        spinner.show();
+        const diagramReadyObservable = new Observable<boolean>();
+        const diagramManager = new DiagramManager(diagramReadyObservable);
+        diagramReadyObservable.add((ready) => {
+            if (ready) {
+                initDb(diagramManager);
+            } else {
+                this.logger.error('DiagramManager not ready');
+            }
+        });
+        initEnvironment(diagramManager, spinner);
+        const gamepadManager = new GamepadManager(scene);
+        addSceneInspector();
+        //const camMenu = new CameraMenu(scene);
+        const el = document.querySelector('#download');
+        if (el) {
+            el.addEventListener('click', () => {
+                exportGltf();
+            })
+        }
+        if (!localStorage.getItem('tutorialCompleted')) {
+            this.logger.info('Starting tutorial');
+            const intro = new Introduction();
+        }
+        this.logger.info('Render loop started');
+    }
+
     private async initializeEngine() {
+
         let engine: WebGPUEngine | Engine = null;
         if (webGpu) {
             engine = new WebGPUEngine(canvas);
@@ -56,28 +88,6 @@ export class VrApp {
         });
 
     }
-    public async initialize(scene: Scene) {
-        setMainCamera(scene);
-        const spinner = new Spinner();
-        spinner.show();
-        const diagramManager = new DiagramManager();
-        await initDb(diagramManager);
-        initEnvironment(diagramManager, spinner);
-        const gamepadManager = new GamepadManager(scene);
-        addSceneInspector();
-        //const camMenu = new CameraMenu(scene);
-        const el = document.querySelector('#download');
-        if (el) {
-            el.addEventListener('click', () => {
-                exportGltf();
-            })
-        }
-        if (!localStorage.getItem('tutorialCompleted')) {
-            this.logger.info('Starting tutorial');
-            const intro = new Introduction();
-        }
-        this.logger.info('Render loop started');
-    }
 
 
 }
@@ -95,10 +105,7 @@ async function initDb(diagramManager: DiagramManager) {
     const db = new PouchdbPersistenceManager();
     //const userManager = new UserManager(db.onUserObservable);
     db.setDiagramManager(diagramManager);
-
     await db.initialize();
-
-
 }
 
 function initEnvironment(diagramManager: DiagramManager, spinner: Spinner) {

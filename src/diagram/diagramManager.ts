@@ -27,12 +27,12 @@ export class DiagramManager {
     private _moving: number = 10;
     private _i: number = 0;
 
-    constructor() {
+    constructor(readyObservable: Observable<boolean>) {
         this._me = getMe();
         this._scene = DefaultScene.Scene;
         this._config = new AppConfig();
         this._controllers = new Controllers();
-        this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, this._controllers, this._config);
+        this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, this._controllers, this._config, readyObservable);
         this._diagramEntityActionManager = buildEntityActionManager(this._controllers);
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
 
@@ -97,6 +97,7 @@ export class DiagramManager {
 
         });
         this._logger.debug("DiagramManager constructed");
+
     }
 
     public get actionManager(): AbstractActionManager {
@@ -140,7 +141,7 @@ export class DiagramManager {
 
 
     private onDiagramEvent(event: DiagramEvent) {
-        let diagramObject = this._diagramObjects.get(event.entity.id);
+        let diagramObject = this._diagramObjects.get(event?.entity?.id);
         switch (event.type) {
             case DiagramEventType.ADD:
                 if (diagramObject) {
@@ -160,7 +161,7 @@ export class DiagramManager {
                 if (diagramObject) {
                     diagramObject.dispose();
                 }
-                this._diagramObjects.delete(event.entity.id);
+                this._diagramObjects.delete(event?.entity?.id);
                 break;
             case DiagramEventType.MODIFY:
                 this._logger.debug(event);

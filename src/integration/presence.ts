@@ -94,15 +94,15 @@ export class Presence {
                                                 this._logger.warn('user not found', data.user);
                                                 const newUser = MeshBuilder.CreateDisc(data.user.id, {radius: 0.3}, scene);
                                                 const node = new TransformNode(data.netAddr, scene);
+
                                                 const material = new StandardMaterial(data.user.id + 'mat', scene);
                                                 material.diffuseColor = new Color3(0, 0, 1);
                                                 material.backFaceCulling = false;
+
                                                 newUser.material = material;
                                                 newUser.parent = node;
                                                 newUser.rotation.x = Math.PI / 2;
                                                 newUser.position.y = 0.01;
-                                                node.position = xyztovec(data.user.base.position);
-                                                node.rotation = xyztovec(data.user.base.rotation);
                                             }
                                         }
                                         this._logger.debug('user update', data.user);

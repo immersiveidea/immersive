@@ -30,6 +30,7 @@ export enum DiagramTemplates {
     CONE = "#cone-template",
     IMAGE = "#image-template",
     PLANE = "#plane-template",
+    PERSON = "#person-template"
 }
 
 export type DiagramEvent = {

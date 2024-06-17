@@ -26,7 +26,7 @@ export class DiagramMenuManager {
     private _logger = log.getLogger('DiagramMenuManager');
     private _connectionPreview: ConnectionPreview;
 
-    constructor(notifier: Observable<DiagramEvent>, controllers: Controllers, config: AppConfig) {
+    constructor(notifier: Observable<DiagramEvent>, controllers: Controllers, config: AppConfig, readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
 
 
@@ -38,7 +38,7 @@ export class DiagramMenuManager {
             const event = {type: DiagramEventType.MODIFY, entity: {id: evt.id, text: evt.text}}
             this._notifier.notifyObservers(event, DiagramEventObserverMask.FROM_DB);
         });
-        this.toolbox = new Toolbox();
+        this.toolbox = new Toolbox(readyObservable);
         this.scaleMenu = new ScaleMenu2(this._notifier);
         if (viewOnly()) {
             this.toolbox.handleMesh.setEnabled(false);

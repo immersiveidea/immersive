@@ -1,4 +1,4 @@
-import {AbstractMesh, Color3, InstancedMesh, Node, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, Color3, InstancedMesh, Node, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import {buildColor} from "./functions/buildColor";
 import log from "loglevel";
 import {Handle} from "../objects/handle";
@@ -19,13 +19,16 @@ export class Toolbox {
     private readonly _handle: Handle;
     private readonly _scene: Scene;
 
-    constructor() {
+    constructor(readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
         this._toolboxBaseNode = new TransformNode("toolbox", this._scene);
         this._handle = new Handle(this._toolboxBaseNode, 'Toolbox');
         this._toolboxBaseNode.position.y = .2;
         this._toolboxBaseNode.scaling = new Vector3(0.6, 0.6, 0.6);
-        this.buildToolbox();
+        this.buildToolbox().then(() => {
+            readyObservable.notifyObservers(true);
+            this._logger.info('Toolbox built');
+        });
         Toolbox._instance = this;
     }
     private index = 0;
@@ -46,9 +49,9 @@ export class Toolbox {
         return this._tools.has(mesh.id);
     }
 
-    private buildToolbox() {
+    private async buildToolbox() {
         this.setupPointerObservable();
-        this.buildColorPicker();
+        await this.buildColorPicker();
         if (this._toolboxBaseNode.parent) {
             const platform = this._scene.getMeshById("platform");
             if (platform) {
@@ -94,10 +97,10 @@ export class Toolbox {
             node.isEnabled(false) == true
     };
 
-    private buildColorPicker() {
+    private async buildColorPicker() {
         let initial = true;
         for (const c of colors) {
-            const cnode = buildColor(Color3.FromHexString(c), this._scene, this._toolboxBaseNode, this.index++, this._tools);
+            const cnode = await buildColor(Color3.FromHexString(c), this._scene, this._toolboxBaseNode, this.index++, this._tools);
             if (initial) {
                 initial = false;
                 for (const id of cnode.metadata.tools) {

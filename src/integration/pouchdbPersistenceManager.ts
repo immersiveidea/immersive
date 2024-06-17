@@ -28,6 +28,8 @@ export class PouchdbPersistenceManager {
     private _encryption = new Encryption();
     private _encKey = null;
     private _diagramManager: DiagramManager;
+    private _salt: string;
+    private _failCount: number = 0;
 
     constructor() {
         document.addEventListener('passwordset', (evt) => {
@@ -37,7 +39,7 @@ export class PouchdbPersistenceManager {
                     this._logger.debug('Initialized');
                 });
             }
-            console.log(evt);
+            this._logger.debug(evt);
         });
     }
 
@@ -45,6 +47,14 @@ export class PouchdbPersistenceManager {
         this._diagramManager = diagramManager;
         diagramManager.onDiagramEventObservable.add((evt) => {
             this._logger.debug(evt);
+            if (!evt?.entity) {
+                this._logger.warn('no entity');
+                return;
+            }
+            if (!evt?.entity?.id) {
+                this._logger.warn('no entity id');
+                return;
+            }
             switch (evt.type) {
                 case DiagramEventType.REMOVE:
                     this.remove(evt.entity.id);
@@ -105,6 +115,9 @@ export class PouchdbPersistenceManager {
                 this._logger.warn('CONFLICTS!', doc._conflicts);
             }
             if (this._encKey) {
+                if (!doc.encrypted) {
+                    this._logger.warn("current local doc is not encrypted, encrypting");
+                }
                 await this._encryption.encryptObject(entity);
                 const newDoc = {
                     _id: doc._id,
@@ -114,6 +127,9 @@ export class PouchdbPersistenceManager {
                 this.db.put(newDoc)
             } else {
                 if (doc) {
+                    if (doc.encrypted) {
+                        this._logger.error("current local doc is encrypted, but encryption key is missing... saving in plaintext");
+                    }
                     const newDoc = {_id: doc._id, _rev: doc._rev, ...entity};
                     this.db.put(newDoc);
                 } else {
@@ -125,6 +141,10 @@ export class PouchdbPersistenceManager {
             if (err.status == 404) {
                 try {
                     if (this._encKey) {
+                        if (!this._encryption.ready) {
+                            this._logger.error('Encryption not ready, there is a potential problem when this happens, we will generate a new salt which may cause data loss and/or slowness');
+                            await this._encryption.setPassword(this._encKey);
+                        }
                         await this._encryption.encryptObject(entity);
                         const newDoc = {
                             _id: entity.id,
@@ -132,13 +152,16 @@ export class PouchdbPersistenceManager {
                         }
                         this.db.put(newDoc);
                     } else {
+                        this._logger.info('no encryption key, saving in plaintext');
                         const newEntity = {_id: entity.id, ...entity};
                         this.db.put(newEntity);
                     }
                 } catch (err2) {
+                    this._logger.error("Unable to save document");
                     this._logger.error(err2);
                 }
             } else {
+                this._logger.error("Unknown error with document get from db");
                 this._logger.error(err);
             }
         }
@@ -155,20 +178,27 @@ export class PouchdbPersistenceManager {
         try {
             const doc = await this.db.get('metadata');
             if (doc.encrypted) {
+                if (!this._salt && doc.encrypted.salt) {
+                    this._logger.warn('Missing Salt');
+                    this._salt = doc.encrypted.salt;
+                }
                 if (!this._encKey) {
                     const promptPassword = new CustomEvent('promptpassword', {detail: 'Please enter password'});
                     document.dispatchEvent(promptPassword);
                     return false;
                 }
                 if (!this._encryption.ready) {
+                    this._logger.warn("Encryption not ready, setting password");
                     await this._encryption.setPassword(this._encKey, doc.encrypted.salt);
                 }
                 const decrypted = await this._encryption.decryptToObject(doc.encrypted.encrypted, doc.encrypted.iv);
                 if (decrypted.friendly) {
+                    this._logger.info("Storing Document friendly name in local storage, decrypted");
                     localStorage.setItem(current, decrypted.friendly);
                 }
             } else {
                 if (doc && doc.friendly) {
+                    this._logger.info("Storing Document friendly name in local storage");
                     localStorage.setItem(current, doc.friendly);
                 }
                 if (doc && doc.camera) {
@@ -192,7 +222,7 @@ export class PouchdbPersistenceManager {
                         await this.db.put(newDoc);
                     }
                 } else {
-                    this._logger.debug('no friendly name found');
+                    this._logger.warn('no friendly name found');
                 }
             }
         }
@@ -225,12 +255,9 @@ export class PouchdbPersistenceManager {
     }
 
     private async sendLocalDataToScene() {
-
         let salt = null;
-
         const clear = localStorage.getItem('clearLocal');
         try {
-
             const all = await this.db.allDocs({include_docs: true});
             for (const dbEntity of all.rows) {
                 this._logger.debug(dbEntity.doc);
@@ -265,8 +292,14 @@ export class PouchdbPersistenceManager {
             switch (err.message) {
                 case 'WebCrypto_DecryptionFailure: ':
                 case 'Invalid data type!':
-                    const promptPassword = new CustomEvent('promptpassword', {detail: 'Please enter password'});
-                    document.dispatchEvent(promptPassword);
+                    this._failCount++;
+                    if (this._failCount < 5) {
+                        const promptPassword = new CustomEvent('promptpassword', {detail: 'Please enter password'});
+                        document.dispatchEvent(promptPassword);
+                    } else {
+                        this._logger.error('Too many decryption failures, Ignoring... This may compromise your data security');
+                        window.alert('Too many decryption failures, Ignoring... This may compromise your data security');
+                    }
             }
             this._logger.error(err);
         }

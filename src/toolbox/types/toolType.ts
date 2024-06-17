@@ -5,4 +5,5 @@ export enum ToolType {
     CONE = "#cone-template",
     PLANE = "#plane-template",
     OBJECT = "#object-template",
+    PERSON = "#person-template"
 }

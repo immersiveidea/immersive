@@ -96,7 +96,6 @@ async function start() {
                     conn.connection.sendUTF('{ "type": "error", "netAddr": "' + hash + '" }');
                 });
                 logger.info((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.', connections.length);
-
             });
             setInterval(() => {
                 const message = `{ "count": ${connections.size} }`

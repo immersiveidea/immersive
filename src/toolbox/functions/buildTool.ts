@@ -4,7 +4,7 @@ import {buildMesh} from "./buildMesh";
 
 const WIDGET_SIZE = .1;
 
-export function buildTool(tool: ToolType, colorParent: AbstractMesh, material: Material) {
+export async function buildTool(tool: ToolType, colorParent: AbstractMesh, material: Material) {
     let id = "ID";
     let color = "#000000";
     switch (material.getClassName()) {
@@ -21,7 +21,7 @@ export function buildTool(tool: ToolType, colorParent: AbstractMesh, material: M
     }
 
 
-    const newItem = buildMesh(tool, `tool-${id}`, colorParent.getScene());
+    const newItem = await buildMesh(tool, `tool-${id}`, colorParent.getScene());
     if (!newItem) {
         return null;
     }

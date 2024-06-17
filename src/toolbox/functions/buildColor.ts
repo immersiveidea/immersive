@@ -12,7 +12,7 @@ import {enumKeys} from "../../util/functions/enumKeys";
 import {ToolType} from "../types/toolType";
 import {buildTool} from "./buildTool";
 
-export function buildColor(color: Color3, scene: Scene, parent: TransformNode, index: number, toolMap: Map<string, AbstractMesh>): Node {
+export async function buildColor(color: Color3, scene: Scene, parent: TransformNode, index: number, toolMap: Map<string, AbstractMesh>): Promise<Node> {
     const width = .1;
     const height = .1;
     const material = new StandardMaterial("material-" + color.toHexString(), scene);
@@ -38,7 +38,7 @@ export function buildColor(color: Color3, scene: Scene, parent: TransformNode, i
     let i = 0;
     const tools = [];
     for (const tool of enumKeys(ToolType)) {
-        const newItem = buildTool(ToolType[tool], colorBoxMesh, material);
+        const newItem = await buildTool(ToolType[tool], colorBoxMesh, material);
         if (newItem) {
             //buildColorPicker(scene, color, newItem, material, i, colorChangeObservable);
             newItem.position = new Vector3(calculatePosition(++i), .1, 0);
