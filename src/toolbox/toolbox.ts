@@ -99,15 +99,20 @@ export class Toolbox {
 
     private async buildColorPicker() {
         let initial = true;
+        const colorArray: Promise<Node>[] = [];
         for (const c of colors) {
-            const cnode = await buildColor(Color3.FromHexString(c), this._scene, this._toolboxBaseNode, this.index++, this._tools);
-            if (initial) {
+            colorArray.push(buildColor(Color3.FromHexString(c), this._scene, this._toolboxBaseNode, this.index++, this._tools));
+            /*if (initial) {
                 initial = false;
                 for (const id of cnode.metadata.tools) {
                     this._scene.getNodeById(id)?.setEnabled(true);
                 }
 
-            }
+            }*/
+        }
+        const out = await Promise.all(colorArray);
+        for (const id of out[0].metadata.tools) {
+            this._scene.getNodeById(id)?.setEnabled(true);
         }
     }
 

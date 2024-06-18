@@ -1,6 +1,7 @@
 import {
     AbstractActionManager,
     AbstractMesh,
+    InstancedMesh,
     Mesh,
     Observable,
     Observer,
@@ -33,6 +34,7 @@ export class DiagramObject {
     private _sceneObserver: Observer<Scene>;
     private _eventObservable: Observable<DiagramEvent>;
     private _label: AbstractMesh;
+    private _labelBack: InstancedMesh;
     private _meshesPresent: boolean = false;
     private _positionHash: string;
     private _disposed: boolean = false;
@@ -111,6 +113,9 @@ export class DiagramObject {
         if (this._label) {
             this._label.dispose();
         }
+        if (this._labelBack) {
+            this._labelBack.dispose();
+        }
         if (this._diagramEntity.text != value) {
             this._eventObservable.notifyObservers({
                 type: DiagramEventType.MODIFY,
@@ -120,6 +125,9 @@ export class DiagramObject {
         this._diagramEntity.text = value;
         this._label = createLabel(value);
         this._label.parent = this._baseTransform;
+        this._labelBack = new InstancedMesh('labelBack' + value, (this._label as Mesh));
+        this._labelBack.parent = this._label;
+        this._labelBack.metadata = {exportable: true};
         this.updateLabelPosition();
 
 
@@ -130,9 +138,15 @@ export class DiagramObject {
             this._mesh.computeWorldMatrix(true);
             this._mesh.refreshBoundingInfo();
             if (this._from && this._to) {
-                this._label.position.x = .06;
-                this._label.position.z = .06;
-                this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
+                //this._label.position.x = .06;
+                //this._label.position.z = .06;
+                this._label.position.y = .05;
+                this._label.rotation.y = Math.PI / 2;
+                this._labelBack.rotation.y = Math.PI;
+                this._labelBack.position.z = 0.001
+                //this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
+                //this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
+
             } else {
                 const top =
                     this._mesh.getBoundingInfo().boundingBox.maximumWorld;
@@ -142,7 +156,10 @@ export class DiagramObject {
                 const y = temp.position.y;
                 temp.dispose();
                 this._label.position.y = y + .06;
-                this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
+                //this._labelBack.position.y = y + .06;
+                this._labelBack.rotation.y = Math.PI;
+                this._labelBack.position.z = 0.001
+                //this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
             }
         }
     }

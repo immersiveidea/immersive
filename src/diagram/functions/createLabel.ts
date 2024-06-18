@@ -33,7 +33,7 @@ function createMaterial(dynamicTexture: DynamicTexture): Material {
     const mat = new StandardMaterial("text-mat", DefaultScene.Scene);
     //mat.diffuseColor = Color3.Black();
     mat.disableLighting = false;
-    mat.backFaceCulling = false;
+    //mat.backFaceCulling = false;
     mat.emissiveTexture = dynamicTexture;
     mat.diffuseTexture = dynamicTexture;
     mat.metadata = {exportable: true};
