@@ -59,13 +59,19 @@ function CreateMenu({display, toggleCreateMenu}) {
     const onCreateClick = (evt) => {
         evt.preventDefault();
         const name = (document.querySelector('#createName') as HTMLInputElement).value;
-        const password = (document.querySelector('#createPassword') as HTMLInputElement).value;
+        let password = (document.querySelector('#createPassword') as HTMLInputElement).value;
         const password2 = (document.querySelector('#createPassword2') as HTMLInputElement).value;
         if (password !== password2) {
             window.alert('Passwords do not match');
             return;
         }
+
         const id = window.crypto.randomUUID().replace(/-/g, '_');
+        if (password.length == 0) {
+            password = id;
+        }
+        const encrypted = (password != id);
+
         localStorage.setItem(id, name);
         if (name && name.length > 4) {
             axios.post(import.meta.env.VITE_CREATE_ENDPOINT,
@@ -78,7 +84,16 @@ function CreateMenu({display, toggleCreateMenu}) {
                 }
             ).then(response => {
                 console.log(response);
-                document.location.href = '/db/' + id;
+                const evt = new CustomEvent('dbcreated', {
+                    detail: {
+                        id: id,
+                        name: name,
+                        password: password,
+                        encrypted: encrypted
+                    }
+                });
+                document.dispatchEvent(evt);
+
             }).catch(error => {
                 console.error(error);
             });

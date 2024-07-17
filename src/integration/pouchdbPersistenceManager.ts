@@ -18,6 +18,13 @@ type PasswordEvent = {
     detail: string;
 
 }
+type PasswordEvent2 = {
+
+    password: string;
+    id: string;
+    encrypted: boolean;
+
+}
 export class PouchdbPersistenceManager {
     private _logger: Logger = log.getLogger('PouchdbPersistenceManager');
     onDBEntityUpdateObservable: Observable<DiagramEntity> = new Observable<DiagramEntity>();
@@ -40,6 +47,24 @@ export class PouchdbPersistenceManager {
                 });
             }
             this._logger.debug(evt);
+        });
+        document.addEventListener('dbcreated', (evt) => {
+            const detail = ((evt as unknown) as PasswordEvent2);
+            const password = detail.password;
+            const id = detail.id;
+            if (detail.encrypted) {
+                this._encKey = password;
+            } else {
+                this._encKey = null;
+            }
+            //this._encKey = password;
+            this.db = new PouchDB(detail.id, {auto_compaction: true});
+            this.setupMetadata(id).then(() => {
+                document.location.href = '/db/' + id;
+            }).catch((err) => {
+                console.log(err);
+            })
+
         });
     }
 
@@ -200,6 +225,7 @@ export class PouchdbPersistenceManager {
                 if (doc && doc.friendly) {
                     this._logger.info("Storing Document friendly name in local storage");
                     localStorage.setItem(current, doc.friendly);
+                    this._encKey = null;
                 }
                 if (doc && doc.camera) {
 
@@ -240,7 +266,7 @@ export class PouchdbPersistenceManager {
                 current = 'localdb';
             }
             this.db = new PouchDB(current, {auto_compaction: true});
-            //await this.db.compact();
+//await this.db.compact();
             if (sync) {
                 if (await this.setupMetadata(current)) {
                     await this.beginSync(current);

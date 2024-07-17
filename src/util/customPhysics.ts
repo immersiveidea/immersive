@@ -18,7 +18,8 @@ export class CustomPhysics {
         const havok = await HavokPhysics();
         const havokPlugin = new HavokPlugin(true, havok);
         const scene = this.scene;
-        scene.enablePhysics(new Vector3(0, -9.8, 0), havokPlugin);
+        const physicsEnable = scene.enablePhysics(new Vector3(0, -9.8, 0), havokPlugin);
+
         scene.collisionsEnabled = true;
         scene.onAfterPhysicsObservable.add(() => {
                 scene.meshes.forEach((mesh) => {
