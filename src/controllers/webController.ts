@@ -9,8 +9,6 @@ export class WebController {
     private readonly scene: Scene;
     private readonly logger: Logger = log.getLogger('WebController');
     private speed: number = 1;
-    private readonly referencePlane: AbstractMesh;
-    private pickedMesh: AbstractMesh;
     private rig: Rigplatform;
     private diagramManager: DiagramManager;
     private mouseDown: boolean = false;

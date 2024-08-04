@@ -5,7 +5,6 @@ export function DiagramList({display, onClick}) {
     useEffect(() => {
         const listDb = async () => {
             const data = await indexedDB.databases();
-            let i = 0;
             setDbList(data.filter((item) => item.name.indexOf('_pouch_') > -1).map((item) => {
                 const dbid = item.name.replace('_pouch_', '');
                 let friendlyName = localStorage.getItem(dbid);

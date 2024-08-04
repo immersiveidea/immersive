@@ -5,7 +5,7 @@ export function MainMenu({onClick}) {
     if (viewOnly()) {
         return (
             <div className="overlay mini" id="main">
-                <img height="120" src="/assets/ddd.svg" width="320"/>
+                <img alt="deep diagram logo" height="120" src="/assets/ddd.svg" width="320"/>
                 <div id="enterXR" className="inactive"><a href="#" id="enterVRLink">Enter VR</a></div>
                 <QuestLink/>
                 <div id="download"><a href="#" id="downloadLink">Download Model</a></div>
@@ -13,7 +13,7 @@ export function MainMenu({onClick}) {
     } else {
         return (
             <div className="overlay mini" id="main">
-                <img height="120" src="/assets/ddd.svg" width="320"/>
+                <img alte="deep diagram logo" height="120" src="/assets/ddd.svg" width="320"/>
                 <div id="enterXR" className="inactive"><a href="#" id="enterVRLink">Enter VR</a></div>
                 <QuestLink/>
 

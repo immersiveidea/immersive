@@ -11,7 +11,6 @@ import {AppConfig} from "../util/appConfig";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import {ConnectionPreview} from "../menus/connectionPreview";
 import {ScaleMenu2} from "../menus/ScaleMenu2";
-import {CameraMenu} from "../menus/cameraMenu";
 import {viewOnly} from "../util/functions/getPath";
 import {GroupMenu} from "../menus/groupMenu";
 
@@ -24,7 +23,6 @@ export class DiagramMenuManager {
     private readonly _inputTextView: InputTextView;
     private _groupMenu: GroupMenu;
     private readonly _scene: Scene;
-    private _cameraMenu: CameraMenu;
     private _logger = log.getLogger('DiagramMenuManager');
     private _connectionPreview: ConnectionPreview;
 
