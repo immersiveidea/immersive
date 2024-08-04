@@ -1,11 +1,9 @@
-import {AbstractMesh, KeyboardEventTypes, MeshBuilder, Scene} from "@babylonjs/core";
+import {AbstractMesh, KeyboardEventTypes, Scene} from "@babylonjs/core";
 import {Rigplatform} from "./rigplatform";
-import {ControllerEventType, Controllers} from "./controllers";
+import {Controllers} from "./controllers";
 import {DiagramManager} from "../diagram/diagramManager";
-import {GridMaterial} from "@babylonjs/materials";
 import {wheelHandler} from "./functions/wheelHandler";
 import log, {Logger} from "loglevel";
-import {isDiagramEntity} from "../diagram/functions/isDiagramEntity";
 
 export class WebController {
     private readonly scene: Scene;
@@ -30,15 +28,15 @@ export class WebController {
         this.diagramManager = diagramManager;
         this.controllers = controllers;
         this.canvas = document.querySelector('#gameCanvas');
-        this.referencePlane = MeshBuilder.CreatePlane('referencePlane', {size: 10}, this.scene);
-        this.referencePlane.setEnabled(false);
-        this.referencePlane.visibility = 0.5;
-        const material = new GridMaterial('grid', this.scene);
+        //this.referencePlane = MeshBuilder.CreatePlane('referencePlane', {size: 10}, this.scene);
+        //this.referencePlane.setEnabled(false);
+        //this.referencePlane.visibility = 0.5;
+        /*const material = new GridMaterial('grid', this.scene);
         material.gridRatio = 1;
         material.backFaceCulling = false;
         material.antialias = true;
         this.referencePlane.material = material;
-
+*/
 
         this.scene.onKeyboardObservable.add((kbInfo) => {
             this.logger.debug(kbInfo);
@@ -88,13 +86,15 @@ export class WebController {
                         this.speed *= .5;
                         break;
                     case " ":
-                        if (kbInfo.event.ctrlKey) {
+                        /*if (kbInfo.event.ctrlKey) {
                             if (this.controllers) {
                                 this.controllers.controllerObservable.notifyObservers(
                                     {type: ControllerEventType.X_BUTTON, value: 1}
                                 )
                             }
                         }
+
+                         */
                         break;
                     default:
 
@@ -109,11 +109,13 @@ export class WebController {
                 if (kbInfo.type == 1) {
                     //this.referencePlane.setEnabled(true);
                 } else {
-                    this.referencePlane.setEnabled(false);
-                    if (this.pickedMesh) {
-                        this.pickedMesh.showBoundingBox = false;
-                        this.pickedMesh = null;
-                    }
+                    /* this.referencePlane.setEnabled(false);
+                     if (this.pickedMesh) {
+                         this.pickedMesh.showBoundingBox = false;
+                         this.pickedMesh = null;
+                     }
+
+                     */
                 }
             }
         });
@@ -121,11 +123,11 @@ export class WebController {
         this.scene.onPointerUp = () => {
             this.mouseDown = false;
             this.rig.turn(0);
-            if (this.pickedMesh) {
+            /*if (this.pickedMesh) {
                 this.referencePlane.setEnabled(false);
                 this.pickedMesh.showBoundingBox = false;
                 this.pickedMesh = null;
-            }
+            }*/
         };
 
 
@@ -162,7 +164,8 @@ export class WebController {
         });
         this.scene.onPointerDown = (evt, state) => {
             if (evt.pointerType == "mouse") {
-                if (evt.shiftKey) {
+                this.mouseDown = true;
+                /*if (evt.shiftKey) {
                     //setMenuPosition(this.referencePlane, this.scene, new Vector3(0, 0, 5));
                     //this.referencePlane.rotation = scene.activeCamera.absoluteRotation.toEulerAngles();
                     this.pickedMesh = state.pickedMesh;
@@ -173,15 +176,15 @@ export class WebController {
                     this.pickedMesh.rotation = scene.activeCamera.absoluteRotation.toEulerAngles();
                     this.referencePlane.setEnabled(true);
                 } else {
-                    this.mouseDown = true;
-                    /*
+
+
                     if (state.pickedMesh) {
 
                         new ClickMenu(state.pickedMesh, state.gripTransform, this.diagramManager.onDiagramEventObservable);
                     }
 
-                     */
-                }
+
+                } */
             }
         };
         this.scene.onPointerMove = (evt) => {
@@ -191,7 +194,7 @@ export class WebController {
             if (this.mouseDown) {
                 this.rig.turn(evt.movementX);
             }
-            const meshPickInfo = scene.pick(this.scene.pointerX, this.scene.pointerY, (mesh) => {
+            /*const meshPickInfo = scene.pick(this.scene.pointerX, this.scene.pointerY, (mesh) => {
                 return isDiagramEntity(mesh);
             });
             const planePickInfo = scene.pick(this.scene.pointerX, this.scene.pointerY, (mesh) => {
@@ -208,16 +211,17 @@ export class WebController {
                 }
             } else {
                 if (this.mesh) {
-                    /*this.diagramManager.onDiagramEventObservable.notifyObservers({
+                    this.diagramManager.onDiagramEventObservable.notifyObservers({
                         type: DiagramEventType.MODIFY,
                         entity: toDiagramEntity(this.mesh)
-                    }, DiagramEventObserverMask.ALL); */
+                    }, DiagramEventObserverMask.ALL);
                 }
                 this.mesh = null;
             }
             if (this.pickedMesh && planePickInfo.hit) {
                 this.pickedMesh.position = planePickInfo.pickedPoint;
             }
+            */
         }
     }
 

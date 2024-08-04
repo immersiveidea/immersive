@@ -13,6 +13,7 @@ import {ConnectionPreview} from "../menus/connectionPreview";
 import {ScaleMenu2} from "../menus/ScaleMenu2";
 import {CameraMenu} from "../menus/cameraMenu";
 import {viewOnly} from "../util/functions/getPath";
+import {GroupMenu} from "../menus/groupMenu";
 
 
 export class DiagramMenuManager {
@@ -21,6 +22,7 @@ export class DiagramMenuManager {
     public readonly configMenu: ConfigMenu;
     private readonly _notifier: Observable<DiagramEvent>;
     private readonly _inputTextView: InputTextView;
+    private _groupMenu: GroupMenu;
     private readonly _scene: Scene;
     private _cameraMenu: CameraMenu;
     private _logger = log.getLogger('DiagramMenuManager');
@@ -28,8 +30,6 @@ export class DiagramMenuManager {
 
     constructor(notifier: Observable<DiagramEvent>, controllers: Controllers, config: AppConfig, readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
-
-
         this._notifier = notifier;
         this._inputTextView = new InputTextView(controllers);
         this.configMenu = new ConfigMenu(config);
@@ -92,6 +92,7 @@ export class DiagramMenuManager {
         const clickMenu = new ClickMenu(mesh);
         clickMenu.onClickMenuObservable.add((evt: ActionEvent) => {
             this._logger.debug(evt);
+
             switch (evt.source.id) {
                 case "remove":
                     this.notifyAll({type: DiagramEventType.REMOVE, entity: {id: clickMenu.mesh.id}});
@@ -104,6 +105,9 @@ export class DiagramMenuManager {
                     break;
                 case "size":
                     this.scaleMenu.show(clickMenu.mesh);
+                    break;
+                case "group":
+                    this._groupMenu = new GroupMenu(clickMenu.mesh);
                     break;
                 case "close":
                     this.scaleMenu.hide();

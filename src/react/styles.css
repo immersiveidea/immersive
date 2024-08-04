@@ -1,0 +1,148 @@
+ul {
+    list-style-type: none;
+    padding-inline-start: 0;
+}
+
+li {
+    margin: 5px;
+}
+
+label {
+    color: #999922;
+    width: 100%;
+    font-size: medium;
+    font-weight: bold;
+    display: inline-block;
+}
+
+
+a {
+    display: block;
+    padding: 5px;
+    text-decoration: none;
+    vertical-align: middle;
+    border-color: #FFD700;
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    text-align: center;
+    line-height: 36px;
+    margin: 5px;
+}
+
+
+a.cancel:link {
+    font-size: smaller;
+    font-weight: lighter;
+    font-style: italic;
+    border-color: #E0C000;
+    color: #FFEFBB;
+    background-color: #888822;
+}
+
+a:visited, a:link {
+    color: white;
+    background-color: #999922;
+}
+
+a:hover {
+    background-color: #FFD700;
+    color: #000000;
+}
+
+li a {
+    text-align: left;
+    border-radius: 2px;
+    background-color: #338822;
+}
+
+input {
+    display: inline-block;
+    margin: 10px auto;
+    text-decoration: none;
+    border-color: #FFD700;
+    border-style: solid;
+    border-width: 1px;
+    padding: 10px;
+    width: 200px;
+}
+
+h1 {
+    font-size: x-large;
+    font-weight: bolder;
+    text-align: center;
+    color: #F9F9E9;
+}
+
+div.overlay {
+    position: absolute;
+    display: block;
+    border: 1px solid #555555;
+    transform: translate(-50%, -50%);
+    z-index: 12;
+    height: 120px;
+    padding: 10px;
+}
+
+
+div#create {
+    left: 390px;
+    top: 400px;
+    transform: translate(-50%, -50%);
+    z-index: 14;
+    width: 320px;
+    height: 344px;
+    border: 1px solid #222222;
+    display: none;
+    background-color: #000;
+}
+
+
+#diagramList {
+    overflow: scroll;
+    left: 390px;
+    top: 400px;
+    height: 500px;
+    background-color: #000;
+    padding: 5px;
+}
+
+
+#main.mini {
+    left: 110px;
+    top: 50%;
+
+    height: fit-content;
+    background-color: #000;
+}
+
+#main.mini img, #tutorial img {
+    width: 160px;
+    height: 60px;
+}
+
+#tutorial {
+    z-index: 15;
+    left: 100px;
+    top: 750px;
+    width: 160px;
+    height: 210px;
+}
+
+#password {
+    display: none;
+    left: 50%;
+    top: 50%;
+}
+
+#closekey, #closekey a:active, #closekey a:visited, #closekey a:link {
+    position: relative;
+    color: #ffffff;
+}
+
+div.inactive a {
+    background-color: #222222;
+    color: #555555;
+    border-color: #222222;
+    cursor: not-allowed;
+}

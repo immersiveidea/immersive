@@ -131,6 +131,10 @@ export class PouchdbPersistenceManager {
         if (!entity) {
             return;
         }
+        if (entity.template == '#image-template' && !entity.image) {
+            this._logger.error('no image data', entity);
+            return;
+        }
         if (this._encKey && !this._encryption.ready) {
             await this._encryption.setPassword(this._encKey);
         }
