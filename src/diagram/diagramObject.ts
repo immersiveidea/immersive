@@ -350,6 +350,7 @@ export class DiagramObject {
         })
         curve.setParent(null);
         curve.setPoints([p]);
+        this._baseTransform.position = c.getPoints()[Math.floor(c.getPoints().length / 2)];
         this._toPosition = this._toMesh.absolutePosition.length();
         this._fromPosition = this._fromMesh.absolutePosition.length();
         curve.setParent(this._baseTransform);
