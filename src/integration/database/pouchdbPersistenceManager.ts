@@ -1,29 +1,26 @@
 import PouchDB from 'pouchdb';
-import {DiagramEntity, DiagramEventType} from "../diagram/types/diagramEntity";
+import {DiagramEntity, DiagramEventType} from "../../diagram/types/diagramEntity";
 import {Observable} from "@babylonjs/core";
 import axios from "axios";
-import {DiagramManager} from "../diagram/diagramManager";
+import {DiagramManager} from "../../diagram/diagramManager";
 import log, {Logger} from "loglevel";
-import {ascii_to_hex} from "./functions/hexFunctions";
-import {getPath} from "../util/functions/getPath";
-import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
-import {syncDoc} from "./functions/syncDoc";
-import {checkDb} from "./functions/checkDb";
-import {UserModelType} from "../users/userTypes";
-import {getMe} from "../util/me";
-import {Encryption} from "./encryption";
-import {Presence} from "./presence";
+import {ascii_to_hex} from "../functions/hexFunctions";
+import {getPath} from "../../util/functions/getPath";
+import {DiagramEventObserverMask} from "../../diagram/types/diagramEventObserverMask";
+import {syncDoc} from "../functions/syncDoc";
+import {checkDb} from "../functions/checkDb";
+import {UserModelType} from "../../users/userTypes";
+import {getMe} from "../../util/me";
+import {Encryption} from "../encryption";
+import {Presence} from "../presence";
 
 type PasswordEvent = {
     detail: string;
-
 }
 type PasswordEvent2 = {
-
     password: string;
     id: string;
     encrypted: boolean;
-
 }
 export class PouchdbPersistenceManager {
     private _logger: Logger = log.getLogger('PouchdbPersistenceManager');
@@ -388,7 +385,7 @@ export class PouchdbPersistenceManager {
             this._logger.debug(dbInfo);
             const presence: Presence = new Presence(getMe(), remoteDbName);
             this._diagramManager.onUserEventObservable.add((user: UserModelType) => {
-                this._logger.debug(user);
+                //this._logger.debug(user);
                 presence.sendUser(user);
             }, -1, false, this);
             this.db.sync(this.remote, {live: true, retry: true})

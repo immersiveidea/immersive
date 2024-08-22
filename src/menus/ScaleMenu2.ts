@@ -41,6 +41,11 @@ export class ScaleMenu2 {
     }
 
     public show(mesh: AbstractMesh) {
+        if (mesh.metadata.image) {
+            configureImageScale(this._gizmoManager.gizmos.scaleGizmo.yGizmo, true);
+            configureImageScale(this._gizmoManager.gizmos.scaleGizmo.xGizmo, true);
+            configureImageScale(this._gizmoManager.gizmos.scaleGizmo.zGizmo, false);
+        }
         this._gizmoManager.attachToMesh(mesh);
     }
 
@@ -55,5 +60,14 @@ function configureGizmo(gizmo: IAxisScaleGizmo) {
     gizmo.uniformScaling = false;
     gizmo.scaleRatio = 3;
     gizmo.sensitivity = 3;
+
+}
+
+function configureImageScale(gizmo: IAxisScaleGizmo, enabled: boolean) {
+    gizmo.snapDistance = .1;
+    gizmo.uniformScaling = true;
+    gizmo.scaleRatio = 3;
+    gizmo.sensitivity = 3;
+    gizmo.isEnabled = enabled;
 
 }

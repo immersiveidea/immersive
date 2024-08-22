@@ -34,7 +34,6 @@ export function toDiagramEntity(mesh: AbstractMesh): DiagramEntity {
                 entity.color = (mesh.material as any).albedoColor.toHexString();
                 break;
         }
-
     } else {
         if (entity.template != "#object-template") {
             logger.error("toDiagramEntity: mesh.material is null");

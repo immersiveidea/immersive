@@ -5,7 +5,7 @@ import log, {Logger} from "loglevel";
 import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {Spinner} from "./objects/spinner";
-import {PouchdbPersistenceManager} from "./integration/pouchdbPersistenceManager";
+import {PouchdbPersistenceManager} from "./integration/database/pouchdbPersistenceManager";
 import {addSceneInspector} from "./util/functions/sceneInspector";
 import {groundMeshObserver} from "./util/functions/groundMeshObserver";
 import {buildQuestLink} from "./util/functions/buildQuestLink";
@@ -16,7 +16,8 @@ import {Introduction} from "./tutorial/introduction";
 
 const webGpu = false;
 
-log.setLevel('debug', false);
+log.setLevel('error', false);
+log.getLogger('PouchdbPersistenceManager').setLevel('debug', false);
 const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
 export class VrApp {
 
@@ -53,6 +54,8 @@ export class VrApp {
             el.addEventListener('click', () => {
                 exportGltf();
             })
+        } else {
+            this.logger.error('Download button not found');
         }
         if (!localStorage.getItem('tutorialCompleted')) {
             this.logger.info('Starting tutorial');
@@ -78,6 +81,7 @@ export class VrApp {
         }
         const scene = new Scene(engine);
         DefaultScene.Scene = scene;
+        //const a = new CurveObject();
         scene.ambientColor = new Color3(.1, .1, .1);
 
         //log.resetLevel();

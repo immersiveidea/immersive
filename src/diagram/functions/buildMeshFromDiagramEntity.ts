@@ -2,15 +2,22 @@ import {DiagramEntity, DiagramEntityType, DiagramTemplates} from "../types/diagr
 import {
     AbstractMesh,
     Color3,
+    CreateGreasedLine,
+    Curve3,
+    GreasedLineMesh,
+    GreasedLineMeshColorMode,
     InstancedMesh,
     Mesh,
     MeshBuilder,
     Scene,
     StandardMaterial,
-    Texture
+    Texture,
+    Vector3
 } from "@babylonjs/core";
 import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
+import {xyztovec} from "./vectorConversion";
+import {AnimatedLineTexture} from "../../util/animatedLineTexture";
 
 export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene): AbstractMesh {
     const logger = log.getLogger('buildMeshFromDiagramEntity');
@@ -50,12 +57,19 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
                 newMesh = buildImage(entity, scene);
                 break;
             case DiagramTemplates.CONNECTION:
-                newMesh = MeshBuilder.CreateCylinder(entity.id, {
-                    diameterBottom: .04,
-                    height: 1,
-                    diameterTop: .004,
-                    tessellation: 3
+                const origin = new Vector3(0, 0, 0);
+                const control1 = new Vector3(0, 2, 0);
+                const control2 = new Vector3(0, 5, -5);
+                const end = new Vector3(0, 5, -8);
+                const curve = Curve3.CreateCubicBezier(origin, control1, control2, end, 40);
+                const path = curve.getPoints();
+                newMesh = CreateGreasedLine(entity.id, {points: path, updatable: true}, {
+                    width: .02,
+                    colorMode: GreasedLineMeshColorMode.COLOR_MODE_MULTIPLY
                 }, scene);
+                (newMesh as GreasedLineMesh).intersectionThreshold = 2;
+                (newMesh.material as StandardMaterial).emissiveTexture = AnimatedLineTexture.Texture();
+                newMesh.setEnabled(false);
                 break;
             case DiagramTemplates.BOX:
             case DiagramTemplates.SPHERE:
@@ -91,6 +105,7 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
 
 function buildImage(entity: DiagramEntity, scene: Scene): AbstractMesh {
     const logger = log.getLogger('buildImage');
+    logger.error(entity);
     logger.debug("buildImage: entity is image");
     const plane = MeshBuilder.CreatePlane(entity.id, {size: 1}, scene);
     const material = new StandardMaterial("planeMaterial", scene);
@@ -100,8 +115,12 @@ function buildImage(entity: DiagramEntity, scene: Scene): AbstractMesh {
     material.backFaceCulling = false;
     material.disableLighting = true;
     plane.material = material;
+    plane.metadata = {image: entity.image};
+    plane.scaling = xyztovec(entity.scale);
     image.decode().then(() => {
         plane.scaling.x = image.width / image.height;
+    }).catch((error) => {
+        logger.error("buildImage: error decoding image", error);
     });
     return plane;
 }
@@ -152,6 +171,9 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
         }
         if (entity.to) {
             newMesh.metadata.to = entity.to;
+        }
+        if (entity.image) {
+            newMesh.metadata.image = entity.image;
         }
     } else {
         logger.error("buildMeshFromDiagramEntity: mesh is null after it should have been created");

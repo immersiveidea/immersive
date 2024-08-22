@@ -1,10 +1,13 @@
 import {
     AbstractActionManager,
     AbstractMesh,
+    Curve3,
+    GreasedLineMesh,
     InstancedMesh,
     Mesh,
     Observable,
     Observer,
+    Ray,
     Scene,
     TransformNode,
     Vector3
@@ -37,6 +40,8 @@ export class DiagramObject {
     private _labelBack: InstancedMesh;
     private _meshesPresent: boolean = false;
     private _positionHash: string;
+    private _fromPosition: number = 0;
+    private _toPosition: number = 0;
     private _disposed: boolean = false;
     private _fromMesh: AbstractMesh;
     private _toMesh: AbstractMesh;
@@ -136,7 +141,7 @@ export class DiagramObject {
     public updateLabelPosition() {
         if (this._label) {
             this._mesh.computeWorldMatrix(true);
-            this._mesh.refreshBoundingInfo();
+            this._mesh.refreshBoundingInfo({});
             if (this._from && this._to) {
                 //this._label.position.x = .06;
                 //this._label.position.z = .06;
@@ -172,6 +177,7 @@ export class DiagramObject {
             position: oldEntity.position,
             rotation: oldEntity.rotation,
             scale: oldEntity.scale,
+            image: oldEntity.image,
             template: oldEntity.template,
             color: oldEntity.color,
             text: oldEntity.text
@@ -234,7 +240,7 @@ export class DiagramObject {
                 this._sceneObserver = this._scene.onAfterRenderObservable.add(() => {
 
                     tick++;
-                    if (tick % 5 === 0) {
+                    if (tick % 3 === 0) {
                         if (this._meshesPresent) {
                             this.updateConnection();
                         } else {
@@ -305,13 +311,50 @@ export class DiagramObject {
     }
 
     private updateConnection() {
-        this._baseTransform.position = Vector3.Center(this._fromMesh.getAbsolutePosition().clone(), this._toMesh.getAbsolutePosition().clone());
-        this._baseTransform.lookAt(this._toMesh.getAbsolutePosition());
-        this._mesh.scaling.y = Vector3.Distance(this._fromMesh.getAbsolutePosition(), this._toMesh.getAbsolutePosition());
-        this._mesh.material = this._fromMesh.material;
-        if (!this._mesh.parent) {
-            this._mesh.parent = this._baseTransform;
+
+        if (this._toMesh.absolutePosition.length() == this._toPosition && this._fromMesh.absolutePosition.length() == this._fromPosition) {
+            return;
         }
-        this._mesh.rotation.x = Math.PI / 2;
+
+        const curve: GreasedLineMesh = ((this._mesh as unknown) as GreasedLineMesh);
+        const ray = new Ray(this._fromMesh.getAbsolutePosition(), Vector3.Normalize(this._toMesh.getAbsolutePosition().subtract(this._fromMesh.getAbsolutePosition())));
+        //const rayHelper = new RayHelper(ray);
+        //rayHelper.show(this._scene, new Color3(1, 0, 0));
+        const hit = this._scene.multiPickWithRay(ray, (mesh) => {
+            if (mesh.id === this._to || mesh.id === this._from) {
+                //mesh.updateFacetData();
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        //this._fromMesh.updateFacetData();
+        //this._toMesh.updateFacetData();
+
+        //const positions = this._fromMesh.getFacetLocalPositions();
+        const hit0matrix = hit[0].pickedMesh.computeWorldMatrix(true);
+        const hit1matrix = hit[1].pickedMesh.computeWorldMatrix(true);
+        const hitpoint0 = Vector3.TransformCoordinates(hit[0].pickedPoint, hit0matrix);
+        const hitpoint1 = Vector3.TransformCoordinates(hit[1].pickedPoint, hit1matrix);
+        const distance = Math.abs(hit[0].pickedPoint.subtract(hit[1].pickedPoint).lengthSquared());
+
+        const fromNormal = hit[0].pickedMesh.getFacetNormal(hit[0].faceId);
+        const toNormal = hit[1].pickedMesh.getFacetNormal(hit[1].faceId);
+
+        const c = Curve3.CreateCubicBezier(hit[0].pickedPoint, hit[0].pickedPoint.add(fromNormal.normalize().scale(distance * .2)),
+            hit[1].pickedPoint.add(toNormal.normalize().scale(distance * .2)),
+            hit[1].pickedPoint, 40);
+        const p = c.getPoints().flatMap((point) => {
+            return point.asArray()
+        })
+        curve.setParent(null);
+        curve.setPoints([p]);
+        this._toPosition = this._toMesh.absolutePosition.length();
+        this._fromPosition = this._fromMesh.absolutePosition.length();
+        curve.setParent(this._baseTransform);
+        curve.setEnabled(true);
+        console.log('done');
+
     }
 }

@@ -8,7 +8,7 @@ import {
     StandardMaterial,
     Vector3
 } from "@babylonjs/core";
-import {PouchdbPersistenceManager} from "../integration/pouchdbPersistenceManager";
+import {PouchdbPersistenceManager} from "../integration/database/pouchdbPersistenceManager";
 
 export class NewRelicData {
     private key: string;
