@@ -21,7 +21,7 @@ export class AnimatedLineTexture {
             this._texture.name = 'blue-white-texture';
             this._texture.uScale = 30;
             DefaultScene.Scene.onBeforeRenderObservable.add(() => {
-                this._texture.uOffset += 0.05 * DefaultScene.Scene.getAnimationRatio()
+                this._texture.uOffset -= 0.05 * DefaultScene.Scene.getAnimationRatio()
             });
 
         }

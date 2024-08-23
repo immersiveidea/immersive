@@ -328,22 +328,15 @@ export class DiagramObject {
                 return false;
             }
         });
-
-        //this._fromMesh.updateFacetData();
-        //this._toMesh.updateFacetData();
-
-        //const positions = this._fromMesh.getFacetLocalPositions();
-        const hit0matrix = hit[0].pickedMesh.computeWorldMatrix(true);
-        const hit1matrix = hit[1].pickedMesh.computeWorldMatrix(true);
-        const hitpoint0 = Vector3.TransformCoordinates(hit[0].pickedPoint, hit0matrix);
-        const hitpoint1 = Vector3.TransformCoordinates(hit[1].pickedPoint, hit1matrix);
-        const distance = Math.abs(hit[0].pickedPoint.subtract(hit[1].pickedPoint).lengthSquared());
-
+        if (hit[0].pickedMesh.id === this._to) {
+            hit.reverse();
+        }
+        const distance = Math.abs(hit[0].pickedPoint.subtract(hit[1].pickedPoint).length());
         const fromNormal = hit[0].pickedMesh.getFacetNormal(hit[0].faceId);
         const toNormal = hit[1].pickedMesh.getFacetNormal(hit[1].faceId);
 
-        const c = Curve3.CreateCubicBezier(hit[0].pickedPoint, hit[0].pickedPoint.add(fromNormal.normalize().scale(distance * .2)),
-            hit[1].pickedPoint.add(toNormal.normalize().scale(distance * .2)),
+        const c = Curve3.CreateCubicBezier(hit[0].pickedPoint, hit[0].pickedPoint.add(fromNormal.normalize().scale(.21 * distance)),
+            hit[1].pickedPoint.add(toNormal.normalize().scale(.21 * distance)),
             hit[1].pickedPoint, 40);
         const p = c.getPoints().flatMap((point) => {
             return point.asArray()

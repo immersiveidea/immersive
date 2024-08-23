@@ -68,7 +68,9 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
                     colorMode: GreasedLineMeshColorMode.COLOR_MODE_MULTIPLY
                 }, scene);
                 (newMesh as GreasedLineMesh).intersectionThreshold = 2;
-                (newMesh.material as StandardMaterial).emissiveTexture = AnimatedLineTexture.Texture();
+                const material = (newMesh.material as StandardMaterial);
+                material.emissiveTexture = AnimatedLineTexture.Texture();
+                material.disableLighting = true;
                 newMesh.setEnabled(false);
                 break;
             case DiagramTemplates.BOX:
