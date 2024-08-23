@@ -29,10 +29,9 @@ export function buildRig(xr: WebXRDefaultExperience): Mesh {
         for (const cam of scene.cameras) {
             cam.parent = cameratransform;
         }
-        //cameratransform.rotation.set(0, Math.PI, 0);
     });
-    //rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
-    rigMesh.setAbsolutePosition(new Vector3(0, .01, 4));
+
+    rigMesh.setAbsolutePosition(new Vector3(0, .01, 5));
     rigMesh.isPickable = false;
     const axis = new AxesViewer(scene, .25);
     axis.zAxis.rotation.y = Math.PI;

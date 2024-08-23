@@ -13,127 +13,125 @@ const LEFT = "left";
 
 
 export class Rigplatform {
-    private logger = log.getLogger('Rigplatform');
-    private readonly controllers: Controllers;
-    private readonly diagramManager: DiagramManager;
-    private readonly scene: Scene;
-    private readonly velocityArray = [0.01, 0.1, 1, 2, 5];
-    private readonly xr: WebXRDefaultExperience;
-
-    private rightController: Right;
-    private leftController: Left;
-    private turning: boolean = false;
-    private velocity: Vector3 = Vector3.Zero();
-    private velocityIndex: number = 2;
-    private turnVelocity: number = 0;
-
-    private registered = false;
-    private yRotation: number = 0;
-
-    private _flyMode: boolean = true;
-
     public static instance: Rigplatform;
 
     public turnSnap: number = 0;
     public rigMesh: Mesh;
 
+    private _logger = log.getLogger('Rigplatform');
+    private readonly _controllers: Controllers;
+    private readonly _diagramManager: DiagramManager;
+    private readonly _scene: Scene;
+    private readonly _velocityArray = [0.01, 0.1, 1, 2, 5];
+    private readonly _xr: WebXRDefaultExperience;
+
+    private _rightController: Right;
+    private _leftController: Left;
+    private _turning: boolean = false;
+    private _velocity: Vector3 = Vector3.Zero();
+    private _velocityIndex: number = 2;
+    private _turnVelocity: number = 0;
+    private _registered = false;
+    private _yRotation: number = 0;
+
     constructor(
         xr: WebXRDefaultExperience,
-                diagramManager: DiagramManager
+        diagramManager: DiagramManager
     ) {
-        this.scene = DefaultScene.Scene;
-        this.diagramManager = diagramManager;
-        this.controllers = diagramManager.controllers;
-        this.xr = xr;
+        this._scene = DefaultScene.Scene;
+        this._diagramManager = diagramManager;
+        this._controllers = diagramManager.controllers;
+        this._xr = xr;
         this.rigMesh = buildRig(xr);
-        this.fixRotation();
-        this.initializeControllers();
-        this.registerVelocityObserver();
-
+        this._fixRotation();
+        this._initializeControllers();
+        this._registerVelocityObserver();
     }
+
+    private _flyMode: boolean = true;
 
     public set flyMode(value: boolean) {
         this._flyMode = value;
         if (this._flyMode) {
             this.rigMesh.physicsBody.setGravityFactor(.01);
-            this.logger.debug('flymode');
+            this._logger.debug('flymode');
         } else {
             this.rigMesh.physicsBody.setGravityFactor(1);
-            this.logger.debug('walkmode');
+            this._logger.debug('walkmode');
         }
     }
 
     public forwardback(val: number) {
-        this.velocity.z = (val * this.velocityArray[this.velocityIndex]) * -1;
+        this._velocity.z = (val * this._velocityArray[this._velocityIndex]) * -1;
     }
 
     public leftright(val: number) {
-        this.velocity.x = (val * this.velocityArray[this.velocityIndex]);
+        this._velocity.x = (val * this._velocityArray[this._velocityIndex]);
     }
 
     public updown(val: number) {
-        this.velocity.y = (val * this.velocityArray[this.velocityIndex]) * -1;
+        this._velocity.y = (val * this._velocityArray[this._velocityIndex]) * -1;
     }
 
     public turn(val: number) {
         const snap = this.turnSnap;
 
         if (snap && snap > 0) {
-            if (!this.turning) {
+            if (!this._turning) {
                 if (Math.abs(val) > .1) {
-                    this.turning = true;
-                    this.yRotation += Angle.FromDegrees(Math.sign(val) * snap).radians();
+                    this._turning = true;
+                    this._yRotation += Angle.FromDegrees(Math.sign(val) * snap).radians();
                 }
             } else {
                 if (Math.abs(val) < .1) {
-                    this.turning = false;
+                    this._turning = false;
                 }
             }
         } else {
             if (Math.abs(val) > .1) {
-                this.turnVelocity = val;
+                this._turnVelocity = val;
             } else {
-                this.turnVelocity = 0;
+                this._turnVelocity = 0;
             }
         }
     }
 
-    private registerVelocityObserver() {
-        this.scene.onBeforeRenderObservable.add(() => {
-            const vel = this.velocity.applyRotationQuaternion(this.scene.activeCamera.absoluteRotation);
+    private _registerVelocityObserver() {
+        this._scene.onBeforeRenderObservable.add(() => {
+            const vel = this._velocity.applyRotationQuaternion(this._scene.activeCamera.absoluteRotation);
             if (!this._flyMode) {
                 vel.y = 0;
             }
             if (vel.length() > 0) {
-                this.logger.debug('Velocity', this.velocity, vel, this.scene.activeCamera.absoluteRotation);
+                this._logger.debug('Velocity', this._velocity, vel, this._scene.activeCamera.absoluteRotation);
             }
             this.rigMesh.physicsBody.setLinearVelocity(vel);
         });
     }
 
-    private registerObserver() {
-        if (this.registered) {
-            this.logger.warn('observer already registered, clearing and re registering');
-            this.controllers.controllerObservable.clear();
-            this.registered = false;
+    private _registerObserver() {
+        if (this._registered) {
+            this._logger.warn('observer already registered, clearing and re registering');
+            this._controllers.controllerObservable.clear();
+            this._registered = false;
         }
-        if (!this.registered) {
-            this.registered = true;
-            this.controllers.controllerObservable.add((event: ControllerEvent) => {
-                this.logger.debug(event);
+        if (!this._registered) {
+            this._registered = true;
+            this._controllers.controllerObservable.add((event: ControllerEvent) => {
+                this._logger.debug(event);
                 switch (event.type) {
                     case ControllerEventType.INCREASE_VELOCITY:
-                        if (this.velocityIndex < this.velocityArray.length - 1) {
-                            this.velocityIndex++;
+                        if (this._velocityIndex < this._velocityArray.length - 1) {
+                            this._velocityIndex++;
                         } else {
-                            this.velocityIndex = 0;
+                            this._velocityIndex = 0;
                         }
                         break;
                     case ControllerEventType.DECREASE_VELOCITY:
-                        if (this.velocityIndex > 0) {
-                            this.velocityIndex--;
+                        if (this._velocityIndex > 0) {
+                            this._velocityIndex--;
                         } else {
-                            this.velocityIndex = this.velocityArray.length - 1;
+                            this._velocityIndex = this._velocityArray.length - 1;
                         }
                         break;
                     case ControllerEventType.TURN:
@@ -151,66 +149,66 @@ export class Rigplatform {
                         }
                         break;
                     case ControllerEventType.MOTION:
-                        this.logger.debug(JSON.stringify(event));
+                        this._logger.debug(JSON.stringify(event));
                         break;
                 }
             });
         } else {
-            this.logger.warn('observer already registered');
+            this._logger.warn('observer already registered');
         }
     }
 
 
-    private initializeControllers() {
-        this.xr.input.onControllerAddedObservable.add((source) => {
-            this.registerObserver();
+    private _initializeControllers() {
+        this._xr.input.onControllerAddedObservable.add((source) => {
+            this._registerObserver();
             switch (source.inputSource.handedness) {
                 case RIGHT:
-                    if (!this.rightController) {
-                        this.rightController = new Right(source, this.xr, this.diagramManager);
+                    if (!this._rightController) {
+                        this._rightController = new Right(source, this._xr, this._diagramManager);
                     }
                     break;
                 case LEFT:
-                    if (!this.leftController) {
-                        this.leftController = new Left(source, this.xr, this.diagramManager);
+                    if (!this._leftController) {
+                        this._leftController = new Left(source, this._xr, this._diagramManager);
                     }
                     break;
             }
             //this.xr.baseExperience.camera.position = new Vector3(0, 0, 0);
         });
-        this.xr.input.onControllerRemovedObservable.add((source) => {
+        this._xr.input.onControllerRemovedObservable.add((source) => {
             switch (source.inputSource.handedness) {
                 case RIGHT:
-                    if (this.rightController) {
-                        this.rightController = null;
+                    if (this._rightController) {
+                        this._rightController = null;
                     }
                     break;
                 case LEFT:
-                    if (this.leftController) {
-                        this.leftController = null;
+                    if (this._leftController) {
+                        this._leftController = null;
                     }
                     break;
             }
-            this.logger.debug('controller removed', source);
+            this._logger.debug('controller removed', source);
         });
     }
 
-    private fixRotation() {
-        if (!this.scene) {
+    private _fixRotation() {
+        if (!this._scene) {
             return;
         }
-        this.scene.onAfterPhysicsObservable.add(() => {
+        this._scene.onAfterPhysicsObservable.add(() => {
             const turnSnap = this.turnSnap;
             if (turnSnap && turnSnap > 0) {
                 const q = this.rigMesh.rotationQuaternion;
                 this.rigMesh.physicsBody.setAngularVelocity(Vector3.Zero());
                 if (q) {
                     const e = q.toEulerAngles();
-                    e.y += this.yRotation;
+                    e.y += this._yRotation;
                     q.copyFrom(Quaternion.FromEulerAngles(0, e.y, 0));
                 }
             } else {
-                this.rigMesh.physicsBody.setAngularVelocity(Vector3.Up().scale(this.turnVelocity));
+                this.rigMesh.physicsBody.setAngularVelocity(Vector3.Up().scale(this._turnVelocity));
             }
         }, -1, false, this, false);
     }
