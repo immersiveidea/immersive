@@ -1,11 +1,14 @@
 import {
     AbstractMesh,
-    LinesMesh,
+    CreateGreasedLine,
+    GreasedLineMesh,
+    GreasedLineMeshColorMode,
     MeshBuilder,
     Observable,
     Observer,
     Ray,
     Scene,
+    StandardMaterial,
     TransformNode,
     Vector3,
     WebXRInputSource
@@ -13,12 +16,13 @@ import {
 import {DefaultScene} from "../defaultScene";
 import {DiagramEvent, DiagramEventType, DiagramTemplates} from "../diagram/types/diagramEntity";
 import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
+import {AnimatedLineTexture} from "../util/animatedLineTexture";
 
 export class ConnectionPreview {
     private _fromPoint: Vector3;
     private _fromId: string;
     private _renderObserver: Observer<Scene>;
-    private _line: LinesMesh;
+    private _line: GreasedLineMesh;
     private _parent: TransformNode;
     private _transform: TransformNode;
     private _options: any;
@@ -62,11 +66,23 @@ export class ConnectionPreview {
                     useAlphaForLines: false,
                 };
             }
-            this._line = MeshBuilder.CreateLines("connectionPreview", this._options, this._scene);
-            this._options.instance = this._line;
+            this._line = CreateGreasedLine("connectionPreview", this._options, {
+                width: .02,
+                colorMode: GreasedLineMeshColorMode.COLOR_MODE_MULTIPLY
+            }, this._scene) as GreasedLineMesh;
+            const material = (this._line.material as StandardMaterial);
+            material.emissiveTexture = AnimatedLineTexture.Texture();
+            material.opacityTexture = AnimatedLineTexture.Texture();
+            material.disableLighting = true;
+            //this._options.instance = this._line;
+
             this._renderObserver = this._scene.onBeforeRenderObservable.add(() => {
                 this._options.points[1] = this._transform.absolutePosition;
-                this._line = MeshBuilder.CreateLines("connectionPreview", this._options);
+                const pts = this._options.points.flatMap((p: Vector3) => {
+                    return p.asArray()
+                });
+                console.log(pts);
+                this._line.setPoints([pts]);
             });
         }
     }
