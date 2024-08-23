@@ -182,10 +182,8 @@ export class DiagramObject {
             color: oldEntity.color,
             text: oldEntity.text
         };
-
-        clone.fromDiagramEntity(newEntity);
         this._logger.debug('DiagramObject clone called', clone, this._diagramEntity, newEntity);
-        return clone;
+        return clone.fromDiagramEntity(newEntity);
     }
 
     public fromDiagramEntity(entity: DiagramEntity): DiagramObject {
@@ -311,18 +309,13 @@ export class DiagramObject {
     }
 
     private updateConnection() {
-
         if (this._toMesh.absolutePosition.length() == this._toPosition && this._fromMesh.absolutePosition.length() == this._fromPosition) {
             return;
         }
-
         const curve: GreasedLineMesh = ((this._mesh as unknown) as GreasedLineMesh);
         const ray = new Ray(this._fromMesh.getAbsolutePosition(), Vector3.Normalize(this._toMesh.getAbsolutePosition().subtract(this._fromMesh.getAbsolutePosition())));
-        //const rayHelper = new RayHelper(ray);
-        //rayHelper.show(this._scene, new Color3(1, 0, 0));
         const hit = this._scene.multiPickWithRay(ray, (mesh) => {
             if (mesh.id === this._to || mesh.id === this._from) {
-                //mesh.updateFacetData();
                 return true;
             } else {
                 return false;
@@ -349,6 +342,5 @@ export class DiagramObject {
         curve.setParent(this._baseTransform);
         curve.setEnabled(true);
         console.log('done');
-
     }
 }

@@ -70,6 +70,7 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
                 (newMesh as GreasedLineMesh).intersectionThreshold = 2;
                 const material = (newMesh.material as StandardMaterial);
                 material.emissiveTexture = AnimatedLineTexture.Texture();
+                material.opacityTexture = AnimatedLineTexture.Texture();
                 material.disableLighting = true;
                 newMesh.setEnabled(false);
                 break;
