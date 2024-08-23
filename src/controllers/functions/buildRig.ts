@@ -20,6 +20,7 @@ export function buildRig(xr: WebXRDefaultExperience): Mesh {
     xr.baseExperience.onInitialXRPoseSetObservable.add(() => {
         xr.baseExperience.camera.parent = cameratransform;
         xr.baseExperience.camera.position = new Vector3(0, 0, 0);
+        cameratransform.rotation.set(0, Math.PI, 0);
     });
     for (const cam of scene.cameras) {
         cam.parent = cameratransform;
@@ -28,7 +29,7 @@ export function buildRig(xr: WebXRDefaultExperience): Mesh {
         for (const cam of scene.cameras) {
             cam.parent = cameratransform;
         }
-        cameratransform.rotation.set(0, Math.PI, 0);
+        //cameratransform.rotation.set(0, Math.PI, 0);
     });
     //rigMesh.material = buildStandardMaterial("rigMaterial", scene, "#2222ff");
     rigMesh.setAbsolutePosition(new Vector3(0, .01, 4));
