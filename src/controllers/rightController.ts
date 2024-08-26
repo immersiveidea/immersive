@@ -1,19 +1,21 @@
-import {Base} from "./base";
+import {AbstractController} from "./abstractController";
 import {Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
-import {ControllerEventType} from "./controllers";
+
 
 import {DiagramManager} from "../diagram/diagramManager";
 import log from "loglevel";
+import {ControllerEventType} from "./types/controllerEventType";
+import {controllerObservable} from "./controllers";
 
 
-export class Right extends Base {
+export class RightController extends AbstractController {
     private rightLogger = log.getLogger("Right");
     private initBButton(bbutton: WebXRControllerComponent) {
         if (bbutton) {
             bbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
                     this.rightLogger.debug('B Button Pressed');
-                    this.controllers.controllerObservable.notifyObservers({
+                    controllerObservable.notifyObservers({
                         type: ControllerEventType.B_BUTTON,
                         value: button.value
                     });
@@ -41,7 +43,7 @@ export class Right extends Base {
                 .onButtonStateChangedObservable
                 .add((button) => {
                     this.rightLogger.debug("right trigger pressed");
-                    this.controllers.controllerObservable.notifyObservers({
+                    controllerObservable.notifyObservers({
                         type: ControllerEventType.TRIGGER,
                         value: button.value,
                         controller: this.xrInputSource
@@ -55,7 +57,7 @@ export class Right extends Base {
             abutton.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
                     this.rightLogger.debug('A button pressed');
-                    this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.MENU});
+                    controllerObservable.notifyObservers({type: ControllerEventType.MENU});
                 }
             });
         }
@@ -70,7 +72,7 @@ export class Right extends Base {
             thumbstick.onButtonStateChangedObservable.add((value) => {
                 if (value.pressed) {
                     this.rightLogger.trace('Right', `thumbstick changed ${value.value}`);
-                    this.controllers.controllerObservable.notifyObservers({
+                    controllerObservable.notifyObservers({
                         type: ControllerEventType.INCREASE_VELOCITY,
                         value: value.value
                     });
@@ -81,22 +83,22 @@ export class Right extends Base {
 
     private moveRig(value) {
         if (Math.abs(value.x) > .1) {
-            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.TURN, value: value.x});
+            controllerObservable.notifyObservers({type: ControllerEventType.TURN, value: value.x});
         } else {
-            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.TURN, value: 0});
+            controllerObservable.notifyObservers({type: ControllerEventType.TURN, value: 0});
         }
         if (Math.abs(value.y) > .1) {
-            this.controllers.controllerObservable.notifyObservers({
+            controllerObservable.notifyObservers({
                 type: ControllerEventType.UP_DOWN,
                 value: value.y * this.speedFactor
             });
-            Base.stickVector.z = 1;
+            AbstractController.stickVector.z = 1;
         } else {
-            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
-            Base.stickVector.z = 0;
+            controllerObservable.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
+            AbstractController.stickVector.z = 0;
         }
-        if (Base.stickVector.equals(Vector3.Zero())) {
-            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
+        if (AbstractController.stickVector.equals(Vector3.Zero())) {
+            controllerObservable.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
         }
     }
 }

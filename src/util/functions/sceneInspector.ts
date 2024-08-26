@@ -1,17 +1,8 @@
 import {DefaultScene} from "../../defaultScene";
 
-
 export function addSceneInspector() {
-    const scene = DefaultScene.Scene;
     window.addEventListener("keydown", (ev) => {
-        if (ev.key == "z") {
-            //voiceManager.startRecording();
-        }
-        if (ev.key == "x") {
-            //voiceManager.stopRecording();
-        }
         if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-
             const web = document.querySelector('#webApp');
             (web as HTMLDivElement).style.display = 'none';
 

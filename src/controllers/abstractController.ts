@@ -9,7 +9,7 @@ import {
 import {DiagramManager} from "../diagram/diagramManager";
 import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import log from "loglevel";
-import {ControllerEventType, Controllers} from "./controllers";
+
 import {grabAndClone} from "./functions/grabAndClone";
 import {ClickMenu} from "../menus/clickMenu";
 import {motionControllerObserver} from "./functions/motionControllerObserver";
@@ -21,10 +21,13 @@ import {MeshTypeEnum} from "../diagram/types/meshTypeEnum";
 import {getMeshType} from "./functions/getMeshType";
 import {viewOnly} from "../util/functions/getPath";
 
+import {ControllerEventType} from "./types/controllerEventType";
+import {controllerObservable} from "./controllers";
+
 const CLICK_TIME = 300;
 
 
-export class Base {
+export abstract class AbstractController {
     static stickVector = Vector3.Zero();
     protected readonly scene: Scene;
     protected readonly xr: WebXRDefaultExperience;
@@ -34,7 +37,7 @@ export class Base {
     protected grabbedObject: DiagramObject = null;
     protected grabbedMesh: AbstractMesh = null;
     protected grabbedMeshType: MeshTypeEnum = null;
-    protected controllers: Controllers;
+
 
     private readonly _logger = log.getLogger('Base');
     private _clickStart: number = 0;
@@ -48,7 +51,6 @@ export class Base {
                 diagramManager: DiagramManager) {
         this._logger.debug('Base Controller Constructor called');
         this.xrInputSource = controller;
-        this.controllers = diagramManager.controllers;
         this.scene = DefaultScene.Scene;
         this.xr = xr;
 
@@ -66,7 +68,7 @@ export class Base {
 
         //@TODO THis works, but it uses initGrip, not sure if this is the best idea
         this.xrInputSource.onMotionControllerInitObservable.add(motionControllerObserver, -1, false, this);
-        this.controllers.controllerObservable.add((event) => {
+        controllerObservable.add((event) => {
             this._logger.debug(event);
             switch (event.type) {
                 case ControllerEventType.PULSE:

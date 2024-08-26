@@ -1,9 +1,10 @@
 import {AbstractMesh, MeshBuilder, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
 import log, {Logger} from "loglevel";
 import {AdvancedDynamicTexture, Control, InputText, VirtualKeyboard} from "@babylonjs/gui";
-import {ControllerEventType, Controllers} from "../controllers/controllers";
 import {Handle} from "../objects/handle";
 import {DefaultScene} from "../defaultScene";
+import {ControllerEvent} from "../controllers/types/controllerEvent";
+import {ControllerEventType} from "../controllers/types/controllerEventType";
 
 export type TextEvent = {
     id: string;
@@ -16,15 +17,15 @@ export class InputTextView {
     private readonly scene: Scene;
     private readonly inputMesh: AbstractMesh;
 
-    private readonly controllers: Controllers;
+    private readonly controllerObservable: Observable<ControllerEvent>;
 
     private readonly handle: Handle;
     private inputText: InputText;
     private diagramMesh: AbstractMesh;
     private keyboard: VirtualKeyboard;
 
-    constructor(controllers: Controllers) {
-        this.controllers = controllers;
+    constructor(controllerObservable: Observable<ControllerEvent>) {
+        this.controllerObservable = controllerObservable;
         this.scene = DefaultScene.Scene;
         this.inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
         this.handle = new Handle(this.inputMesh, 'Input');
@@ -113,7 +114,7 @@ export class InputTextView {
                 this.logger.debug(eventData);
                 const gripId = eventState?.userInfo?.pickInfo?.gripTransform?.id;
                 if (gripId) {
-                    this.controllers.controllerObservable.notifyObservers({
+                    this.controllerObservable.notifyObservers({
                         type: ControllerEventType.PULSE,
                         gripId: gripId
                     });

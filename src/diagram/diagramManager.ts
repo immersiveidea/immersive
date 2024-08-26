@@ -1,7 +1,7 @@
 import {AbstractActionManager, AbstractMesh, ActionManager, Observable, Scene} from "@babylonjs/core";
 import {DiagramEntity, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
-import {Controllers} from "../controllers/controllers";
+
 import {AppConfig} from "../util/appConfig";
 import {buildEntityActionManager} from "./functions/buildEntityActionManager";
 import {DefaultScene} from "../defaultScene";
@@ -11,12 +11,14 @@ import {DiagramObject} from "./diagramObject";
 import {getMe} from "../util/me";
 import {UserModelType} from "../users/userTypes";
 import {vectoxys} from "./functions/vectorConversion";
+import {controllerObservable} from "../controllers/controllers";
+import {ControllerEvent} from "../controllers/types/controllerEvent";
 
 
 export class DiagramManager {
     private readonly _logger = log.getLogger('DiagramManager');
     public readonly _config: AppConfig;
-    private readonly _controllers: Controllers;
+    private readonly _controllerObservable: Observable<ControllerEvent>;
     private readonly _diagramEntityActionManager: ActionManager;
     public readonly onDiagramEventObservable: Observable<DiagramEvent> = new Observable();
     public readonly onUserEventObservable: Observable<UserModelType> = new Observable();
@@ -31,9 +33,9 @@ export class DiagramManager {
         this._me = getMe();
         this._scene = DefaultScene.Scene;
         this._config = new AppConfig();
-        this._controllers = new Controllers();
-        this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, this._controllers, this._config, readyObservable);
-        this._diagramEntityActionManager = buildEntityActionManager(this._controllers);
+
+        this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, controllerObservable, this._config, readyObservable);
+        this._diagramEntityActionManager = buildEntityActionManager(controllerObservable);
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
 
 
@@ -114,11 +116,6 @@ export class DiagramManager {
 
     public isDiagramObject(mesh: AbstractMesh) {
         return this._diagramObjects.has(mesh?.id)
-    }
-
-
-    public get controllers(): Controllers {
-        return this._controllers;
     }
 
     public createCopy(id: string): DiagramObject {

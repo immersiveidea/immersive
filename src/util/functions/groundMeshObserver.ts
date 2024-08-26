@@ -94,6 +94,6 @@ export async function groundMeshObserver(ground: AbstractMesh,
         rig.turnSnap = config.turnSnap;
     }, -1, false, this);
 
-    const webController = new WebController(ground.getScene(), rig, diagramManager, diagramManager.controllers);
+    const webController = new WebController(ground.getScene(), rig, diagramManager);
 
 }

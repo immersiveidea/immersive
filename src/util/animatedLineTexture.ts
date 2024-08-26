@@ -7,24 +7,12 @@ export class AnimatedLineTexture {
 
     public static Texture() {
         if (!AnimatedLineTexture._texture) {
-            /*this._texture = new RawTexture(
-                this._textureColors,
-                this._textureColors.length / 3,
-                1,
-                Engine.TEXTUREFORMAT_RGB,
-                DefaultScene.Scene,
-                false,
-                true,
-                Engine.TEXTURE_NEAREST_NEAREST
-            )*/
             this._texture = new Texture('/assets/textures/arrow.png', DefaultScene.Scene);
-            //this._texture.wrapU = RawTexture.WRAP_ADDRESSMODE
-            this._texture.name = 'blue-white-texture';
+            this._texture.name = 'connection-texture';
             this._texture.uScale = 30;
             DefaultScene.Scene.onBeforeRenderObservable.add(() => {
                 this._texture.uOffset -= 0.01 * DefaultScene.Scene.getAnimationRatio()
             });
-
         }
         return this._texture;
     }

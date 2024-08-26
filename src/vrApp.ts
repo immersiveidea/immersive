@@ -2,7 +2,6 @@ import {Color3, Engine, FreeCamera, Observable, Scene, Vector3, WebGPUEngine} fr
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
 import log, {Logger} from "loglevel";
-import {GamepadManager} from "./controllers/gamepadManager";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {Spinner} from "./objects/spinner";
 import {PouchdbPersistenceManager} from "./integration/database/pouchdbPersistenceManager";
@@ -17,11 +16,8 @@ import {Introduction} from "./tutorial/introduction";
 const webGpu = false;
 
 log.setLevel('error', false);
-log.getLogger('PouchdbPersistenceManager').setLevel('debug', false);
 const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
 export class VrApp {
-
-
     //preTasks = [havokModule];
     private logger: Logger = log.getLogger('App');
 
@@ -32,7 +28,6 @@ export class VrApp {
     }
 
     public async initialize(scene: Scene) {
-        //const mesh = SceneLoader.ImportMesh(null, '/assets/models/', 'person.stl', DefaultScene.Scene);
         setMainCamera(scene);
         const spinner = new Spinner();
         spinner.show();
@@ -46,9 +41,7 @@ export class VrApp {
             }
         });
         initEnvironment(diagramManager, spinner);
-        const gamepadManager = new GamepadManager(scene);
         addSceneInspector();
-        //const camMenu = new CameraMenu(scene);
         const el = document.querySelector('#download');
         if (el) {
             el.addEventListener('click', () => {
@@ -65,35 +58,25 @@ export class VrApp {
     }
 
     private async initializeEngine() {
-
         let engine: WebGPUEngine | Engine = null;
         if (webGpu) {
             engine = new WebGPUEngine(canvas);
             await (engine as WebGPUEngine).initAsync();
-
         } else {
             engine = new Engine(canvas, true);
         }
         engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-
         window.onresize = () => {
             engine.resize();
         }
         const scene = new Scene(engine);
         DefaultScene.Scene = scene;
-        //const a = new CurveObject();
         scene.ambientColor = new Color3(.1, .1, .1);
-
-        //log.resetLevel();
-        //log.setDefaultLevel('error');
         await this.initialize(scene);
         engine.runRenderLoop(() => {
             scene.render();
         });
-
     }
-
-
 }
 const vrApp = new VrApp();
 buildQuestLink();
@@ -107,7 +90,6 @@ function setMainCamera(scene: Scene) {
 
 async function initDb(diagramManager: DiagramManager) {
     const db = new PouchdbPersistenceManager();
-    //const userManager = new UserManager(db.onUserObservable);
     db.setDiagramManager(diagramManager);
     await db.initialize();
 }
@@ -120,9 +102,3 @@ function initEnvironment(diagramManager: DiagramManager, spinner: Spinner) {
         });
     }, -1, false, this);
 }
-
-
-
-
-
-

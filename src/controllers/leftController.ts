@@ -1,12 +1,13 @@
 import {Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
-import {Base} from "./base";
-import {ControllerEventType} from "./controllers";
+import {AbstractController} from "./abstractController";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 import {DefaultScene} from "../defaultScene";
+import {ControllerEventType} from "./types/controllerEventType";
+import {controllerObservable, movable} from "./controllers";
 
 
-export class Left extends Base {
+export class LeftController extends AbstractController {
     private leftLogger = log.getLogger('Left');
     constructor(controller:
                     WebXRInputSource, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
@@ -17,7 +18,7 @@ export class Left extends Base {
                 init.components['xr-standard-thumbstick']
                     .onAxisValueChangedObservable.add((value) => {
                     this.leftLogger.trace(`thumbstick moved ${value.x}, ${value.y}`);
-                    if (!this.controllers.movable) {
+                    if (!movable) {
                         this.moveRig(value);
                     } else {
                         this.moveMovable(value);
@@ -29,7 +30,7 @@ export class Left extends Base {
                 init.components['xr-standard-thumbstick'].onButtonStateChangedObservable.add((value) => {
                     if (value.pressed) {
                         this.leftLogger.trace('Left', 'thumbstick changed');
-                        this.controllers.controllerObservable.notifyObservers({
+                        controllerObservable.notifyObservers({
                             type: ControllerEventType.DECREASE_VELOCITY,
                             value: value.value
                         });
@@ -46,7 +47,7 @@ export class Left extends Base {
                 .onButtonStateChangedObservable
                 .add((button) => {
                     this.leftLogger.trace('trigger pressed');
-                    this.controllers.controllerObservable.notifyObservers({
+                    controllerObservable.notifyObservers({
                         type: ControllerEventType.TRIGGER,
                         value: button.value,
                         controller: this.xrInputSource
@@ -60,7 +61,7 @@ export class Left extends Base {
             xbutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
                     this.leftLogger.trace('X button pressed');
-                    this.controllers.controllerObservable.notifyObservers({
+                    controllerObservable.notifyObservers({
                         type: ControllerEventType.X_BUTTON,
                         value: button.value
                     });
@@ -74,7 +75,7 @@ export class Left extends Base {
             ybutton.onButtonStateChangedObservable.add((button) => {
                 if (button.pressed) {
                     this.leftLogger.trace('Y button pressed');
-                    this.controllers.controllerObservable.notifyObservers({
+                    controllerObservable.notifyObservers({
                         type: ControllerEventType.Y_BUTTON,
                         value: button.value
                     });
@@ -85,12 +86,12 @@ export class Left extends Base {
 
     private moveMovable(value: { x: number, y: number }) {
         if (Math.abs(value.x) > .1) {
-            this.controllers.movable.position.x += .005 * Math.sign(value.x);
+            movable.position.x += .005 * Math.sign(value.x);
         } else {
 
         }
         if (Math.abs(value.y) > .1) {
-            this.controllers.movable.position.y += -.005 * Math.sign(value.y);
+            movable.position.y += -.005 * Math.sign(value.y);
         } else {
 
         }
@@ -98,27 +99,27 @@ export class Left extends Base {
 
     private moveRig(value: { x: number, y: number }) {
         if (Math.abs(value.x) > .1) {
-            this.controllers.controllerObservable.notifyObservers({
+            controllerObservable.notifyObservers({
                 type: ControllerEventType.LEFT_RIGHT,
                 value: value.x * this.speedFactor
             });
-            Base.stickVector.x = 1;
+            AbstractController.stickVector.x = 1;
         } else {
-            Base.stickVector.x = 0;
+            AbstractController.stickVector.x = 0;
         }
         if (Math.abs(value.y) > .1) {
-            this.controllers.controllerObservable.notifyObservers({
+            controllerObservable.notifyObservers({
                 type: ControllerEventType.FORWARD_BACK,
                 value: value.y * this.speedFactor
             });
-            Base.stickVector.y = 1;
+            AbstractController.stickVector.y = 1;
         } else {
-            Base.stickVector.y = 0;
+            AbstractController.stickVector.y = 0;
         }
 
-        if (Base.stickVector.equals(Vector3.Zero())) {
-            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.LEFT_RIGHT, value: 0});
-            this.controllers.controllerObservable.notifyObservers({type: ControllerEventType.FORWARD_BACK, value: 0});
+        if (AbstractController.stickVector.equals(Vector3.Zero())) {
+            controllerObservable.notifyObservers({type: ControllerEventType.LEFT_RIGHT, value: 0});
+            controllerObservable.notifyObservers({type: ControllerEventType.FORWARD_BACK, value: 0});
         } else {
 
         }

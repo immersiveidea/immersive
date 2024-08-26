@@ -45,7 +45,7 @@ export class PouchdbPersistenceManager {
             }
             this._logger.debug(evt);
         });
-        document.addEventListener('dbcreated', (evt) => {
+        document.addEventListener('dbcreated', (evt: CustomEvent) => {
             const detail = ((evt.detail as unknown) as PasswordEvent2);
             const password = detail.password;
             const id = detail.id;

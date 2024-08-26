@@ -1,9 +1,17 @@
-import {ActionManager, ExecuteCodeAction, HighlightLayer, InstancedMesh, StandardMaterial,} from "@babylonjs/core";
-import {ControllerEventType, Controllers} from "../../controllers/controllers";
+import {
+    ActionManager,
+    ExecuteCodeAction,
+    HighlightLayer,
+    InstancedMesh,
+    Observable,
+    StandardMaterial,
+} from "@babylonjs/core";
 import log from "loglevel";
 import {DefaultScene} from "../../defaultScene";
+import {ControllerEventType} from "../../controllers/types/controllerEventType";
+import {ControllerEvent} from "../../controllers/types/controllerEvent";
 
-export function buildEntityActionManager(controllers: Controllers) {
+export function buildEntityActionManager(controllerObservable: Observable<ControllerEvent>) {
     const highlightLayer = new HighlightLayer('highlightLayer', DefaultScene.Scene);
     highlightLayer.innerGlow = false;
     highlightLayer.outerGlow = true;
@@ -37,10 +45,10 @@ export function buildEntityActionManager(controllers: Controllers) {
                     logger.error(e);
                 }
             }
-            controllers.controllerObservable.notifyObservers({
+            controllerObservable.notifyObservers({
                 type: ControllerEventType.PULSE,
                 gripId: evt?.additionalData?.pickResult?.gripTransform?.id
-            })
+            });
             logger.debug(evt);
         })
     );

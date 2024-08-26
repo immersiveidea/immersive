@@ -1,6 +1,6 @@
 import {AbstractMesh, KeyboardEventTypes, Scene} from "@babylonjs/core";
 import {Rigplatform} from "./rigplatform";
-import {Controllers} from "./controllers";
+
 import {DiagramManager} from "../diagram/diagramManager";
 import {wheelHandler} from "./functions/wheelHandler";
 import log, {Logger} from "loglevel";
@@ -12,7 +12,7 @@ export class WebController {
     private rig: Rigplatform;
     private diagramManager: DiagramManager;
     private mouseDown: boolean = false;
-    private readonly controllers: Controllers;
+
     private upDownWheel: boolean = false;
     private fowardBackWheel: boolean = false;
     private canvas: HTMLCanvasElement;
@@ -20,11 +20,11 @@ export class WebController {
     constructor(scene: Scene,
                 rig: Rigplatform,
                 diagramManager: DiagramManager,
-                controllers: Controllers) {
+    ) {
         this.scene = scene;
         this.rig = rig;
         this.diagramManager = diagramManager;
-        this.controllers = controllers;
+
         this.canvas = document.querySelector('#gameCanvas');
         //this.referencePlane = MeshBuilder.CreatePlane('referencePlane', {size: 10}, this.scene);
         //this.referencePlane.setEnabled(false);
@@ -160,7 +160,7 @@ export class WebController {
 
 
         });
-        this.scene.onPointerDown = (evt, state) => {
+        this.scene.onPointerDown = (evt) => {
             if (evt.pointerType == "mouse") {
                 this.mouseDown = true;
                 /*if (evt.shiftKey) {

@@ -13,7 +13,7 @@ export function MainMenu({onClick}) {
     } else {
         return (
             <div className="overlay mini" id="main">
-                <img alte="deep diagram logo" height="120" src="/assets/ddd.svg" width="320"/>
+                <img alt="deep diagram logo" height="120" src="/assets/ddd.svg" width="320"/>
                 <div id="enterXR" className="inactive"><a href="#" id="enterVRLink">Enter VR</a></div>
                 <QuestLink/>
 

@@ -35,7 +35,5 @@ export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh,
         obj.baseTransform.setParent(parent);
         diagramManager.addObject(obj);
         return obj;
-
     }
-
 }

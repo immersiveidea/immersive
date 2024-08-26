@@ -2,7 +2,6 @@ import {DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import {AbstractMesh, ActionEvent, Observable, Scene, Vector3, WebXRInputSource} from "@babylonjs/core";
 import {InputTextView} from "../information/inputTextView";
 import {DefaultScene} from "../defaultScene";
-import {ControllerEvent, ControllerEventType, Controllers} from "../controllers/controllers";
 import log from "loglevel";
 import {Toolbox} from "../toolbox/toolbox";
 import {ClickMenu} from "../menus/clickMenu";
@@ -13,6 +12,8 @@ import {ConnectionPreview} from "../menus/connectionPreview";
 import {ScaleMenu2} from "../menus/ScaleMenu2";
 import {viewOnly} from "../util/functions/getPath";
 import {GroupMenu} from "../menus/groupMenu";
+import {ControllerEvent} from "../controllers/types/controllerEvent";
+import {ControllerEventType} from "../controllers/types/controllerEventType";
 
 
 export class DiagramMenuManager {
@@ -26,10 +27,10 @@ export class DiagramMenuManager {
     private _logger = log.getLogger('DiagramMenuManager');
     private _connectionPreview: ConnectionPreview;
 
-    constructor(notifier: Observable<DiagramEvent>, controllers: Controllers, config: AppConfig, readyObservable: Observable<boolean>) {
+    constructor(notifier: Observable<DiagramEvent>, controllerObservable: Observable<ControllerEvent>, config: AppConfig, readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
         this._notifier = notifier;
-        this._inputTextView = new InputTextView(controllers);
+        this._inputTextView = new InputTextView(controllerObservable);
         this.configMenu = new ConfigMenu(config);
 
         this._inputTextView.onTextObservable.add((evt) => {
@@ -43,7 +44,7 @@ export class DiagramMenuManager {
             //this.scaleMenu.handleMesh.setEnabled(false)
             this.configMenu.handleTransformNode.setEnabled(false);
         }
-        controllers.controllerObservable.add((event: ControllerEvent) => {
+        controllerObservable.add((event: ControllerEvent) => {
             if (event.type == ControllerEventType.B_BUTTON) {
                 if (event.value > .8) {
                     const platform = this._scene.getMeshByName("platform");

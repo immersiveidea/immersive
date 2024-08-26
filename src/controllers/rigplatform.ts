@@ -1,15 +1,16 @@
 import {Angle, Mesh, Quaternion, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
-import {Right} from "./right";
-import {Left} from "./left";
-import {ControllerEvent, ControllerEventType, Controllers} from "./controllers";
+import {RightController} from "./rightController";
+import {LeftController} from "./leftController";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
 import {buildRig} from "./functions/buildRig";
 import {DefaultScene} from "../defaultScene";
+import {ControllerEvent} from "./types/controllerEvent";
+import {ControllerEventType} from "./types/controllerEventType";
+import {controllerObservable} from "./controllers";
 
 const RIGHT = "right";
 const LEFT = "left";
-
 
 
 export class Rigplatform {
@@ -19,14 +20,14 @@ export class Rigplatform {
     public rigMesh: Mesh;
 
     private _logger = log.getLogger('Rigplatform');
-    private readonly _controllers: Controllers;
+
     private readonly _diagramManager: DiagramManager;
     private readonly _scene: Scene;
     private readonly _velocityArray = [0.01, 0.1, 1, 2, 5];
     private readonly _xr: WebXRDefaultExperience;
 
-    private _rightController: Right;
-    private _leftController: Left;
+    private _rightController: RightController;
+    private _leftController: LeftController;
     private _turning: boolean = false;
     private _velocity: Vector3 = Vector3.Zero();
     private _velocityIndex: number = 2;
@@ -40,7 +41,7 @@ export class Rigplatform {
     ) {
         this._scene = DefaultScene.Scene;
         this._diagramManager = diagramManager;
-        this._controllers = diagramManager.controllers;
+
         this._xr = xr;
         this.rigMesh = buildRig(xr);
         this._fixRotation();
@@ -112,12 +113,12 @@ export class Rigplatform {
     private _registerObserver() {
         if (this._registered) {
             this._logger.warn('observer already registered, clearing and re registering');
-            this._controllers.controllerObservable.clear();
+            controllerObservable.clear();
             this._registered = false;
         }
         if (!this._registered) {
             this._registered = true;
-            this._controllers.controllerObservable.add((event: ControllerEvent) => {
+            controllerObservable.add((event: ControllerEvent) => {
                 this._logger.debug(event);
                 switch (event.type) {
                     case ControllerEventType.INCREASE_VELOCITY:
@@ -165,12 +166,12 @@ export class Rigplatform {
             switch (source.inputSource.handedness) {
                 case RIGHT:
                     if (!this._rightController) {
-                        this._rightController = new Right(source, this._xr, this._diagramManager);
+                        this._rightController = new RightController(source, this._xr, this._diagramManager);
                     }
                     break;
                 case LEFT:
                     if (!this._leftController) {
-                        this._leftController = new Left(source, this._xr, this._diagramManager);
+                        this._leftController = new LeftController(source, this._xr, this._diagramManager);
                     }
                     break;
             }
