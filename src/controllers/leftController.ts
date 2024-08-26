@@ -2,7 +2,6 @@ import {Vector3, WebXRControllerComponent, WebXRDefaultExperience, WebXRInputSou
 import {AbstractController} from "./abstractController";
 import log from "loglevel";
 import {DiagramManager} from "../diagram/diagramManager";
-import {DefaultScene} from "../defaultScene";
 import {ControllerEventType} from "./types/controllerEventType";
 import {controllerObservable, movable} from "./controllers";
 
@@ -12,7 +11,6 @@ export class LeftController extends AbstractController {
     constructor(controller:
                     WebXRInputSource, xr: WebXRDefaultExperience, diagramManager: DiagramManager) {
         super(controller, xr, diagramManager);
-        const scene = DefaultScene.Scene;
         this.xrInputSource.onMotionControllerInitObservable.add((init) => {
             if (init.components['xr-standard-thumbstick']) {
                 init.components['xr-standard-thumbstick']
@@ -98,30 +96,11 @@ export class LeftController extends AbstractController {
     }
 
     private moveRig(value: { x: number, y: number }) {
-        if (Math.abs(value.x) > .1) {
-            controllerObservable.notifyObservers({
-                type: ControllerEventType.LEFT_RIGHT,
-                value: value.x * this.speedFactor
-            });
-            AbstractController.stickVector.x = 1;
-        } else {
-            AbstractController.stickVector.x = 0;
-        }
-        if (Math.abs(value.y) > .1) {
-            controllerObservable.notifyObservers({
-                type: ControllerEventType.FORWARD_BACK,
-                value: value.y * this.speedFactor
-            });
-            AbstractController.stickVector.y = 1;
-        } else {
-            AbstractController.stickVector.y = 0;
-        }
-
+        AbstractController.stickVector.x = this.notifyObserver(value.x, ControllerEventType.LEFT_RIGHT);
+        AbstractController.stickVector.y = this.notifyObserver(value.y, ControllerEventType.FORWARD_BACK);
         if (AbstractController.stickVector.equals(Vector3.Zero())) {
             controllerObservable.notifyObservers({type: ControllerEventType.LEFT_RIGHT, value: 0});
             controllerObservable.notifyObservers({type: ControllerEventType.FORWARD_BACK, value: 0});
-        } else {
-
         }
     }
 }

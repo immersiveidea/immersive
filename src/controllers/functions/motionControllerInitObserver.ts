@@ -1,7 +1,7 @@
 import log from "loglevel";
 
 
-export function motionControllerObserver(init) {
+export function motionControllerInitObserver(init) {
     const logger = log.getLogger('motionControllerObserver');
     logger.debug(init.components);
     if (init.components['xr-standard-squeeze']) {

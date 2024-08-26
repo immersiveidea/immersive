@@ -10,19 +10,7 @@ import {controllerObservable} from "./controllers";
 
 export class RightController extends AbstractController {
     private rightLogger = log.getLogger("Right");
-    private initBButton(bbutton: WebXRControllerComponent) {
-        if (bbutton) {
-            bbutton.onButtonStateChangedObservable.add((button) => {
-                if (button.pressed) {
-                    this.rightLogger.debug('B Button Pressed');
-                    controllerObservable.notifyObservers({
-                        type: ControllerEventType.B_BUTTON,
-                        value: button.value
-                    });
-                }
-            });
-        }
-    }
+
     constructor(controller: WebXRInputSource,
                 xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager
@@ -31,8 +19,8 @@ export class RightController extends AbstractController {
         super(controller, xr, diagramManager);
         this.xrInputSource.onMotionControllerInitObservable.add((init) => {
             this.initTrigger(init.components['xr-standard-trigger']);
-            this.initBButton(init.components['b-button']);
-            this.initAButton(init.components['a-button']);
+            this.initButton(init.components['b-button'], ControllerEventType.B_BUTTON);
+            this.initButton(init.components['a-button'], ControllerEventType.MENU);
             this.initThumbstick(init.components['xr-standard-thumbstick']);
         });
     }
@@ -49,17 +37,6 @@ export class RightController extends AbstractController {
                         controller: this.xrInputSource
                     });
                 }, -1, false, this);
-        }
-    }
-
-    private initAButton(abutton: WebXRControllerComponent) {
-        if (abutton) {
-            abutton.onButtonStateChangedObservable.add((value) => {
-                if (value.pressed) {
-                    this.rightLogger.debug('A button pressed');
-                    controllerObservable.notifyObservers({type: ControllerEventType.MENU});
-                }
-            });
         }
     }
 
@@ -87,16 +64,8 @@ export class RightController extends AbstractController {
         } else {
             controllerObservable.notifyObservers({type: ControllerEventType.TURN, value: 0});
         }
-        if (Math.abs(value.y) > .1) {
-            controllerObservable.notifyObservers({
-                type: ControllerEventType.UP_DOWN,
-                value: value.y * this.speedFactor
-            });
-            AbstractController.stickVector.z = 1;
-        } else {
-            controllerObservable.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
-            AbstractController.stickVector.z = 0;
-        }
+        AbstractController.stickVector.z = this.notifyObserver(value.y, ControllerEventType.UP_DOWN);
+
         if (AbstractController.stickVector.equals(Vector3.Zero())) {
             controllerObservable.notifyObservers({type: ControllerEventType.UP_DOWN, value: 0});
         }

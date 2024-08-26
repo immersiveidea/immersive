@@ -132,6 +132,7 @@ export class PouchdbPersistenceManager {
             this._logger.error('no image data', entity);
             return;
         }
+
         if (this._encKey && !this._encryption.ready) {
             await this._encryption.setPassword(this._encKey);
         }

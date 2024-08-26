@@ -7,22 +7,22 @@ import {
     WebXRInputSource
 } from "@babylonjs/core";
 import {DiagramManager} from "../diagram/diagramManager";
-import {DiagramEvent, DiagramEventType} from "../diagram/types/diagramEntity";
 import log from "loglevel";
 
 import {grabAndClone} from "./functions/grabAndClone";
 import {ClickMenu} from "../menus/clickMenu";
-import {motionControllerObserver} from "./functions/motionControllerObserver";
+import {motionControllerInitObserver} from "./functions/motionControllerInitObserver";
 import {DefaultScene} from "../defaultScene";
-import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
+
 import {DiagramObject} from "../diagram/diagramObject";
-import {snapAll} from "./functions/snapAll";
 import {MeshTypeEnum} from "../diagram/types/meshTypeEnum";
 import {getMeshType} from "./functions/getMeshType";
 import {viewOnly} from "../util/functions/getPath";
 
 import {ControllerEventType} from "./types/controllerEventType";
 import {controllerObservable} from "./controllers";
+import {grabMesh} from "../diagram/functions/grabMesh";
+import {dropMesh} from "../diagram/functions/dropMesh";
 
 const CLICK_TIME = 300;
 
@@ -34,12 +34,13 @@ export abstract class AbstractController {
     protected readonly diagramManager: DiagramManager;
     protected xrInputSource: WebXRInputSource;
     protected speedFactor = 4;
+
     protected grabbedObject: DiagramObject = null;
     protected grabbedMesh: AbstractMesh = null;
     protected grabbedMeshType: MeshTypeEnum = null;
 
 
-    private readonly _logger = log.getLogger('Base');
+    private readonly _logger = log.getLogger('AbstractController');
     private _clickStart: number = 0;
     private _clickMenu: ClickMenu;
     private _pickPoint: Vector3 = new Vector3();
@@ -67,7 +68,7 @@ export abstract class AbstractController {
         this.diagramManager = diagramManager;
 
         //@TODO THis works, but it uses initGrip, not sure if this is the best idea
-        this.xrInputSource.onMotionControllerInitObservable.add(motionControllerObserver, -1, false, this);
+        this.xrInputSource.onMotionControllerInitObservable.add(motionControllerInitObserver, -1, false, this);
         controllerObservable.add((event) => {
             this._logger.debug(event);
             switch (event.type) {
@@ -143,91 +144,26 @@ export abstract class AbstractController {
         }, -1, false, this);
     }
 
-
-    private grab() {
-        let mesh = this._meshUnderPointer
-        if (!mesh || viewOnly()) {
-            return;
-        }
-        this.grabbedMesh = mesh;
-        this.grabbedMeshType = getMeshType(mesh, this.diagramManager);
-
-        //displayDebug(mesh);
-        this._logger.debug("grabbing " + mesh.id + " type " + this.grabbedMeshType);
-        switch (this.grabbedMeshType) {
-            case MeshTypeEnum.ENTITY:
-                const diagramObject = this.diagramManager.getDiagramObject(mesh.id);
-                if (diagramObject.isGrabbable) {
-                    diagramObject.baseTransform.setParent(this.xrInputSource.motionController.rootMesh);
-                    diagramObject.grabbed = true;
-                    this.grabbedObject = diagramObject;
-                }
-                break;
-            case MeshTypeEnum.HANDLE:
-                this.grabbedMesh.setParent(this.xrInputSource.motionController.rootMesh);
-                break;
-            case MeshTypeEnum.TOOL:
-                const clone = grabAndClone(this.diagramManager, mesh, this.xrInputSource.motionController.rootMesh);
-                this.grabbedObject = clone;
-                this.grabbedMesh = clone.mesh;
-                clone.grabbed = true;
-
+    protected notifyObserver(value: number, controllerEventType: ControllerEventType): number {
+        if (Math.abs(value) > .1) {
+            controllerObservable.notifyObservers({
+                type: controllerEventType,
+                value: value * this.speedFactor
+            });
+            return 1;
+        } else {
+            return 0;
         }
     }
 
-    private drop() {
-        const mesh = this.grabbedMesh;
-        if (!mesh) {
-            return;
-        }
-        const diagramObject = this.grabbedObject;
-        switch (this.grabbedMeshType) {
-            case MeshTypeEnum.ENTITY:
-                if (diagramObject) {
-                    diagramObject.baseTransform.setParent(null);
-                    snapAll(this.grabbedObject.baseTransform, this.diagramManager.config, this._pickPoint);
-                    diagramObject.mesh.computeWorldMatrix(true);
-                    const event: DiagramEvent =
-                        {
-                            type: DiagramEventType.DROP,
-                            entity: diagramObject.diagramEntity
-                        }
-                    this.diagramManager.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
-                    diagramObject.mesh.computeWorldMatrix(false);
-                    diagramObject.grabbed = false;
+    protected initButton(button: WebXRControllerComponent, type: ControllerEventType) {
+        if (button) {
+            button.onButtonStateChangedObservable.add((value) => {
+                if (value.pressed) {
+                    this._logger.debug(button.type, button.id, 'pressed');
+                    controllerObservable.notifyObservers({type: type});
                 }
-
-                this.grabbedObject = null;
-                this.grabbedMesh = null;
-                this.grabbedMeshType = null;
-                break;
-            case MeshTypeEnum.TOOL:
-                this.grabbedObject.baseTransform.setParent(null);
-                snapAll(this.grabbedObject.baseTransform, this.diagramManager.config, this._pickPoint);
-                diagramObject.mesh.computeWorldMatrix(true);
-                const event: DiagramEvent =
-                    {
-                        type: DiagramEventType.DROP,
-                        entity: diagramObject.diagramEntity
-                    }
-                this.diagramManager.onDiagramEventObservable.notifyObservers(event, DiagramEventObserverMask.ALL);
-                diagramObject.mesh.computeWorldMatrix(false);
-                this.grabbedObject.grabbed = false;
-                this.grabbedObject = null;
-                this.grabbedMesh = null;
-                this.grabbedMeshType = null;
-                break;
-            case MeshTypeEnum.HANDLE:
-                mesh.setParent(this.scene.getMeshByName("platform"));
-                const location = {
-                    position: {x: mesh.position.x, y: mesh.position.y, z: mesh.position.z},
-                    rotation: {x: mesh.rotation.x, y: mesh.rotation.y, z: mesh.rotation.z}
-                }
-                localStorage.setItem(mesh.id, JSON.stringify(location));
-                this.grabbedMesh = null;
-                this.grabbedMeshType = null;
-                this.grabbedObject = null;
-                break;
+            });
         }
     }
 
@@ -259,5 +195,28 @@ export abstract class AbstractController {
                 }
             }
         });
+    }
+
+    private grab() {
+        if (viewOnly() || this._meshUnderPointer == null) {
+            return;
+        }
+        const {
+            grabbedMesh,
+            grabbedObject,
+            grabbedMeshType
+        } = grabMesh(this._meshUnderPointer, this.diagramManager, this.xrInputSource.motionController.rootMesh);
+        this.grabbedMesh = grabbedMesh;
+        this.grabbedObject = grabbedObject;
+        this.grabbedMeshType = grabbedMeshType;
+    }
+
+    private drop() {
+        const dropped = dropMesh(this.grabbedMesh, this.grabbedObject, this._pickPoint, this.grabbedMeshType, this.diagramManager);
+        if (dropped) {
+            this.grabbedMesh = null;
+            this.grabbedObject = null;
+            this.grabbedMeshType = null;
+        }
     }
 }
