@@ -5,6 +5,7 @@ import {MeshTypeEnum} from "../types/meshTypeEnum";
 import {snapAll} from "../../controllers/functions/snapAll";
 import {DiagramEvent, DiagramEventType} from "../types/diagramEntity";
 import {DiagramEventObserverMask} from "../types/diagramEventObserverMask";
+import {DefaultScene} from "../../defaultScene";
 
 export function dropMesh(mesh: AbstractMesh,
                          grabbedObject: DiagramObject,
@@ -48,7 +49,7 @@ export function dropMesh(mesh: AbstractMesh,
             dropped = true;
             break;
         case MeshTypeEnum.HANDLE:
-            mesh.setParent(this.scene.getMeshByName("platform"));
+            mesh.setParent(DefaultScene.Scene.getMeshByName("platform"));
             const location = {
                 position: {x: mesh.position.x, y: mesh.position.y, z: mesh.position.z},
                 rotation: {x: mesh.rotation.x, y: mesh.rotation.y, z: mesh.rotation.z}
