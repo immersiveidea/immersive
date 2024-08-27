@@ -6,44 +6,23 @@
     <meta content="An immersive vr diagramming experience based using webxr version 0.0.8-14 (2024-07-03T13:09:05.707Z) 4fdcc9694d3614be538e425110d1ab50cd20b302"
           name="description">
     <meta content="width=device-width, initial-scale=1, height=device-height" name="viewport">
-    <link href="/styles.css" rel="stylesheet">
+    <!--<link href="/styles.css" rel="stylesheet"> -->
     <link href="/assets/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png">
     <link href="/assets/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png">
     <link href="/assets/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png">
     <title>Deep Diagram</title>
-    <link as="script" href="/newRelic.js" rel="preload">
-    <script defer src="/newRelic.js"></script>
-    <script defer src="/src/webApp.ts" type="module"></script>
-    <script defer src="/src/vrApp.ts" type="module"></script>
+    <!--    <link as="script" href="/newRelic.js" rel="preload">
+        <script defer src="/newRelic.js"></script> -->
+
+
     <link href="/manifest.webmanifest" rel="manifest"/>
     <!--<script src='/niceware.js'></script>-->
     <style>
-        #feed {
-            display: none;
-        }
-        #keyboardHelp {
-            display: none;
-            width: 665px;
-            height: 312px;
-        }
 
-        #keyboardHelp .button {
-
-            background-color: white;
-            width: 16px;
-            height: 16px;
-            display: inline-block;
-            text-align: center;
-            color: #000000;
-        }
-
-        #keyboardHelp div {
-            background: transparent;
-        }
     </style>
 </head>
 <body>
-<img id="loadingGrid" src="/assets/grid6.jpg"/>
+
 <script>
     if (typeof navigator.serviceWorker !== 'undefined') {
         if (localStorage.getItem('serviceWorkerVersion') !== '11') {
@@ -57,38 +36,18 @@
         navigator.serviceWorker.register('/sw.js', {updateViaCache: 'none'});
     }
 </script>
-<script>
-    /*
-        var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
-        var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
-        var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
-        var recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.lang = 'en-US';
-        recognition.interimResults = true;
-        recognition.maxAlternatives = 1;
-        recognition.onresult = function(event) {
-          console.log(event.results[0][0].transcript);
-        }
-        recognition.onend = function() {
-          console.log("recognition ended");
-          recognition.start();
-        }
-        console.log("starting recognition");
-        recognition.start();
-
-      */
-
-</script>
 <div class="webApp" id="webApp">
 
 </div>
+<script defer src="/src/webApp.ts" type="module"></script>
 
 <!--<video id="feed" controls="" autoplay="" name="media"><source src="https://listen.broadcastify.com/1drb2xhywkg8nvz.mp3?nc=49099&amp;xan=xtf9912b41c" type="audio/mpeg"></video> -->
+<!--
 <div class="scene">
     <canvas id="gameCanvas"></canvas>
 </div>
-
+-->
+<!--<script defer src="/src/vrApp.ts" type="module"></script>-->
 </body>
 
 </html>

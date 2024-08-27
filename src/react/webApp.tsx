@@ -1,6 +1,10 @@
-import {PasswordDialog} from "./components/passwordDialog";
-import {Menu} from "./components/menu";
 import "./styles.css";
+import '@mantine/core/styles.css';
+import React from "react";
+import {RouterProvider} from "react-router-dom";
+import {webRouter} from "./webRouter";
+import {theme} from "./theme";
+import {MantineProvider} from "@mantine/core";
 
 export default function WebApp() {
     document.addEventListener('promptpassword', () => {
@@ -9,10 +13,9 @@ export default function WebApp() {
             (password as HTMLInputElement).style.display = 'block';
         }
     });
-    return (
-        <div>
-            <Menu/>
-            <PasswordDialog/>
-        </div>
+
+    return (<MantineProvider defaultColorScheme="dark" theme={theme}>
+            <RouterProvider router={webRouter}/>
+        </MantineProvider>
     )
 }

@@ -12,16 +12,16 @@ import {exportGltf} from "./util/functions/exportGltf";
 import {DefaultScene} from "./defaultScene";
 import {Introduction} from "./tutorial/introduction";
 
-
 const webGpu = false;
 
 log.setLevel('error', false);
-const canvas = (document.querySelector('#gameCanvas') as HTMLCanvasElement);
-export class VrApp {
+export default class VrApp {
     //preTasks = [havokModule];
     private logger: Logger = log.getLogger('App');
+    private _canvas: HTMLCanvasElement
 
-    constructor() {
+    constructor(canvas: HTMLCanvasElement) {
+        this._canvas = canvas;
         this.initializeEngine().then(() => {
             this.logger.info('Engine initialized');
         });
@@ -58,17 +58,18 @@ export class VrApp {
     }
 
     private async initializeEngine() {
+        if (!this._canvas) {
+            console.error('Canvas not found');
+            return;
+        }
         let engine: WebGPUEngine | Engine = null;
         if (webGpu) {
-            engine = new WebGPUEngine(canvas);
+            engine = new WebGPUEngine(this._canvas);
             await (engine as WebGPUEngine).initAsync();
         } else {
-            engine = new Engine(canvas, true);
+            engine = new Engine(this._canvas, true);
         }
         engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-        window.onresize = () => {
-            engine.resize();
-        }
         const scene = new Scene(engine);
         DefaultScene.Scene = scene;
         scene.ambientColor = new Color3(.1, .1, .1);
@@ -78,9 +79,7 @@ export class VrApp {
         });
     }
 }
-const vrApp = new VrApp();
 buildQuestLink();
-
 function setMainCamera(scene: Scene) {
     const CAMERA_NAME = 'Main Camera';
     const camera: FreeCamera = new FreeCamera(CAMERA_NAME,

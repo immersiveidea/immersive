@@ -30,27 +30,11 @@ export async function groundMeshObserver(ground: AbstractMesh,
             enablePointerSelectionOnAllControllers: true
         }
     });
+    window.addEventListener('enterXr', async (e: CustomEvent) => {
+        await xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
+        logger.debug("Entering XR Experience");
+    })
     //xr.baseExperience.featuresManager.enableFeature(WebXRFeatureName.LAYERS, "latest", { preferMultiviewOnInit: true }, true, false);
-    const enterButton = (document.querySelector('#enterXR') as HTMLAnchorElement);
-    if (enterButton) {
-        try {
-            const vrSupported = await xr.baseExperience.sessionManager.isSessionSupportedAsync('immersive-vr');
-            if (vrSupported) {
-                enterButton.classList.remove('inactive');
-                enterButton.addEventListener('click', async (evt) => {
-                    evt.preventDefault();
-                    //const voice = new VoiceRecognizer();
-                    logger.debug('entering XR');
-
-                    const enter = await xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
-                    logger.debug(enter);
-                });
-            }
-        } catch (err) {
-            logger.error(err);
-        }
-
-    }
 
     if (spinner) {
         spinner.hide();
