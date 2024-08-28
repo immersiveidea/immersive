@@ -1,24 +1,33 @@
-import VrApp from '../../vrApp';
-import {useEffect, useState} from "react";
-import {Affix, Burger, Group, Menu, useMantineTheme} from "@mantine/core";
+//import VrApp from '../../vrApp';
+import React, {useEffect, useState} from "react";
+import {Affix, Burger, Group, Menu} from "@mantine/core";
 import VrTemplate from "../vrTemplate";
 import {IconStar} from "@tabler/icons-react";
 import VrMenuItem from "../components/vrMenuItem";
 import CreateDiagramModal from "./createDiagramModal";
 import ManageDiagramsModal from "./manageDiagramsModal";
-
+import {useNavigate} from "react-router-dom";
+import {useDisclosure} from "@mantine/hooks";
 
 export default function VrExperience() {
-    const theme = useMantineTheme();
-    const [createDiagram, setCreateDiagram] = useState(false);
-    const [manageDiagrams, setManageDiagrams] = useState(false);
-    const [immersiveDisabled, setImmersiveDisabled] = useState(true);
+    const [createOpened, {open: openCreate, close: closeCreate}] = useDisclosure(false);
+    const [manageOpened, {open: openManage, close: closeManage}] = useDisclosure(false);
     useEffect(() => {
-        const vrApp = new VrApp(document.querySelector('#gameCanvas'));    // code to run after render goes here
+        const data = window.localStorage.getItem('createOpened');
+        if (data === 'true') {
+            openCreate();
+        }
+        navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
+            setImmersiveDisabled(!supported);
+        });
     }, []);
-    navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
-        setImmersiveDisabled(!supported);
-    });
+    useEffect(() => {
+        console.log('Create Opened: ', createOpened);
+        window.localStorage.setItem('createOpened', createOpened ? 'true' : 'false');
+    }, [createOpened])
+
+    const [immersiveDisabled, setImmersiveDisabled] = useState(true);
+    const navigate = useNavigate();
 
     const availableInFree = () => {
         return null
@@ -36,14 +45,40 @@ export default function VrExperience() {
         const event = new CustomEvent('enterXr', {bubbles: true});
         window.dispatchEvent(event);
     }
+    const createModal = () => {
+        if (createOpened) {
+            return <CreateDiagramModal createOpened={createOpened} closeCreate={closeCreate}/>
+        } else {
+            return <></>
+        }
+    }
+    const manageModal = () => {
+        if (manageOpened) {
+            return <ManageDiagramsModal openCreate={openCreate}
+                                        manageOpened={manageOpened} closeManage={closeManage}/>
+        } else {
+            return <></>
+        }
+    }
+    console.log('VrExperience');
     return (
+        <React.StrictMode>
         <VrTemplate>
+            {createModal()}
+            {manageModal()}
             <Affix position={{top: 30, left: 60}}>
                 <Menu trigger="hover" openDelay={50} closeDelay={400}>
                     <Menu.Target>
                         <Burger size="xl"/>
                     </Menu.Target>
                     <Menu.Dropdown>
+                        <VrMenuItem
+                            tip={"Exit modeling environment and go back to main site"}
+                            onClick={() => {
+                                navigate("/")
+                            }}
+                            label="Home"
+                            availableIcon={availableInFree()}/>
                         <VrMenuItem
                             tip={immersiveDisabled ? "Browser does not support WebXR. Immersive experience best viewed with Meta Quest headset" : "Enter Immersive Mode"}
                             onClick={enterImmersive}
@@ -66,9 +101,7 @@ export default function VrExperience() {
                         <VrMenuItem
                             tip="Create a new diagram from scratch"
                             label="Create"
-                            onClick={() => {
-                                setCreateDiagram(!createDiagram)
-                            }}
+                            onClick={openCreate}
                             availableIcon={availableInFree()}/>
                         <VrMenuItem
                             tip="Create a new diagram from predefined template"
@@ -78,9 +111,7 @@ export default function VrExperience() {
                         <VrMenuItem
                             tip="Manage Diagrams"
                             label="Manage"
-                            onClick={() => {
-                                setManageDiagrams(!manageDiagrams)
-                            }}
+                            onClick={openManage}
                             availableIcon={availableInFree()}/>
                         <Menu.Divider/>
                         <VrMenuItem
@@ -92,8 +123,9 @@ export default function VrExperience() {
                 </Menu>
             </Affix>
             <canvas id="gameCanvas" style={{width: '100%', height: '100vh'}}/>
-            <CreateDiagramModal createOpened={createDiagram} setCreateOpened={setCreateDiagram}/>
-            <ManageDiagramsModal manageOpened={manageDiagrams} setManageOpened={setManageDiagrams}/>
+
+
         </VrTemplate>
+        </React.StrictMode>
     )
 }

@@ -1,4 +1,4 @@
-import {Anchor, AppShell, Button, Group, Image} from "@mantine/core";
+import {Anchor, AppShell, Burger, Button, Group, Image} from "@mantine/core";
 import React from "react";
 import {Link} from "react-router-dom";
 
@@ -12,7 +12,7 @@ export default function PageHeader() {
             <Group justify="space-between">
                 <Image w={64} src="/assets/ddd.svg"/>
                 <Group justify="flex-end">
-                    <Button key="signup">Sign up for Free</Button>
+
                     <Group visibleFrom="sm">
                         <Anchor component={Link} key="examples" to="/examples" p={5} c="myColor" bg="none"
                                 underline="hover">Examples</Anchor>
@@ -25,7 +25,8 @@ export default function PageHeader() {
                         <Anchor component={Link} key="vrexperience" to="/db/local" p={5} c="myColor" bg="none"
                                 underline="hover">VR Experience</Anchor>
                     </Group>
-
+                    <Burger hiddenFrom="sm"/>
+                    <Button key="signup">Sign up for Free</Button>
                     <Button>Login</Button>
                 </Group>
             </Group>

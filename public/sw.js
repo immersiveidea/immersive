@@ -1,5 +1,5 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.1.0/workbox-sw.js');
-const VERSION = '0.0.8-18';
+const VERSION = '0.0.8-19';
 const CACHE = "deepdiagram";
 const IMAGEDELIVERY_CACHE = "deepdiagram-images";
 const MAPTILE_CACHE = 'maptiler';
@@ -66,20 +66,22 @@ workbox.routing.registerRoute(
     })
 );
 
-workbox.routing.registerRoute(
+/*workbox.routing.registerRoute(
     new RegExp('/assets/.*'),
     new workbox.strategies.StaleWhileRevalidate({
         cacheName: CACHE
     })
 );
+*/
 
-
-workbox.routing.registerRoute(
+/*workbox.routing.registerRoute(
     new RegExp('/db/.*'),
     new workbox.strategies.StaleWhileRevalidate({
         cacheName: CACHE
     })
 );
+
+ */
 
 workbox.routing.registerRoute(
     new RegExp('/.*\\.glb'),
@@ -87,11 +89,12 @@ workbox.routing.registerRoute(
         cacheName: CACHE
     })
 );
+/*
 workbox.routing.registerRoute(
     new RegExp('/.*\\.css'),
     new workbox.strategies.StaleWhileRevalidate({
         cacheName: CACHE
     })
 );
-
+*/
 

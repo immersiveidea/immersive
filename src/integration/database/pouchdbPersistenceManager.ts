@@ -263,12 +263,11 @@ export class PouchdbPersistenceManager {
             let sync = false;
             let current = getPath();
             if (current && current != 'localdb') {
-                sync = true;
+                //sync = true;
             } else {
                 current = 'localdb';
             }
             this.db = new PouchDB(current, {auto_compaction: true});
-//await this.db.compact();
             if (sync) {
                 if (await this.setupMetadata(current)) {
                     await this.beginSync(current);

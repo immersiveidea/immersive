@@ -45,7 +45,10 @@ export async function syncDoc(info: any, onDBRemoveObservable: Observable<Diagra
                             template: doc.template
                         }, DiagramEventObserverMask.FROM_DB);
                     } else {
-                        onDBUpdateObservable.notifyObservers(doc, DiagramEventObserverMask.FROM_DB);
+                        if (doc.template) {
+                            onDBUpdateObservable.notifyObservers(doc, DiagramEventObserverMask.FROM_DB);
+                        }
+
                     }
                 }
             }

@@ -24,17 +24,22 @@
 <body>
 
 <script>
-    if (typeof navigator.serviceWorker !== 'undefined') {
-        if (localStorage.getItem('serviceWorkerVersion') !== '11') {
-            caches.keys().then(cacheNames => {
-                cacheNames.forEach(cacheName => {
-                    caches.delete(cacheName);
-                });
-            });
-            localStorage.setItem('serviceWorkerVersion', '11');
-        }
-        navigator.serviceWorker.register('/sw.js', {updateViaCache: 'none'});
-    }
+
+    /* if (typeof navigator.serviceWorker !== 'undefined') {
+
+
+         if (localStorage.getItem('serviceWorkerVersion') !== '11') {
+             caches.keys().then(cacheNames => {
+                 cacheNames.forEach(cacheName => {
+                     caches.delete(cacheName);
+                 });
+             });
+             localStorage.setItem('serviceWorkerVersion', '11');
+         }
+         navigator.serviceWorker.register('/sw.js', {updateViaCache: 'none'});
+     }
+
+     */
 </script>
 <div class="webApp" id="webApp">
 

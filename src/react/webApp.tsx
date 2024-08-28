@@ -3,8 +3,6 @@ import '@mantine/core/styles.css';
 import React from "react";
 import {RouterProvider} from "react-router-dom";
 import {webRouter} from "./webRouter";
-import {theme} from "./theme";
-import {MantineProvider} from "@mantine/core";
 
 export default function WebApp() {
     document.addEventListener('promptpassword', () => {
@@ -14,8 +12,7 @@ export default function WebApp() {
         }
     });
 
-    return (<MantineProvider defaultColorScheme="dark" theme={theme}>
+    return (
             <RouterProvider router={webRouter}/>
-        </MantineProvider>
     )
 }

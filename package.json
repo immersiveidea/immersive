@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.8-17",
   "type": "module",
+  "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -45,6 +46,7 @@
     "loglevel": "^1.9.1",
     "meaningful-string": "^1.4.0",
     "peer-lite": "2.0.2",
+    "use-pouchdb": "^2.0.2",
     "pouchdb": "^8.0.1",
     "pouchdb-find": "^8.0.1",
     "query-string": "^8.1.0",
