@@ -20,9 +20,9 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
             console.error(err);
         }
         const id = 'diagram-' + v4();
-        const newDiagram = {...diagram, _id: id}
+        const newDiagram = {...diagram, _id: id, type: 'diagram'};
         if (!doc) {
-            await db.put({_id: 'directory', diagrams: [newDiagram]});
+            await db.put({_id: 'directory', diagrams: [newDiagram], type: 'directory'});
         } else {
             if (doc.diagrams) {
                 doc.diagrams.push(newDiagram);
@@ -96,6 +96,5 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
             </Stack>
 
         </Modal>
-
     )
 }

@@ -3,7 +3,7 @@ import React from "react";
 import {useDoc, usePouch} from "use-pouchdb";
 import {IconPencilBolt, IconTrash} from "@tabler/icons-react";
 
-export default function ManageDiagramsModal({openCreate, manageOpened, closeManage}) {
+export default function ManageDiagramsModal({setDbName, openCreate, manageOpened, closeManage}) {
     const {doc: diagram, error} = useDoc('directory', {}, {_id: 'directory', diagrams: []});
     const [selected, setSelected] = React.useState(null);
     const db = usePouch();
@@ -30,7 +30,11 @@ export default function ManageDiagramsModal({openCreate, manageOpened, closeMana
                 </Card.Section>
                 <Card.Section>
                     <Group justify="space-evenly">
-                        <Button leftSection={<IconPencilBolt size={16}/>} size="xs">Select</Button>
+                        <Button
+                            onClick={() => {
+                                setDbName(diagram._id)
+                            }}
+                            leftSection={<IconPencilBolt size={16}/>} size="xs">Select</Button>
                         <Button bg="red" size="xs"><IconTrash size={16}/></Button>
                     </Group>
                 </Card.Section>

@@ -1,4 +1,4 @@
-//import VrApp from '../../vrApp';
+import VrApp from '../../vrApp';
 import React, {useEffect, useState} from "react";
 import {Affix, Burger, Group, Menu} from "@mantine/core";
 import VrTemplate from "../vrTemplate";
@@ -9,9 +9,28 @@ import ManageDiagramsModal from "./manageDiagramsModal";
 import {useNavigate} from "react-router-dom";
 import {useDisclosure} from "@mantine/hooks";
 
+let vrApp: VrApp = null;
+
 export default function VrExperience() {
     const [createOpened, {open: openCreate, close: closeCreate}] = useDisclosure(false);
     const [manageOpened, {open: openManage, close: closeManage}] = useDisclosure(false);
+    const [currentDb, setCurrentDb] = useState(null);
+    const [dbName, setDbName] = useState('vr');
+    useEffect(() => {
+        if (vrApp && dbName) {
+            console.log('here');
+            console.log(dbName);
+            try {
+                vrApp.setDb(dbName).then((db) => {
+                    setCurrentDb(db);
+                    console.log(db);
+                });
+            } catch (err) {
+                console.log(err);
+            }
+            closeManage();
+        }
+    }, [dbName]);
     useEffect(() => {
         const data = window.localStorage.getItem('createOpened');
         if (data === 'true') {
@@ -20,6 +39,7 @@ export default function VrExperience() {
         navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
             setImmersiveDisabled(!supported);
         });
+        vrApp = new VrApp(document.getElementById('vrCanvas') as HTMLCanvasElement);
     }, []);
     useEffect(() => {
         console.log('Create Opened: ', createOpened);
@@ -30,7 +50,7 @@ export default function VrExperience() {
     const navigate = useNavigate();
 
     const availableInFree = () => {
-        return null
+        return null;
     }
     const availableInBasic = () => {
         return <Group w={50}>Basic</Group>
@@ -55,12 +75,14 @@ export default function VrExperience() {
     const manageModal = () => {
         if (manageOpened) {
             return <ManageDiagramsModal openCreate={openCreate}
-                                        manageOpened={manageOpened} closeManage={closeManage}/>
+                                        manageOpened={manageOpened}
+                                        closeManage={closeManage}
+                                        setDbName={setDbName}/>
         } else {
             return <></>
         }
     }
-    console.log('VrExperience');
+
     return (
         <React.StrictMode>
         <VrTemplate>
@@ -122,9 +144,7 @@ export default function VrExperience() {
                     </Menu.Dropdown>
                 </Menu>
             </Affix>
-            <canvas id="gameCanvas" style={{width: '100%', height: '100vh'}}/>
-
-
+            <canvas id="vrCanvas" style={{width: '100%', height: '100vh'}}/>
         </VrTemplate>
         </React.StrictMode>
     )

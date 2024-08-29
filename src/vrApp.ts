@@ -4,13 +4,12 @@ import {DiagramManager} from "./diagram/diagramManager";
 import log, {Logger} from "loglevel";
 import {CustomEnvironment} from "./util/customEnvironment";
 import {Spinner} from "./objects/spinner";
-import {PouchdbPersistenceManager} from "./integration/database/pouchdbPersistenceManager";
 import {addSceneInspector} from "./util/functions/sceneInspector";
 import {groundMeshObserver} from "./util/functions/groundMeshObserver";
-import {buildQuestLink} from "./util/functions/buildQuestLink";
 import {exportGltf} from "./util/functions/exportGltf";
 import {DefaultScene} from "./defaultScene";
 import {Introduction} from "./tutorial/introduction";
+import {PouchData} from "./integration/database/pouchData";
 
 const webGpu = false;
 
@@ -18,7 +17,9 @@ log.setLevel('error', false);
 export default class VrApp {
     //preTasks = [havokModule];
     private logger: Logger = log.getLogger('App');
-    private _canvas: HTMLCanvasElement
+    private _canvas: HTMLCanvasElement;
+    private _db: PouchData;
+
 
     constructor(canvas: HTMLCanvasElement) {
         this._canvas = canvas;
@@ -27,6 +28,10 @@ export default class VrApp {
         });
     }
 
+    public async setDb(dbname: string) {
+        this._db.setDb(dbname);
+        return this._db;
+    }
     public async initialize(scene: Scene) {
         setMainCamera(scene);
         const spinner = new Spinner();
@@ -35,7 +40,9 @@ export default class VrApp {
         const diagramManager = new DiagramManager(diagramReadyObservable);
         diagramReadyObservable.add((ready) => {
             if (ready) {
-                initDb(diagramManager);
+                const db = new PouchData();
+                db.setDiagramManager(diagramManager);
+                this._db = db;
             } else {
                 this.logger.error('DiagramManager not ready');
             }
@@ -79,7 +86,7 @@ export default class VrApp {
         });
     }
 }
-buildQuestLink();
+
 function setMainCamera(scene: Scene) {
     const CAMERA_NAME = 'Main Camera';
     const camera: FreeCamera = new FreeCamera(CAMERA_NAME,
@@ -87,11 +94,6 @@ function setMainCamera(scene: Scene) {
     scene.setActiveCameraByName(CAMERA_NAME);
 }
 
-async function initDb(diagramManager: DiagramManager) {
-    const db = new PouchdbPersistenceManager();
-    db.setDiagramManager(diagramManager);
-    await db.initialize();
-}
 
 function initEnvironment(diagramManager: DiagramManager, spinner: Spinner) {
     const environment = new CustomEnvironment("default", diagramManager.config);

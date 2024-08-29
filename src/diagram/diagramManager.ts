@@ -33,12 +33,9 @@ export class DiagramManager {
         this._me = getMe();
         this._scene = DefaultScene.Scene;
         this._config = new AppConfig();
-
         this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, controllerObservable, this._config, readyObservable);
         this._diagramEntityActionManager = buildEntityActionManager(controllerObservable);
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
-
-
         this.onUserEventObservable.add((user) => {
             if (user.id != this._me) {
                 this._logger.debug('user event', user);
@@ -140,6 +137,12 @@ export class DiagramManager {
     private onDiagramEvent(event: DiagramEvent) {
         let diagramObject = this._diagramObjects.get(event?.entity?.id);
         switch (event.type) {
+            case DiagramEventType.CLEAR:
+                this._diagramObjects.forEach((value, key) => {
+                    value.dispose();
+                });
+                this._diagramObjects.clear();
+                break;
             case DiagramEventType.ADD:
                 if (diagramObject) {
                     diagramObject.fromDiagramEntity(event.entity);
