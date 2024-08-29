@@ -79,6 +79,7 @@ export class DiagramManager {
                 template: '#image-template',
                 image: event.detail.data,
                 text: event.detail.name,
+                type: 'entity',
                 position: {x: 0, y: 1.6, z: 0},
                 rotation: {x: 0, y: Math.PI, z: 0},
                 scale: {x: 1, y: 1, z: 1},
@@ -138,7 +139,7 @@ export class DiagramManager {
         let diagramObject = this._diagramObjects.get(event?.entity?.id);
         switch (event.type) {
             case DiagramEventType.CLEAR:
-                this._diagramObjects.forEach((value, key) => {
+                this._diagramObjects.forEach((value) => {
                     value.dispose();
                 });
                 this._diagramObjects.clear();

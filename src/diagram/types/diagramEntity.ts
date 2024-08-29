@@ -50,7 +50,7 @@ export type DiagramEntity = {
     position?: { x: number, y: number, z: number };
     rotation?: { x: number, y: number, z: number };
     template?: string;
-    type: 'Entity'
+    type: 'entity'
     text?: string;
     scale?: { x: number, y: number, z: number };
     parent?: string;

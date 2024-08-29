@@ -101,6 +101,7 @@ export class ConnectionPreview {
                 entity: {
                     from: this._fromId,
                     to: mesh.id,
+                    type: 'entity',
                     template: DiagramTemplates.CONNECTION,
                     color: '#000000'
                 }

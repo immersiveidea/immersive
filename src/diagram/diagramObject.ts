@@ -177,6 +177,7 @@ export class DiagramObject {
             position: oldEntity.position,
             rotation: oldEntity.rotation,
             scale: oldEntity.scale,
+            type: 'entity',
             image: oldEntity.image,
             template: oldEntity.template,
             color: oldEntity.color,
