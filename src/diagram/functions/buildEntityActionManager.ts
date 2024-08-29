@@ -39,7 +39,6 @@ export function buildEntityActionManager(controllerObservable: Observable<Contro
                         highlightLayer.addMesh(newMesh, (mesh.sourceMesh.material as StandardMaterial).diffuseColor.multiplyByFloats(1.5, 1.5, 1.5));
                         highlightLayer.setEffectIntensity(newMesh, 1.2);
                         mesh.metadata.highlight = newMesh;
-                        console.log(newMesh);
                     }
                 } catch (e) {
                     logger.error(e);

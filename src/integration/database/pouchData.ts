@@ -12,21 +12,9 @@ export class PouchData {
     private _diagramManager: DiagramManager;
     private _logger: Logger = log.getLogger('PouchData');
 
-    constructor() {
-
-    }
-
-    public async setDb(dbname: string) {
-        if (this._db) {
-            await this._db.close();
-        }
+    constructor(dbname: string) {
         this._db = new PouchDB(dbname);
-        const all = await this._db.allDocs({include_docs: true});
-        for (const dbEntity of all.rows) {
-            this.onDBEntityUpdateObservable.notifyObservers(dbEntity.doc, DiagramEventObserverMask.FROM_DB);
-        }
     }
-
     public setDiagramManager(diagramManager: DiagramManager) {
         this._diagramManager = diagramManager;
         diagramManager.onDiagramEventObservable.add((evt) => {
@@ -55,7 +43,7 @@ export class PouchData {
 
         this.onDBEntityUpdateObservable.add((evt) => {
             this._logger.debug(evt);
-            if (evt.id != 'metadata' && evt.type != 'user') {
+            if (evt.id != 'metadata') {
                 diagramManager.onDiagramEventObservable.notifyObservers({
                     type: DiagramEventType.ADD,
                     entity: evt

@@ -2,8 +2,10 @@ import {Anchor, Button, Checkbox, Group, Modal, Pill, Stack, Textarea, TextInput
 import {usePouch} from "use-pouchdb";
 import {useState} from "react";
 import {v4} from "uuid";
+import log from "loglevel";
 
 export default function CreateDiagramModal({createOpened, closeCreate}) {
+    const logger = log.getLogger('createDiagramModal');
     const db = usePouch();
     const [diagram, setDiagram] = useState({
         name: '',
@@ -17,7 +19,7 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
         try {
             doc = await db.get('directory')
         } catch (err) {
-            console.error(err);
+            logger.warn('cannot find directory', err);
         }
         const id = 'diagram-' + v4();
         const newDiagram = {...diagram, _id: id, type: 'diagram'};
@@ -29,7 +31,7 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
             } else {
                 doc.diagrams = [newDiagram];
             }
-            console.log(doc);
+            logger.debug('new directory', doc);
             await db.put(doc);
         }
         closeCreate();

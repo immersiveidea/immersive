@@ -341,6 +341,5 @@ export class DiagramObject {
         this._fromPosition = this._fromMesh.absolutePosition.length();
         curve.setParent(this._baseTransform);
         curve.setEnabled(true);
-        console.log('done');
     }
 }

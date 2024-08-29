@@ -19,19 +19,18 @@ export default class VrApp {
     private logger: Logger = log.getLogger('App');
     private _canvas: HTMLCanvasElement;
     private _db: PouchData;
+    private _dbName: string;
+    private _engine: Engine | WebGPUEngine;
 
-
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, dbname: string) {
         this._canvas = canvas;
+        this._dbName = dbname;
+        console.log('VrApp constructor');
         this.initializeEngine().then(() => {
             this.logger.info('Engine initialized');
         });
     }
 
-    public async setDb(dbname: string) {
-        this._db.setDb(dbname);
-        return this._db;
-    }
     public async initialize(scene: Scene) {
         setMainCamera(scene);
         const spinner = new Spinner();
@@ -40,7 +39,7 @@ export default class VrApp {
         const diagramManager = new DiagramManager(diagramReadyObservable);
         diagramReadyObservable.add((ready) => {
             if (ready) {
-                const db = new PouchData();
+                const db = new PouchData(this._dbName);
                 db.setDiagramManager(diagramManager);
                 this._db = db;
             } else {
@@ -64,24 +63,29 @@ export default class VrApp {
         this.logger.info('Render loop started');
     }
 
+    public dispose() {
+        this._engine.dispose();
+        DefaultScene.Scene.dispose();
+        DefaultScene.Scene = null;
+    }
     private async initializeEngine() {
         if (!this._canvas) {
             console.error('Canvas not found');
             return;
         }
-        let engine: WebGPUEngine | Engine = null;
+        this._engine = null;
         if (webGpu) {
-            engine = new WebGPUEngine(this._canvas);
-            await (engine as WebGPUEngine).initAsync();
+            this._engine = new WebGPUEngine(this._canvas);
+            await (this._engine as WebGPUEngine).initAsync();
         } else {
-            engine = new Engine(this._canvas, true);
+            this._engine = new Engine(this._canvas, true);
         }
-        engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
-        const scene = new Scene(engine);
+        this._engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+        const scene = new Scene(this._engine);
         DefaultScene.Scene = scene;
         scene.ambientColor = new Color3(.1, .1, .1);
         await this.initialize(scene);
-        engine.runRenderLoop(() => {
+        this._engine.runRenderLoop(() => {
             scene.render();
         });
     }

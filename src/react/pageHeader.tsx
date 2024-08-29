@@ -3,10 +3,6 @@ import React from "react";
 import {Link} from "react-router-dom";
 
 export default function PageHeader() {
-    const onClick = (e) => {
-        e.preventDefault();
-        console.log(e);
-    }
     return (
         <AppShell.Header p={10}>
             <Group justify="space-between">
@@ -22,7 +18,7 @@ export default function PageHeader() {
                                 underline="hover">Documentation</Anchor>
                         <Anchor component={Link} key="pricing" to="/pricing" p={5} c="myColor" bg="none"
                                 underline="hover">Pricing</Anchor>
-                        <Anchor component={Link} key="vrexperience" to="/db/local" p={5} c="myColor" bg="none"
+                        <Anchor component={Link} key="vrexperience" to="/db/public/local" p={5} c="myColor" bg="none"
                                 underline="hover">VR Experience</Anchor>
                     </Group>
                     <Burger hiddenFrom="sm"/>

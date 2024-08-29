@@ -5,6 +5,7 @@ import Documentation from "./marketing/documentation";
 import Examples from "./marketing/examples";
 import Pricing from "./marketing/pricing";
 import VrExperience from "./pages/vrExperience";
+import NotFound from "./pages/notFound";
 
 export const webRouter = createBrowserRouter([
     {
@@ -23,8 +24,14 @@ export const webRouter = createBrowserRouter([
         path: "/Pricing",
         element: (<Pricing/>)
     }, {
-        path: "/db/:db",
+        path: "/db/public/:db",
         element: (<VrExperience/>)
+    }, {
+        path: "/db/private/:db",
+        element: (<VrExperience/>)
+    }, {
+        path: "*",
+        element: (<NotFound/>)
     }
 
 ])

@@ -1,22 +1,26 @@
 import {Button, Card, Container, Group, Modal, Paper, SimpleGrid, Stack} from "@mantine/core";
 import React from "react";
 import {useDoc, usePouch} from "use-pouchdb";
-import {IconPencilBolt, IconTrash} from "@tabler/icons-react";
+import {IconTrash} from "@tabler/icons-react";
+import {Link} from "react-router-dom";
+import log from "loglevel";
 
-export default function ManageDiagramsModal({setDbName, openCreate, manageOpened, closeManage}) {
+export default function ManageDiagramsModal({openCreate, manageOpened, closeManage}) {
+    const logger = log.getLogger('manageDiagramsModal');
     const {doc: diagram, error} = useDoc('directory', {}, {_id: 'directory', diagrams: []});
-    const [selected, setSelected] = React.useState(null);
     const db = usePouch();
     if (error) {
-        console.error('Error getting diagram document');
+
         if (error.status === 404) {
-            console.log('Creating new diagram document');
+            logger.info('Creating new diagram document');
             db.put({_id: 'directory', diagrams: []});
+        } else {
+            logger.error('Error getting diagram document', error);
         }
         return <></>;
     }
     const diagrams = diagram.diagrams || [];
-    console.log(diagrams);
+
     const cards = diagrams.map((diagram) => {
         return (
             <Card key={diagram._id}>
@@ -30,11 +34,9 @@ export default function ManageDiagramsModal({setDbName, openCreate, manageOpened
                 </Card.Section>
                 <Card.Section>
                     <Group justify="space-evenly">
-                        <Button
-                            onClick={() => {
-                                setDbName(diagram._id)
-                            }}
-                            leftSection={<IconPencilBolt size={16}/>} size="xs">Select</Button>
+                        <Button component={Link} key="examples" to={"/db/public/" + diagram._id} p={5} c="myColor"
+                                bg="none">Select</Button>
+
                         <Button bg="red" size="xs"><IconTrash size={16}/></Button>
                     </Group>
                 </Card.Section>
