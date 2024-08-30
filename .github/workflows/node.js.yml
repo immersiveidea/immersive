@@ -5,9 +5,9 @@ name: Node.js Github Side
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "deepdiagram" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "deepdiagram" ]
 
 jobs:
   build:
