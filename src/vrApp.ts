@@ -1,4 +1,13 @@
-import {Color3, Engine, FreeCamera, Observable, Scene, Vector3, WebGPUEngine} from "@babylonjs/core";
+import {
+    Color3,
+    DeviceOrientationCamera,
+    Engine,
+    FreeCamera,
+    Observable,
+    Scene,
+    Vector3,
+    WebGPUEngine
+} from "@babylonjs/core";
 import '@babylonjs/loaders';
 import {DiagramManager} from "./diagram/diagramManager";
 import log, {Logger} from "loglevel";
@@ -21,6 +30,7 @@ export default class VrApp {
     private _db: PouchData;
     private _dbName: string;
     private _engine: Engine | WebGPUEngine;
+    private _mobileCamera: DeviceOrientationCamera;
 
     constructor(canvas: HTMLCanvasElement, dbname: string) {
         this._canvas = canvas;
@@ -32,7 +42,7 @@ export default class VrApp {
     }
 
     public async initialize(scene: Scene) {
-        setMainCamera(scene);
+        this.setMainCamera(scene);
         const spinner = new Spinner();
         spinner.show();
         const diagramReadyObservable = new Observable<boolean>();
@@ -89,14 +99,34 @@ export default class VrApp {
             scene.render();
         });
     }
+
+    private setMainCamera(scene: Scene) {
+        const CAMERA_NAME = 'Main Camera';
+        const camera: FreeCamera = new FreeCamera(CAMERA_NAME,
+            new Vector3(0, 1.6, 0), scene);
+        scene.setActiveCameraByName(CAMERA_NAME);
+
+        /* if (!this._mobileCamera) {
+             window.addEventListener("devicemotion", (event) => {
+                 if(event.rotationRate.alpha || event.rotationRate.beta || event.rotationRate.gamma) {
+                     console.log(this);
+                     const camera: DeviceOrientationCamera = new DeviceOrientationCamera('Mobile Camera',
+                         new Vector3(0, 1.6, 0), scene);
+                     this._mobileCamera = camera;
+
+                     scene.setActiveCameraByName('Mobile Camera');
+                 }
+
+             });
+         }
+
+         */
+
+
+    }
+
 }
 
-function setMainCamera(scene: Scene) {
-    const CAMERA_NAME = 'Main Camera';
-    const camera: FreeCamera = new FreeCamera(CAMERA_NAME,
-        new Vector3(0, 1.6, 0), scene);
-    scene.setActiveCameraByName(CAMERA_NAME);
-}
 
 
 function initEnvironment(diagramManager: DiagramManager, spinner: Spinner) {
