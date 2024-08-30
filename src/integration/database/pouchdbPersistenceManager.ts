@@ -93,7 +93,7 @@ export class PouchdbPersistenceManager {
 
         this.onDBEntityUpdateObservable.add((evt) => {
             this._logger.debug(evt);
-            if (evt.id != 'metadata' && evt.type != 'user') {
+            if (evt.id != 'metadata' && evt.type = 'user') {
                 diagramManager.onDiagramEventObservable.notifyObservers({
                     type: DiagramEventType.ADD,
                     entity: evt

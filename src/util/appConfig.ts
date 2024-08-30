@@ -79,3 +79,39 @@ export class AppConfig {
         this.onConfigChangedObservable.notifyObservers(this._currentConfig, -1);
     }
 }
+
+let defaultConfig: ConfigType =
+    {
+        locationSnap: '.1',
+        locationSnapEnabled: true,
+        rotationSnap: '90',
+        rotationSnapEnabled: true,
+        flyModeEnabled: true,
+        snapTurnSnap: '45',
+        snapTurnSnapEnabled: false
+    }
+try {
+    const newConfig = JSON.parse(localStorage.getItem('config'));
+    defaultConfig = {...defaultConfig, ...newConfig};
+
+} catch (e) {
+
+}
+
+export type ConfigType = {
+    locationSnap: string,
+    locationSnapEnabled: boolean,
+    rotationSnap: string,
+    rotationSnapEnabled: boolean,
+    flyModeEnabled: boolean,
+    snapTurnSnap: string,
+    snapTurnSnapEnabled: boolean
+}
+
+export function getAppConfig(): ConfigType {
+    return defaultConfig;
+}
+
+export function setAppConfig(config: ConfigType) {
+    localStorage.setItem('config', JSON.stringify(config));
+}

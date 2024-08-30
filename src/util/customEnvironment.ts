@@ -29,19 +29,12 @@ export class CustomEnvironment {
     constructor(name: string = "default", config: AppConfig) {
         this.scene = DefaultScene.Scene;
         this.name = name;
-        const loading = document.querySelector('#loadingGrid');
-        if (loading) {
-            loading.remove();
-        }
+
         this.scene.ambientColor = new Color3(.1, .1, .1);
         const light = new HemisphericLight("light1", new Vector3(.5, 1, 1).normalize(), this.scene);
         light.groundColor = new Color3(0, 0, 0);
         light.diffuse = new Color3(1, 1, 1);
         light.intensity = .8;
-        //light.setDirectionToTarget(new Vector3(.4, .5, .5).normalize());
-        //light.intensity = .7;
-        //const light = new PointLight("light1", new Vector3(0, 10, 10), this.scene);
-        //const light2 = new PointLight("light1", new Vector3(0, 10, -10), this.scene);
         const physics = new CustomPhysics(this.scene, config);
         physics
             .initializeAsync()

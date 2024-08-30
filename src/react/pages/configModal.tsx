@@ -1,5 +1,6 @@
 import {Group, Modal, SegmentedControl, Stack, Switch} from "@mantine/core";
 import {useEffect, useState} from "react";
+import {setAppConfig} from "../../util/appConfig";
 
 const locationSnaps = [
     {value: ".01", label: '1cm'},
@@ -51,7 +52,8 @@ export default function ConfigModal({configOpened, closeConfig}) {
             snapTurnSnapEnabled: snapTurnSnapEnabled,
             flyModeEnabled: flyModeEnabled
         }
-        localStorage.setItem('config', JSON.stringify(config))
+        setAppConfig(config);
+
     }, [locationSnap, locationSnapEnabled, rotationSnap, rotationSnapEnabled, snapTurnSnap, snapTurnSnapEnabled, flyModeEnabled]);
     return (
         <Modal onClose={closeConfig} opened={configOpened}>

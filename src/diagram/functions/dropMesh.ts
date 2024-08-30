@@ -21,7 +21,7 @@ export function dropMesh(mesh: AbstractMesh,
         case MeshTypeEnum.ENTITY:
             if (diagramObject) {
                 diagramObject.baseTransform.setParent(null);
-                snapAll(grabbedObject.baseTransform, diagramManager.config, pickPoint);
+                snapAll(grabbedObject.baseTransform, pickPoint);
                 diagramObject.mesh.computeWorldMatrix(true);
                 const event: DiagramEvent =
                     {
@@ -36,7 +36,7 @@ export function dropMesh(mesh: AbstractMesh,
             break;
         case MeshTypeEnum.TOOL:
             grabbedObject.baseTransform.setParent(null);
-            snapAll(grabbedObject.baseTransform, diagramManager.config, pickPoint);
+            snapAll(grabbedObject.baseTransform, pickPoint);
             diagramObject.mesh.computeWorldMatrix(true);
             const event: DiagramEvent =
                 {

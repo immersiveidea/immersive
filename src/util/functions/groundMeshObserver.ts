@@ -4,6 +4,7 @@ import {WebController} from "../../controllers/webController";
 import {Rigplatform} from "../../controllers/rigplatform";
 import {DiagramManager} from "../../diagram/diagramManager";
 import {Spinner} from "../../objects/spinner";
+import {getAppConfig} from "../appConfig";
 
 
 export async function groundMeshObserver(ground: AbstractMesh,
@@ -70,14 +71,9 @@ export async function groundMeshObserver(ground: AbstractMesh,
     });
 
     const rig = new Rigplatform(xr, diagramManager);
-    const currentConfig = diagramManager.config.current;
-    rig.flyMode = currentConfig.flyMode;
-    rig.turnSnap = currentConfig.turnSnap;
-    diagramManager.config.onConfigChangedObservable.add((config) => {
-        rig.flyMode = config.flyMode;
-        rig.turnSnap = config.turnSnap;
-    }, -1, false, this);
-
+    const config = getAppConfig();
+    rig.flyMode = config.flyModeEnabled;
+    rig.turnSnap = parseFloat(config.snapTurnSnap);
     const webController = new WebController(ground.getScene(), rig, diagramManager);
 
 }
