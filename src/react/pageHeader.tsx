@@ -4,7 +4,6 @@ import {Link} from "react-router-dom";
 import {useAuth0} from "@auth0/auth0-react";
 
 export default function PageHeader() {
-
     const {user, isAuthenticated, loginWithRedirect, logout} = useAuth0();
     const picture = () => {
         if (user.picture) {
@@ -23,6 +22,30 @@ export default function PageHeader() {
             return <Button key="login" onClick={() => loginWithRedirect()}>Login</Button>
         }
     }
+    const items = [{name: 'Examples', href: '/examples', key: 'examples'},
+        {name: 'About', href: '/', key: 'about'},
+        {name: 'Documentation', href: '/documentation', key: 'documentation'},
+        {name: 'Pricing', href: '/pricing', key: 'pricing'},
+        {name: 'VR Experience', href: '/db/public/local', key: 'vrexperience'}]
+    const mainMenu = function () {
+        return items.map((item) => {
+            return (
+                <Anchor component={Link} key={item.key} to={item.href} p={5} c="myColor" bg="none"
+                        underline="hover">{item.name}</Anchor>
+            )
+        })
+    }
+    const miniMenu = function () {
+        return items.map((item) => {
+            return (
+                <Menu.Item><Anchor size="xl" component={Link} key={item.key}
+                                   to={item.href} p={5}
+                                   c="myColor" bg="none"
+                                   underline="hover">{item.name}</Anchor></Menu.Item>
+            )
+        })
+    }
+
     return (
         <AppShell.Header p={5} m={20}>
             <Group justify="space-between">
@@ -30,36 +53,14 @@ export default function PageHeader() {
                 <Group justify="flex-end">
 
                     <Group visibleFrom="sm">
-                        <Anchor component={Link} key="examples" to="/examples" p={5} c="myColor" bg="none"
-                                underline="hover">Examples</Anchor>
-                        <Anchor component={Link} key="about" to="/" p={5} c="myColor" bg="none"
-                                underline="hover">About</Anchor>
-                        <Anchor component={Link} key="documentation" to="/documentation" p={5} c="myColor" bg="none"
-                                underline="hover">Documentation</Anchor>
-                        <Anchor component={Link} key="pricing" to="/pricing" p={5} c="myColor" bg="none"
-                                underline="hover">Pricing</Anchor>
-                        <Anchor component={Link} key="vrexperience" to="/db/public/local" p={5} c="myColor" bg="none"
-                                underline="hover">VR Experience</Anchor>
+                        {mainMenu()}
                     </Group>
                     <Menu trigger="click" openDelay={50} closeDelay={400}>
                         <Menu.Target>
                             <Burger hiddenFrom="sm"/>
                         </Menu.Target>
-                        <Menu.Dropdown>
-                            <Menu.Item><Anchor size="xl" component={Link} key="examples" to="/examples" p={5}
-                                               c="myColor" bg="none"
-                                               underline="hover">Examples</Anchor></Menu.Item>
-                            <Menu.Item><Anchor size="xl" component={Link} key="about" to="/" p={5} c="myColor" bg="none"
-                                               underline="hover">About</Anchor></Menu.Item>
-                            <Menu.Item><Anchor size="xl" component={Link} key="documentation" to="/documentation" p={5}
-                                               c="myColor" bg="none"
-                                               underline="hover">Documentation</Anchor></Menu.Item>
-                            <Menu.Item><Anchor size="xl" component={Link} key="pricing" to="/pricing" p={5} c="myColor"
-                                               bg="none"
-                                               underline="hover">Pricing</Anchor></Menu.Item>
-                            <Menu.Item><Anchor size="xl" component={Link} key="vrexperience" to="/db/public/local" p={5}
-                                               c="myColor" bg="none"
-                                               underline="hover">VR Experience</Anchor></Menu.Item>
+                        <Menu.Dropdown hiddenFrom="sm">
+                            {miniMenu()}
                         </Menu.Dropdown>
 
                     </Menu>
