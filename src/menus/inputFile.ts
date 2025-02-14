@@ -7,8 +7,8 @@ export class InputFile {
         this.fileInput = document.createElement('input');
         this.fileInput.type = 'file';
         this.fileInput.accept = 'application/json';
-        this.fileInput.onchange = (event) => {
-            this.file = event.target.files[0];
+        this.fileInput.onchange = (event: InputEvent) => {
+            this.file = (event.target as HTMLInputElement).files[0];
         };
         //document.body.appendChild(this.fileInput);
         this.fileInput.click();

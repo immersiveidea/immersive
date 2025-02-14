@@ -57,6 +57,16 @@ export class PouchData {
             diagramManager.onDiagramEventObservable.notifyObservers(
                 {type: DiagramEventType.REMOVE, entity: entity}, DiagramEventObserverMask.FROM_DB);
         });
+        this._db.allDocs({include_docs: true}).then((docs) => {
+            docs.rows.forEach((row) => {
+                if (row.doc.id != 'metadata') {
+                    diagramManager.onDiagramEventObservable.notifyObservers({
+                        type: DiagramEventType.ADD,
+                        entity: row.doc
+                    }, DiagramEventObserverMask.FROM_DB);
+                }
+            });
+        });
     }
 
     public async remove(id: string) {

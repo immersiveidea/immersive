@@ -1,1 +1,1 @@
-export const DEFAULT_DB_NAME = "mydb";
+export const DIRECTORY_DB = "local-directory";

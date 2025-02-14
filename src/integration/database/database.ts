@@ -1,3 +1,3 @@
-import {DEFAULT_DB_NAME} from "../../util/constants";
+import {DIRECTORY_DB} from "../../util/constants";
 
-export const db = new PouchDB(DEFAULT_DB_NAME);
+export const db = new PouchDB(DIRECTORY_DB);

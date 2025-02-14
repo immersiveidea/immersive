@@ -13,7 +13,8 @@ export enum DiagramEventType {
 }
 
 export enum DiagramEntityType {
-    USER = "user"
+    USER = "user",
+    ENTITY = "entity",
 }
 
 export enum DiagramEventMask {
@@ -38,8 +39,8 @@ export type DiagramEvent = {
     entity?: DiagramEntity;
     oldColor?: Color3;
     newColor?: Color3;
-
 }
+
 export type DiagramEntity = {
     color?: string;
     id?: string;
@@ -50,7 +51,7 @@ export type DiagramEntity = {
     position?: { x: number, y: number, z: number };
     rotation?: { x: number, y: number, z: number };
     template?: string;
-    type: 'entity'
+    type: DiagramEntityType;
     text?: string;
     scale?: { x: number, y: number, z: number };
     parent?: string;

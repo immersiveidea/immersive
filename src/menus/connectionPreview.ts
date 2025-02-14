@@ -14,7 +14,7 @@ import {
     WebXRInputSource
 } from "@babylonjs/core";
 import {DefaultScene} from "../defaultScene";
-import {DiagramEvent, DiagramEventType, DiagramTemplates} from "../diagram/types/diagramEntity";
+import {DiagramEntityType, DiagramEvent, DiagramEventType, DiagramTemplates} from "../diagram/types/diagramEntity";
 import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
 import {AnimatedLineTexture} from "../util/animatedLineTexture";
 
@@ -101,7 +101,7 @@ export class ConnectionPreview {
                 entity: {
                     from: this._fromId,
                     to: mesh.id,
-                    type: 'entity',
+                    type: DiagramEntityType.ENTITY,
                     template: DiagramTemplates.CONNECTION,
                     color: '#000000'
                 }

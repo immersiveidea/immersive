@@ -1,5 +1,5 @@
 import PouchDB from 'pouchdb';
-import {DiagramEntity, DiagramEventType} from "../../diagram/types/diagramEntity";
+import {DiagramEntity, DiagramEntityType, DiagramEventType} from "../../diagram/types/diagramEntity";
 import {Observable} from "@babylonjs/core";
 import axios from "axios";
 import {DiagramManager} from "../../diagram/diagramManager";
@@ -93,7 +93,7 @@ export class PouchdbPersistenceManager {
 
         this.onDBEntityUpdateObservable.add((evt) => {
             this._logger.debug(evt);
-            if (evt.id != 'metadata' && evt.type = 'user') {
+            if (evt.id != 'metadata' && evt?.type == DiagramEntityType.USER) {
                 diagramManager.onDiagramEventObservable.notifyObservers({
                     type: DiagramEventType.ADD,
                     entity: evt
@@ -263,7 +263,7 @@ export class PouchdbPersistenceManager {
             let sync = false;
             let current = getPath();
             if (current && current != 'localdb') {
-                //sync = true;
+                sync = true;
             } else {
                 current = 'localdb';
             }

@@ -19,14 +19,16 @@ import {CustomPhysics} from "./customPhysics";
 import {AppConfig} from "./appConfig";
 import {GridMaterial} from "@babylonjs/materials";
 import {DefaultScene} from "../defaultScene";
+import log from "loglevel";
 
 
 export class CustomEnvironment {
     private readonly scene: Scene;
     private readonly name: string;
     private readonly _groundMeshObservable: Observable<GroundMesh> = new Observable<GroundMesh>();
-
+    private readonly _logger = log.getLogger('CustomEnvironment');
     constructor(name: string = "default", config: AppConfig) {
+        this._logger.debug('CustomEnvironment constructor', config);
         this.scene = DefaultScene.Scene;
         this.name = name;
 
@@ -35,7 +37,7 @@ export class CustomEnvironment {
         light.groundColor = new Color3(0, 0, 0);
         light.diffuse = new Color3(1, 1, 1);
         light.intensity = .8;
-        const physics = new CustomPhysics(this.scene, config);
+        const physics = new CustomPhysics(this.scene);
         physics
             .initializeAsync()
             .then(() => {

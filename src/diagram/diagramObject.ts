@@ -12,7 +12,7 @@ import {
     TransformNode,
     Vector3
 } from "@babylonjs/core";
-import {DiagramEntity, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
+import {DiagramEntity, DiagramEntityType, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import {buildMeshFromDiagramEntity} from "./functions/buildMeshFromDiagramEntity";
 import {toDiagramEntity} from "./functions/toDiagramEntity";
 import {v4 as uuidv4} from 'uuid';
@@ -29,6 +29,7 @@ type DiagramObjectOptionsType = {
 
 export class DiagramObject {
     private readonly _logger: Logger = log.getLogger('DiagramObject');
+    private _group: TransformNode;
     private _scene: Scene;
     public grabbed: boolean = false;
     private _from: string;
@@ -177,7 +178,7 @@ export class DiagramObject {
             position: oldEntity.position,
             rotation: oldEntity.rotation,
             scale: oldEntity.scale,
-            type: 'entity',
+            type: DiagramEntityType.ENTITY,
             image: oldEntity.image,
             template: oldEntity.template,
             color: oldEntity.color,

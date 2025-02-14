@@ -8,6 +8,7 @@ import {DefaultScene} from "../defaultScene";
 import {ControllerEvent} from "./types/controllerEvent";
 import {ControllerEventType} from "./types/controllerEventType";
 import {controllerObservable} from "./controllers";
+import {Button} from "../objects/Button";
 
 const RIGHT = "right";
 const LEFT = "left";
@@ -44,6 +45,27 @@ export class Rigplatform {
 
         this._xr = xr;
         this.rigMesh = buildRig(xr);
+        this._xr.baseExperience.onStateChangedObservable.add((state) => {
+            if (state == 2) {
+                const button = Button.CreateButton("exitXr", "exitXr", this._scene, {});
+                button.transform.position.z = 1;
+                button.transform.rotation.y = Math.PI;
+                button.transform.position.y = 1.2;
+                button.transform.scaling = new Vector3(.1, .1, .1);
+                button.transform.parent = this.rigMesh;
+                button.onPointerObservable.add((evt) => {
+                    console.log(evt);
+                    console.log(evt.sourceEvent.type);
+                    if (evt.sourceEvent.type == 'pointerdown') {
+                        xr.baseExperience.exitXRAsync();
+                    }
+                    //xr.baseExperience.exitXRAsync();
+                });
+
+            }
+
+        });
+
         this._fixRotation();
         this._initializeControllers();
         this._registerVelocityObserver();

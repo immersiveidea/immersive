@@ -33,6 +33,7 @@ export class ConfigMenu {
         this._handle = new Handle(this.baseTransform, 'Configuration');
         this.config = config;
         this.buildMenu();
+
     }
 
     public get handleTransformNode(): TransformNode {

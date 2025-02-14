@@ -1,5 +1,5 @@
 import {AbstractActionManager, AbstractMesh, ActionManager, Observable, Scene} from "@babylonjs/core";
-import {DiagramEntity, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
+import {DiagramEntity, DiagramEntityType, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
 
 import {AppConfig} from "../util/appConfig";
@@ -33,7 +33,7 @@ export class DiagramManager {
         this._me = getMe();
         this._scene = DefaultScene.Scene;
         this._config = new AppConfig();
-        this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, controllerObservable, this._config, readyObservable);
+        this._diagramMenuManager = new DiagramMenuManager(this.onDiagramEventObservable, controllerObservable, readyObservable);
         this._diagramEntityActionManager = buildEntityActionManager(controllerObservable);
         this.onDiagramEventObservable.add(this.onDiagramEvent, DiagramEventObserverMask.FROM_DB, true, this);
         this.onUserEventObservable.add((user) => {
@@ -79,7 +79,7 @@ export class DiagramManager {
                 template: '#image-template',
                 image: event.detail.data,
                 text: event.detail.name,
-                type: 'entity',
+                type: DiagramEntityType.ENTITY,
                 position: {x: 0, y: 1.6, z: 0},
                 rotation: {x: 0, y: Math.PI, z: 0},
                 scale: {x: 1, y: 1, z: 1},
@@ -97,7 +97,6 @@ export class DiagramManager {
 
         });
         this._logger.debug("DiagramManager constructed");
-
     }
 
     public get actionManager(): AbstractActionManager {

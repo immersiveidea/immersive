@@ -15,7 +15,6 @@ import {CustomEnvironment} from "./util/customEnvironment";
 import {Spinner} from "./objects/spinner";
 import {addSceneInspector} from "./util/functions/sceneInspector";
 import {groundMeshObserver} from "./util/functions/groundMeshObserver";
-import {exportGltf} from "./util/functions/exportGltf";
 import {DefaultScene} from "./defaultScene";
 import {Introduction} from "./tutorial/introduction";
 import {PouchData} from "./integration/database/pouchData";
@@ -23,6 +22,7 @@ import {PouchData} from "./integration/database/pouchData";
 const webGpu = false;
 
 log.setLevel('error', false);
+log.getLogger('PouchdbPersistenceManager').setLevel('debug', false);
 export default class VrApp {
     //preTasks = [havokModule];
     private logger: Logger = log.getLogger('App');
@@ -58,14 +58,14 @@ export default class VrApp {
         });
         initEnvironment(diagramManager, spinner);
         addSceneInspector();
-        const el = document.querySelector('#download');
+        /*const el = document.querySelector('#download');
         if (el) {
             el.addEventListener('click', () => {
                 exportGltf();
             })
         } else {
             this.logger.error('Download button not found');
-        }
+        }*/
         if (!localStorage.getItem('tutorialCompleted')) {
             this.logger.info('Starting tutorial');
             const intro = new Introduction();

@@ -3,6 +3,7 @@ import {DiagramManager} from "../../diagram/diagramManager";
 import {DiagramObject} from "../../diagram/diagramObject";
 import log from "loglevel";
 import {vectoxys} from "../../diagram/functions/vectorConversion";
+import {DiagramEntityType} from "../../diagram/types/diagramEntity";
 
 export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh):
     DiagramObject {
@@ -23,7 +24,8 @@ export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh,
             color: mesh.metadata.color,
             position: vectoxys(mesh.absolutePosition),
             rotation: vectoxys(mesh.absoluteRotationQuaternion.toEulerAngles()),
-            scale: vectoxys(mesh.scaling)
+            scale: vectoxys(mesh.scaling),
+            type: DiagramEntityType.ENTITY
 
         }
         const obj = new DiagramObject(parent.getScene(),

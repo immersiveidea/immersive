@@ -31,7 +31,7 @@ export async function groundMeshObserver(ground: AbstractMesh,
             enablePointerSelectionOnAllControllers: true
         }
     });
-    window.addEventListener('enterXr', async (e: CustomEvent) => {
+    window.addEventListener('enterXr', async () => {
         await xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
         logger.debug("Entering XR Experience");
     })

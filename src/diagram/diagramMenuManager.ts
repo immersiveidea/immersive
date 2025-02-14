@@ -1,12 +1,10 @@
-import {DiagramEvent, DiagramEventType} from "./types/diagramEntity";
+import {DiagramEntityType, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import {AbstractMesh, ActionEvent, Observable, Scene, Vector3, WebXRInputSource} from "@babylonjs/core";
 import {InputTextView} from "../information/inputTextView";
 import {DefaultScene} from "../defaultScene";
 import log from "loglevel";
 import {Toolbox} from "../toolbox/toolbox";
 import {ClickMenu} from "../menus/clickMenu";
-import {ConfigMenu} from "../menus/configMenu";
-import {AppConfig} from "../util/appConfig";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import {ConnectionPreview} from "../menus/connectionPreview";
 import {ScaleMenu2} from "../menus/ScaleMenu2";
@@ -19,7 +17,6 @@ import {ControllerEventType} from "../controllers/types/controllerEventType";
 export class DiagramMenuManager {
     public readonly toolbox: Toolbox;
     public readonly scaleMenu: ScaleMenu2;
-    public readonly configMenu: ConfigMenu;
     private readonly _notifier: Observable<DiagramEvent>;
     private readonly _inputTextView: InputTextView;
     private _groupMenu: GroupMenu;
@@ -27,22 +24,27 @@ export class DiagramMenuManager {
     private _logger = log.getLogger('DiagramMenuManager');
     private _connectionPreview: ConnectionPreview;
 
-    constructor(notifier: Observable<DiagramEvent>, controllerObservable: Observable<ControllerEvent>, config: AppConfig, readyObservable: Observable<boolean>) {
+    constructor(notifier: Observable<DiagramEvent>, controllerObservable: Observable<ControllerEvent>, readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
         this._notifier = notifier;
         this._inputTextView = new InputTextView(controllerObservable);
-        this.configMenu = new ConfigMenu(config);
+        //this.configMenu = new ConfigMenu(config);
 
         this._inputTextView.onTextObservable.add((evt) => {
-            const event = {type: DiagramEventType.MODIFY, entity: {id: evt.id, text: evt.text}}
+            const event = {
+                type: DiagramEventType.MODIFY,
+                entity: {id: evt.id, text: evt.text, type: DiagramEntityType.ENTITY}
+            }
             this._notifier.notifyObservers(event, DiagramEventObserverMask.FROM_DB);
         });
         this.toolbox = new Toolbox(readyObservable);
+
+
         this.scaleMenu = new ScaleMenu2(this._notifier);
         if (viewOnly()) {
             this.toolbox.handleMesh.setEnabled(false);
             //this.scaleMenu.handleMesh.setEnabled(false)
-            this.configMenu.handleTransformNode.setEnabled(false);
+            //  this.configMenu.handleTransformNode.setEnabled(false);
         }
         controllerObservable.add((event: ControllerEvent) => {
             if (event.type == ControllerEventType.B_BUTTON) {
@@ -64,9 +66,9 @@ export class DiagramMenuManager {
                         this._inputTextView.handleMesh.position.y = localCamera.y - .2;
                     }
                     const configY = this._inputTextView.handleMesh.absolutePosition.y;
-                    if (configY > (cameraPos.y - .2)) {
+                    /*if (configY > (cameraPos.y - .2)) {
                         this.configMenu.handleTransformNode.position.y = localCamera.y - .2;
-                    }
+                    }*/
                 }
             }
         });
@@ -94,7 +96,10 @@ export class DiagramMenuManager {
 
             switch (evt.source.id) {
                 case "remove":
-                    this.notifyAll({type: DiagramEventType.REMOVE, entity: {id: clickMenu.mesh.id}});
+                    this.notifyAll({
+                        type: DiagramEventType.REMOVE,
+                        entity: {id: clickMenu.mesh.id, type: DiagramEntityType.ENTITY}
+                    });
                     break;
                 case "label":
                     this.editText(clickMenu.mesh);
