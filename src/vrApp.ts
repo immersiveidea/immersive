@@ -15,13 +15,14 @@ import {CustomEnvironment} from "./util/customEnvironment";
 import {Spinner} from "./objects/spinner";
 import {addSceneInspector} from "./util/functions/sceneInspector";
 import {groundMeshObserver} from "./util/functions/groundMeshObserver";
+import {initializeEngine} from "./vrcore/initializeEngine";
 import {DefaultScene} from "./defaultScene";
 import {Introduction} from "./tutorial/introduction";
 import {PouchData} from "./integration/database/pouchData";
 
 const webGpu = false;
 
-log.setLevel('error', false);
+log.setLevel('debug', false);
 log.getLogger('PouchdbPersistenceManager').setLevel('debug', false);
 export default class VrApp {
     //preTasks = [havokModule];
@@ -36,7 +37,14 @@ export default class VrApp {
         this._canvas = canvas;
         this._dbName = dbname;
         console.log('VrApp constructor');
-        this.initializeEngine().then(() => {
+        initializeEngine({
+            canvas: this._canvas,
+            useWebGpu: webGpu,
+            onSceneReady: async (scene) => {
+                await this.initialize(scene);
+            }
+        }).then(engine => {
+            this._engine = engine;
             this.logger.info('Engine initialized');
         });
     }

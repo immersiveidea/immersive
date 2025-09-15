@@ -35,7 +35,7 @@ export async function buildColor(color: Color3, scene: Scene, parent: TransformN
     colorBoxMesh.position.y = -Math.floor(index / rowLength) * .1;
 
     colorBoxMesh.parent = parent;
-    colorBoxMesh.metadata = {tool: 'color'};
+    colorBoxMesh.metadata = {tool: 'color', tools: []};
 
     let i = 0;
     const tools = [];
@@ -48,7 +48,9 @@ export async function buildColor(color: Color3, scene: Scene, parent: TransformN
             toolMap.set(newItem.id, newItem);
         }
     }
-    colorBoxMesh.metadata.tools = tools;
+    if (colorBoxMesh.metadata) {
+        colorBoxMesh.metadata.tools = tools;
+    }
     return colorBoxMesh;
 }
 

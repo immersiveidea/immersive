@@ -37,12 +37,30 @@ export function buildRig(xr: WebXRDefaultExperience): Mesh {
     axis.zAxis.rotation.y = Math.PI;
     rigMesh.lookAt(new Vector3(0, 0.01, 0));
     rigMesh.visibility = 1;
-    const rigAggregate =
-        new PhysicsAggregate(
-            rigMesh,
-            PhysicsShapeType.CYLINDER,
-            {friction: 0, center: Vector3.Zero(), mass: 50, restitution: .01},
-            scene);
-    rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
+
+    // Only create physics aggregate if physics engine is available
+    if (scene.getPhysicsEngine()) {
+        const rigAggregate =
+            new PhysicsAggregate(
+                rigMesh,
+                PhysicsShapeType.CYLINDER,
+                {friction: 0, center: Vector3.Zero(), mass: 50, restitution: .01},
+                scene);
+        rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
+    } else {
+        // Add physics aggregate once physics is initialized
+        scene.onReadyObservable.addOnce(() => {
+            if (scene.getPhysicsEngine()) {
+                const rigAggregate =
+                    new PhysicsAggregate(
+                        rigMesh,
+                        PhysicsShapeType.CYLINDER,
+                        {friction: 0, center: Vector3.Zero(), mass: 50, restitution: .01},
+                        scene);
+                rigAggregate.body.setMotionType(PhysicsMotionType.DYNAMIC);
+            }
+        });
+    }
+
     return rigMesh;
 }
