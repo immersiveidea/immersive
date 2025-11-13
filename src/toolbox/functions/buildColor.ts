@@ -51,6 +51,14 @@ export async function buildColor(color: Color3, scene: Scene, parent: TransformN
             newItem.position = new Vector3(calculatePosition(++i), .1, 0);
             tools.push(newItem.id);
             toolMap.set(newItem.id, newItem);
+
+            // Validate that tool instance has proper material inheritance
+            if (!newItem.material || !newItem.sourceMesh?.material) {
+                console.error(`Tool creation validation FAILED for ${newItem.id}:`);
+                console.error(`  Tool material: ${!!newItem.material}`);
+                console.error(`  Source mesh: ${newItem.sourceMesh?.id}`);
+                console.error(`  Source material: ${!!newItem.sourceMesh?.material}`);
+            }
         }
     }
     if (colorBoxMesh.metadata) {

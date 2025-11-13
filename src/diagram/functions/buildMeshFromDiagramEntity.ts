@@ -20,6 +20,13 @@ import {xyztovec} from "./vectorConversion";
 import {AnimatedLineTexture} from "../../util/animatedLineTexture";
 import {LightmapGenerator} from "../../util/lightmapGenerator";
 
+// Material sharing statistics
+let materialStats = {
+    instancesCreated: 0,
+    materialsShared: 0,
+    materialsFallback: 0
+};
+
 export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene): AbstractMesh {
     const logger = log.getLogger('buildMeshFromDiagramEntity');
     if (!entity) {
@@ -81,12 +88,38 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
             case DiagramTemplates.CONE:
             case DiagramTemplates.PLANE:
             case DiagramTemplates.PERSON:
-                const toolMesh = scene.getMeshById("tool-" + entity.template + "-" + entity.color);
+                const toolMeshId = "tool-" + entity.template + "-" + entity.color;
+                const toolMesh = scene.getMeshById(toolMeshId);
                 if (toolMesh && !oldMesh) {
+                    // Verify tool mesh has material before creating instance
+                    if (!toolMesh.material) {
+                        logger.error(`Tool mesh ${toolMeshId} found but has no material! This should never happen.`);
+                        logger.error(`Tool mesh state: enabled=${toolMesh.isEnabled()}, parent=${toolMesh.parent?.name}`);
+                        // Don't create instance without material
+                        break;
+                    }
+
+                    logger.debug(`Found tool mesh: ${toolMeshId}, material: ${toolMesh.material.id}`);
                     newMesh = new InstancedMesh(entity.id, (toolMesh as Mesh));
+                    // InstancedMesh.material property delegates to sourceMesh.material automatically
+                    logger.debug(`Created instance ${entity.id}, inherited material: ${newMesh.material?.id}`);
+
+                    // Track material sharing statistics
+                    materialStats.instancesCreated++;
+                    if (newMesh.material) {
+                        materialStats.materialsShared++;
+                    }
+
                     //                  newMesh.metadata = {template: entity.template, exportable: true, tool: false};
                 } else {
-                    logger.warn('no tool mesh found for ' + entity.template + "-" + entity.color);
+                    if (!toolMesh) {
+                        logger.warn(`No tool mesh found for ${toolMeshId}. Available tool meshes: ${
+                            scene.meshes.filter(m => m.id.startsWith('tool-')).map(m => m.id).slice(0, 5).join(', ')
+                        }...`);
+                    }
+                    if (oldMesh) {
+                        logger.debug(`Skipping instance creation, mesh ${entity.id} already exists`);
+                    }
                 }
                 break;
             default:
@@ -162,9 +195,31 @@ function mapMetadata(entity: DiagramEntity, newMesh: AbstractMesh, scene: Scene)
         /*if (entity.scale) {
             newMesh.scaling = xyztovec(entity.scale);
         }*/
+        // Material validation - InstancedMesh should automatically inherit material from source mesh
         if (!newMesh.material && newMesh?.metadata?.template != "#object-template") {
-            logger.warn("new material created, this shouldn't happen");
+            logger.error(`MATERIAL SHARING FAILURE for mesh ${newMesh.id}:`);
+            logger.error(`  Template: ${newMesh.metadata?.template}`);
+            logger.error(`  Color: ${entity.color}`);
+            logger.error(`  Is InstancedMesh: ${newMesh instanceof InstancedMesh}`);
+
+            if (newMesh instanceof InstancedMesh) {
+                logger.error(`  Source mesh: ${newMesh.sourceMesh?.id}`);
+                logger.error(`  Source mesh material: ${newMesh.sourceMesh?.material?.id || 'MISSING'}`);
+                logger.error(`  This indicates tool mesh was created without material!`);
+            }
+
+            // Create fallback material as last resort to prevent crashes
+            logger.warn(`Creating fallback material to prevent crash - this impacts performance!`);
             newMesh.material = buildMissingMaterial("material-" + entity.id, scene, entity.color);
+
+            // Track fallback material creation
+            materialStats.materialsFallback++;
+        }
+
+        // Log material sharing statistics periodically
+        if (materialStats.instancesCreated > 0 && materialStats.instancesCreated % 10 === 0) {
+            const sharingRate = (materialStats.materialsShared / materialStats.instancesCreated * 100).toFixed(1);
+            logger.info(`Material Sharing Stats: ${materialStats.materialsShared}/${materialStats.instancesCreated} (${sharingRate}%), Fallbacks: ${materialStats.materialsFallback}`);
         }
         if (entity.text) {
             newMesh.metadata.text = entity.text;
