@@ -11,21 +11,17 @@ import {
 import {enumKeys} from "../../util/functions/enumKeys";
 import {ToolType} from "../types/toolType";
 import {buildTool} from "./buildTool";
+import {LightmapGenerator} from "../../util/lightmapGenerator";
 
 export async function buildColor(color: Color3, scene: Scene, parent: TransformNode, index: number, toolMap: Map<string, AbstractMesh>): Promise<Node> {
     const width = .1;
     const height = .1;
     const material = new StandardMaterial("material-" + color.toHexString(), scene);
-    material.emissiveColor = color;
     material.diffuseColor = color;
-    material.disableLighting = true;
-    // material.diffuseColor = color;
-    // material.ambientColor = color;
-    //material.roughness = 1;
+    material.disableLighting = false;
+    material.lightmapTexture = LightmapGenerator.generateLightmapForColor(color, scene);
+    material.useLightmapAsShadowmap = false;
     material.specularPower = 64;
-    //     material.ambientColor = color;
-    //material.roughness = .1;
-    //material.maxSimultaneousLights = 2;
 
     const colorBoxMesh = MeshBuilder.CreatePlane("toolbox-color-" + color.toHexString(), {
         width: width,

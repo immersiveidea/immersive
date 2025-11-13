@@ -18,6 +18,7 @@ import log from "loglevel";
 import {v4 as uuidv4} from 'uuid';
 import {xyztovec} from "./vectorConversion";
 import {AnimatedLineTexture} from "../../util/animatedLineTexture";
+import {LightmapGenerator} from "../../util/lightmapGenerator";
 
 export function buildMeshFromDiagramEntity(entity: DiagramEntity, scene: Scene): AbstractMesh {
     const logger = log.getLogger('buildMeshFromDiagramEntity');
@@ -190,11 +191,13 @@ export function buildMissingMaterial(name: string, scene: Scene, color: string):
     if (existingMaterial) {
         return (existingMaterial as StandardMaterial);
     }
+    const colorObj = Color3.FromHexString(color);
     const newMaterial = new StandardMaterial(name, scene);
     newMaterial.id = name;
-    newMaterial.emissiveColor = Color3.FromHexString(color);
-    newMaterial.disableLighting = true;
-    // newMaterial.diffuseColor = Color3.FromHexString(color);
+    newMaterial.diffuseColor = colorObj;
+    newMaterial.disableLighting = false;
+    newMaterial.lightmapTexture = LightmapGenerator.generateLightmapForColor(colorObj, scene);
+    newMaterial.useLightmapAsShadowmap = false;
     newMaterial.alpha = 1;
     return newMaterial;
 }

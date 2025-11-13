@@ -4,6 +4,7 @@ import log from "loglevel";
 import {Handle} from "../objects/handle";
 import {DefaultScene} from "../defaultScene";
 import {Button} from "../objects/Button";
+import {LightmapGenerator} from "../util/lightmapGenerator";
 
 const colors: string[] = [
     "#222222", "#8b4513", "#006400", "#778899",
@@ -27,6 +28,10 @@ export class Toolbox {
         this._handle = new Handle(this._toolboxBaseNode, 'Toolbox');
         this._toolboxBaseNode.position.y = .2;
         this._toolboxBaseNode.scaling = new Vector3(0.6, 0.6, 0.6);
+
+        // Preload lightmaps for all toolbox colors for better first-render performance
+        LightmapGenerator.preloadLightmaps(colors, this._scene);
+
         this.buildToolbox().then(() => {
             readyObservable.notifyObservers(true);
             this._logger.info('Toolbox built');
