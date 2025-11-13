@@ -1,12 +1,12 @@
 import {Observable} from "@babylonjs/core";
 import {AppConfigType} from "./appConfigType";
-
+import log from "loglevel";
 export class AppConfig {
     public readonly onConfigChangedObservable = new Observable<AppConfigType>();
     private _currentConfig: AppConfigType;
     public readonly defaultConfig: AppConfigType = {
         id: 1,
-        gridSnap: .1,
+        locationSnap: .1,
         rotateSnap: 90,
         createSnap: .1,
         turnSnap: 22.5,
@@ -65,7 +65,7 @@ export class AppConfig {
     }
 
     public setGridSnap(value: number) {
-        this._currentConfig.gridSnap = value;
+        this._currentConfig.locationSnap = value;
         this.save();
     }
 
@@ -113,5 +113,7 @@ export function getAppConfig(): ConfigType {
 }
 
 export function setAppConfig(config: ConfigType) {
+    const logger = log.getLogger('setAppConfig');
+    logger.debug('setting config', JSON.stringify(config));
     localStorage.setItem('config', JSON.stringify(config));
 }

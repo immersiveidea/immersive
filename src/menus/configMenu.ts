@@ -92,7 +92,7 @@ export class ConfigMenu {
         const radio = new RadioGroup("Grid Snap");
         selectionPanel.addGroup(radio);
         for (const [index, snap] of this.gridSnaps.entries()) {
-            const selected = (this.config.current.gridSnap == snap.value);
+            const selected = (this.config.current.locationSnap == snap.value);
             radio.addRadio(snap.label, this.gridVal.bind(this), selected);
         }
         this.adjustRadio(radio);

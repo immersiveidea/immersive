@@ -1,7 +1,7 @@
 export type AppConfigType = {
     id?: number,
     currentDiagramId?: string,
-    gridSnap?: number,
+    locationSnap?: number,
     rotateSnap?: number,
     createSnap?: number,
     turnSnap?: number,

@@ -59,7 +59,6 @@ export class Rigplatform {
                     if (evt.sourceEvent.type == 'pointerdown') {
                         xr.baseExperience.exitXRAsync();
                     }
-                    //xr.baseExperience.exitXRAsync();
                 });
 
             }
