@@ -2,17 +2,13 @@ import {DefaultScene} from "../../defaultScene";
 
 export function addSceneInspector() {
     window.addEventListener("keydown", (ev) => {
-        if (ev.shiftKey && ev.ctrlKey && ev.altKey && ev.keyCode === 73) {
-            const web = document.querySelector('#webApp');
-            (web as HTMLDivElement).style.display = 'none';
-
+        // Ctrl+Shift+I to open inspector
+        if (ev.shiftKey && ev.ctrlKey && !ev.altKey && ev.keyCode === 73) {
             import ("@babylonjs/inspector").then((inspector) => {
                 inspector.Inspector.Show(DefaultScene.Scene, {
                     overlay: true,
                     showExplorer: true
                 });
-                const web = document.querySelector('#webApp');
-                (web as HTMLDivElement).style.display = 'none';
             });
             /*import("@babylonjs/core/Debug").then(() => {
                 import("@babylonjs/inspector").then(() => {

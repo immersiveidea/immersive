@@ -1,5 +1,6 @@
-import {Color3, DynamicTexture, Scene} from "@babylonjs/core";
+import {Color3, DynamicTexture, HemisphericLight, PointLight, Scene, StandardMaterial, Vector3} from "@babylonjs/core";
 import {DefaultScene} from "../defaultScene";
+import {RenderingMode} from "./renderingMode";
 
 export class LightmapGenerator {
     private static lightmapCache: Map<string, DynamicTexture> = new Map();
@@ -7,6 +8,13 @@ export class LightmapGenerator {
 
     // Toggle to enable/disable lightmap usage (for performance testing)
     public static ENABLED = true;
+
+    // Current rendering mode
+    private static currentMode: RenderingMode = RenderingMode.UNLIT_WITH_EMISSIVE_TEXTURE;
+
+    // Scene lights for DIFFUSE_WITH_LIGHTS mode
+    private static hemisphericLight?: HemisphericLight;
+    private static pointLight?: PointLight;
 
     /**
      * Generates or retrieves cached lightmap for a given color
@@ -124,5 +132,146 @@ export class LightmapGenerator {
      */
     public static getCacheSize(): number {
         return this.lightmapCache.size;
+    }
+
+    /**
+     * Sets the rendering mode
+     * @param mode The rendering mode to use
+     */
+    public static setRenderingMode(mode: RenderingMode): void {
+        this.currentMode = mode;
+    }
+
+    /**
+     * Gets the current rendering mode
+     * @returns Current rendering mode
+     */
+    public static getRenderingMode(): RenderingMode {
+        return this.currentMode;
+    }
+
+    /**
+     * Applies the specified rendering mode to a material
+     * @param material The material to update
+     * @param color The base color
+     * @param mode The rendering mode to apply
+     * @param scene The BabylonJS scene
+     */
+    public static applyRenderingModeToMaterial(
+        material: StandardMaterial,
+        color: Color3,
+        mode: RenderingMode,
+        scene: Scene
+    ): void {
+        // Clear existing textures and properties
+        material.diffuseColor = new Color3(0, 0, 0);
+        material.emissiveColor = new Color3(0, 0, 0);
+        material.diffuseTexture = null;
+        material.emissiveTexture = null;
+        material.lightmapTexture = null;
+
+        switch (mode) {
+            case RenderingMode.LIGHTMAP_WITH_LIGHTING:
+                // Use diffuseColor + lightmapTexture with lighting enabled
+                material.diffuseColor = color;
+                material.lightmapTexture = this.generateLightmapForColor(color, scene);
+                material.useLightmapAsShadowmap = false;
+                material.disableLighting = false;
+                break;
+
+            case RenderingMode.UNLIT_WITH_EMISSIVE_TEXTURE:
+                // Use emissiveColor + emissiveTexture with lighting disabled
+                material.emissiveColor = color;
+                material.emissiveTexture = this.generateLightmapForColor(color, scene);
+                material.disableLighting = true;
+                break;
+
+            case RenderingMode.FLAT_EMISSIVE:
+                // Use only emissiveColor with lighting disabled
+                material.emissiveColor = color;
+                material.disableLighting = true;
+                break;
+
+            case RenderingMode.DIFFUSE_WITH_LIGHTS:
+                // Use diffuseColor with dynamic lighting enabled
+                material.diffuseColor = color;
+                material.disableLighting = false;
+                break;
+        }
+    }
+
+    /**
+     * Creates or enables scene lights for DIFFUSE_WITH_LIGHTS mode
+     * @param scene The BabylonJS scene
+     */
+    private static createSceneLights(scene: Scene): void {
+        if (!this.hemisphericLight) {
+            this.hemisphericLight = new HemisphericLight("renderModeHemiLight", new Vector3(0, 1, 0), scene);
+            this.hemisphericLight.intensity = 0.7;
+        }
+
+        if (!this.pointLight) {
+            this.pointLight = new PointLight("renderModePointLight", new Vector3(2, 3, 2), scene);
+            this.pointLight.intensity = 0.8;
+        }
+
+        this.hemisphericLight.setEnabled(true);
+        this.pointLight.setEnabled(true);
+    }
+
+    /**
+     * Disables scene lights used for DIFFUSE_WITH_LIGHTS mode
+     */
+    private static disableSceneLights(): void {
+        if (this.hemisphericLight) {
+            this.hemisphericLight.setEnabled(false);
+        }
+        if (this.pointLight) {
+            this.pointLight.setEnabled(false);
+        }
+    }
+
+    /**
+     * Updates all materials in the scene to use the specified rendering mode
+     * @param scene The BabylonJS scene
+     * @param mode The rendering mode to apply
+     */
+    public static updateAllMaterials(scene: Scene, mode: RenderingMode): void {
+        this.currentMode = mode;
+
+        // Enable or disable scene lights based on mode
+        if (mode === RenderingMode.DIFFUSE_WITH_LIGHTS) {
+            this.createSceneLights(scene);
+        } else {
+            this.disableSceneLights();
+        }
+
+        scene.materials.forEach(material => {
+            if (material instanceof StandardMaterial) {
+                // Skip UI materials (buttons, handles, and labels use emissiveTexture with text rendering)
+                if (material.name === 'buttonMat' ||
+                    material.name === 'handleMaterial' ||
+                    material.name === 'text-mat' ||
+                    material.id.includes('button') ||
+                    material.id.includes('handle') ||
+                    material.id.includes('text')) {
+                    return;
+                }
+
+                // Try to determine the base color from existing material
+                let baseColor: Color3;
+
+                if (material.emissiveColor && material.emissiveColor.toLuminance() > 0) {
+                    baseColor = material.emissiveColor.clone();
+                } else if (material.diffuseColor && material.diffuseColor.toLuminance() > 0) {
+                    baseColor = material.diffuseColor.clone();
+                } else {
+                    // Skip materials without a color set
+                    return;
+                }
+
+                this.applyRenderingModeToMaterial(material, baseColor, mode, scene);
+            }
+        });
     }
 }

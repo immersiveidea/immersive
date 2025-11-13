@@ -108,3 +108,4 @@ Databases can be optionally encrypted. The `Encryption` class handles AES encryp
 - `VITE_SYNCDB_ENDPOINT`: Remote database sync endpoint
 
 Check `.env.local` for local configuration.
+- document the toolId and material naming conventions.
