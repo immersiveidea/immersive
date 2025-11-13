@@ -1,10 +1,9 @@
 import {
     ActionManager,
+    Color4,
     ExecuteCodeAction,
-    HighlightLayer,
     InstancedMesh,
     Observable,
-    StandardMaterial,
 } from "@babylonjs/core";
 import log from "loglevel";
 import {DefaultScene} from "../../defaultScene";
@@ -12,11 +11,6 @@ import {ControllerEventType} from "../../controllers/types/controllerEventType";
 import {ControllerEvent} from "../../controllers/types/controllerEvent";
 
 export function buildEntityActionManager(controllerObservable: Observable<ControllerEvent>) {
-    const highlightLayer = new HighlightLayer('highlightLayer', DefaultScene.Scene);
-    highlightLayer.innerGlow = false;
-    highlightLayer.outerGlow = true;
-
-
     const logger = log.getLogger('buildEntityActionManager');
     const actionManager = new ActionManager(DefaultScene.Scene);
     /*actionManager.registerAction(
@@ -26,19 +20,16 @@ export function buildEntityActionManager(controllerObservable: Observable<Contro
             if (evt.meshUnderPointer) {
                 try {
                     const mesh = evt.meshUnderPointer as InstancedMesh;
-                    //mesh.sourceMesh.renderOutline = true;
-                    if (mesh.sourceMesh) {
-                        const newMesh = mesh.sourceMesh.clone(mesh.sourceMesh.name + '_clone', null, true);
-                        newMesh.metadata = {};
-                        newMesh.parent = null;
-                        newMesh.position = mesh.absolutePosition;
-                        newMesh.rotationQuaternion = mesh.absoluteRotationQuaternion;
-                        newMesh.scaling = mesh.scaling;
-                        newMesh.setEnabled(true);
-                        newMesh.isPickable = false;
-                        highlightLayer.addMesh(newMesh, (mesh.sourceMesh.material as StandardMaterial).diffuseColor.multiplyByFloats(1.5, 1.5, 1.5));
-                        highlightLayer.setEffectIntensity(newMesh, 1.2);
-                        mesh.metadata.highlight = newMesh;
+
+                    if (mesh.sourceMesh && !mesh.sourceMesh.edgesRenderer) {
+                        // Enable edges rendering on the source mesh
+                        mesh.sourceMesh.enableEdgesRendering(0.99);
+                        mesh.sourceMesh.edgesWidth = 4.0;
+                        mesh.sourceMesh.edgesColor = new Color4(1.5, 1.5, 1.5, 1.0);
+
+                        // Track that edges are enabled
+                        mesh.metadata = mesh.metadata || {};
+                        mesh.metadata.edgesEnabled = true;
                     }
                 } catch (e) {
                     logger.error(e);
@@ -54,10 +45,10 @@ export function buildEntityActionManager(controllerObservable: Observable<Contro
     actionManager.registerAction(
         new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, (evt) => {
             try {
-                const mesh = evt.source;
-                if (mesh.metadata.highlight) {
-                    mesh.metadata.highlight.dispose();
-                    mesh.metadata.highlight = null;
+                const mesh = evt.source as InstancedMesh;
+                if (mesh.metadata?.edgesEnabled && mesh.sourceMesh?.edgesRenderer) {
+                    mesh.sourceMesh.disableEdgesRendering();
+                    mesh.metadata.edgesEnabled = false;
                 }
             } catch (e) {
                 logger.error(e);

@@ -98,49 +98,82 @@ function positionComponentsRelativeToCamera(scene: Scene, diagramManager: Diagra
     // Get camera world position
     const cameraWorldPos = camera.globalPosition;
 
-    // Create a horizontal forward direction from camera's world rotation
-    const cameraRotationY = camera.absoluteRotation.toEulerAngles().y;
-    const horizontalForward = new Vector3(
-        Math.sin(cameraRotationY),
-        0,
-        Math.cos(cameraRotationY)
-    );
+    // Get camera's actual forward direction in world space
+    // This accounts for the camera's parent transform rotation (Math.PI on Y)
+    const cameraForward = camera.getDirection(Vector3.Forward());
+    const horizontalForward = cameraForward.clone();
+    horizontalForward.y = 0;  // Keep only horizontal component
+    horizontalForward.normalize();  // Ensure unit vector
 
-    // Create a left direction (perpendicular to forward)
-    const horizontalLeft = new Vector3(
-        -Math.cos(cameraRotationY),
-        0,
-        Math.sin(cameraRotationY)
-    );
+    // Create a left direction (perpendicular to forward, in world space)
+    const horizontalLeft = Vector3.Cross(Vector3.Up(), horizontalForward).normalize();
 
-    // Calculate base target world position: 0.5m ahead horizontally and 0.5m below camera Y
-    const baseTargetWorldPos = new Vector3(
-        cameraWorldPos.x + (horizontalForward.x * 0.5),
-        cameraWorldPos.y - 0.5,
-        cameraWorldPos.z + (horizontalForward.z * 0.5)
-    );
+    logger.info('Camera world position:', cameraWorldPos);
+    logger.info('Camera forward (world):', cameraForward);
+    logger.info('Horizontal forward:', horizontalForward);
+    logger.info('Horizontal left:', horizontalLeft);
+    logger.info('Platform world position:', platform.getAbsolutePosition());
 
-    logger.info('Camera world Y:', cameraWorldPos.y);
-    logger.info('Base target world position:', baseTargetWorldPos);
-
-    // Position toolbox: 0.2m to the left of base position
+    // Position toolbox: On left side following VR best practices
+    // Meta guidelines: 45-60 degrees to the side, comfortable arm's reach (~0.4-0.5m)
     const toolbox = diagramManager.diagramMenuManager.toolbox;
     if (toolbox && toolbox.handleMesh) {
-        const toolboxWorldPos = new Vector3(
-            baseTargetWorldPos.x + (horizontalLeft.x * 0.2),
-            baseTargetWorldPos.y,
-            baseTargetWorldPos.z + (horizontalLeft.z * 0.2)
-        );
+        logger.info('Toolbox handleMesh BEFORE positioning:', {
+            position: toolbox.handleMesh.position.clone(),
+            absolutePosition: toolbox.handleMesh.getAbsolutePosition().clone(),
+            rotation: toolbox.handleMesh.rotation.clone()
+        });
+
+        // Position at 45 degrees to the left, 0.45m away, slightly below eye level
+        // NOTE: User faces -Z direction by design, so negate forward offset
+        const forwardOffset = horizontalForward.scale(-0.3);
+        const leftOffset = horizontalLeft.scale(0.35);
+        const toolboxWorldPos = cameraWorldPos.add(forwardOffset).add(leftOffset);
+        toolboxWorldPos.y = cameraWorldPos.y - 0.3;  // Below eye level
+
+        logger.info('Calculated toolbox world position:', toolboxWorldPos);
+        logger.info('Forward offset:', forwardOffset);
+        logger.info('Left offset:', leftOffset);
+
         const toolboxLocalPos = Vector3.TransformCoordinates(toolboxWorldPos, platform.getWorldMatrix().invert());
+        logger.info('Calculated toolbox local position:', toolboxLocalPos);
+
         toolbox.handleMesh.position = toolboxLocalPos;
-        logger.info('Toolbox positioned at:', toolboxLocalPos);
+
+        // Orient toolbox to face the user
+        const toolboxToCamera = cameraWorldPos.subtract(toolboxWorldPos).normalize();
+        const toolboxYaw = Math.atan2(toolboxToCamera.x, toolboxToCamera.z);
+        toolbox.handleMesh.rotation.y = toolboxYaw;
+
+        logger.info('Toolbox handleMesh AFTER positioning:', {
+            position: toolbox.handleMesh.position.clone(),
+            absolutePosition: toolbox.handleMesh.getAbsolutePosition().clone(),
+            rotation: toolbox.handleMesh.rotation.clone()
+        });
     }
 
-    // Position input text view: at base position
+    // Position input text view: Centered in front, slightly below eye level
     const inputTextView = diagramManager.diagramMenuManager['_inputTextView'];
     if (inputTextView && inputTextView.handleMesh) {
-        const inputLocalPos = Vector3.TransformCoordinates(baseTargetWorldPos, platform.getWorldMatrix().invert());
+        logger.info('InputTextView handleMesh BEFORE positioning:', {
+            position: inputTextView.handleMesh.position.clone(),
+            absolutePosition: inputTextView.handleMesh.getAbsolutePosition().clone()
+        });
+
+        // NOTE: User faces -Z direction by design, so negate forward offset
+        const inputWorldPos = cameraWorldPos.add(horizontalForward.scale(-0.5));
+        inputWorldPos.y = cameraWorldPos.y - 0.4;  // Below eye level
+
+        logger.info('Calculated input world position:', inputWorldPos);
+
+        const inputLocalPos = Vector3.TransformCoordinates(inputWorldPos, platform.getWorldMatrix().invert());
+        logger.info('Calculated input local position:', inputLocalPos);
+
         inputTextView.handleMesh.position = inputLocalPos;
-        logger.info('InputTextView positioned at:', inputLocalPos);
+
+        logger.info('InputTextView handleMesh AFTER positioning:', {
+            position: inputTextView.handleMesh.position.clone(),
+            absolutePosition: inputTextView.handleMesh.getAbsolutePosition().clone()
+        });
     }
 }
