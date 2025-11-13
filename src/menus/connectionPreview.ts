@@ -81,7 +81,6 @@ export class ConnectionPreview {
                 const pts = this._options.points.flatMap((p: Vector3) => {
                     return p.asArray()
                 });
-                console.log(pts);
                 this._line.setPoints([pts]);
             });
         }
