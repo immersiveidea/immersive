@@ -21,15 +21,11 @@ export function buildEntityActionManager(controllerObservable: Observable<Contro
                 try {
                     const mesh = evt.meshUnderPointer as InstancedMesh;
 
-                    if (mesh.sourceMesh && !mesh.sourceMesh.edgesRenderer) {
-                        // Enable edges rendering on the source mesh
-                        mesh.sourceMesh.enableEdgesRendering(0.99);
-                        mesh.sourceMesh.edgesWidth = 4.0;
-                        mesh.sourceMesh.edgesColor = new Color4(1.5, 1.5, 1.5, 1.0);
-
-                        // Track that edges are enabled
-                        mesh.metadata = mesh.metadata || {};
-                        mesh.metadata.edgesEnabled = true;
+                    // Enable edges rendering on the instance itself (not source mesh)
+                    if (!mesh.edgesRenderer) {
+                        mesh.enableEdgesRendering(0.99);
+                        mesh.edgesWidth = .2;
+                        mesh.edgesColor = new Color4(1, 1, 1, 1.0);
                     }
                 } catch (e) {
                     logger.error(e);
@@ -46,9 +42,9 @@ export function buildEntityActionManager(controllerObservable: Observable<Contro
         new ExecuteCodeAction(ActionManager.OnPointerOutTrigger, (evt) => {
             try {
                 const mesh = evt.source as InstancedMesh;
-                if (mesh.metadata?.edgesEnabled && mesh.sourceMesh?.edgesRenderer) {
-                    mesh.sourceMesh.disableEdgesRendering();
-                    mesh.metadata.edgesEnabled = false;
+                // Disable edges rendering on the instance itself
+                if (mesh?.edgesRenderer) {
+                    mesh.disableEdgesRendering();
                 }
             } catch (e) {
                 logger.error(e);
