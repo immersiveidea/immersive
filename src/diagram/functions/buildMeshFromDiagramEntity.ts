@@ -192,7 +192,9 @@ export function buildMissingMaterial(name: string, scene: Scene, color: string):
     }
     const newMaterial = new StandardMaterial(name, scene);
     newMaterial.id = name;
-    newMaterial.diffuseColor = Color3.FromHexString(color);
+    newMaterial.emissiveColor = Color3.FromHexString(color);
+    newMaterial.disableLighting = true;
+    // newMaterial.diffuseColor = Color3.FromHexString(color);
     newMaterial.alpha = 1;
     return newMaterial;
 }

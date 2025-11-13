@@ -53,8 +53,11 @@ export class Spinner {
         const text = new DynamicTexture("spinner", {width: 1024, height: 1024}, this._scene, false);
         text.drawText("Please Wait", 250, 500, "bold 150px Segoe UI", "white", "transparent", true, true);
         spinner.rotation.z = Math.PI;
-        material.diffuseTexture = text;
-        material.diffuseColor.set(.5, .5, 0);
+        material.emissiveTexture = text;
+        material.emissiveColor.set(.5, .5, 0);
+        material.disableLighting = true;
+        // material.diffuseTexture = text;
+        // material.diffuseColor.set(.5, .5, 0);
         const rotate = new Animation("rotate", "rotation.y", 10,
             Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
         const keys = [];

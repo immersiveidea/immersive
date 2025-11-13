@@ -33,10 +33,11 @@ export class CustomEnvironment {
         this.name = name;
 
         this.scene.ambientColor = new Color3(.1, .1, .1);
-        const light = new HemisphericLight("light1", new Vector3(.5, 1, 1).normalize(), this.scene);
-        light.groundColor = new Color3(0, 0, 0);
-        light.diffuse = new Color3(1, 1, 1);
-        light.intensity = .8;
+        // Light disabled for unlit rendering
+        // const light = new HemisphericLight("light1", new Vector3(.5, 1, 1).normalize(), this.scene);
+        // light.groundColor = new Color3(0, 0, 0);
+        // light.diffuse = new Color3(1, 1, 1);
+        // light.intensity = .8;
         const physics = new CustomPhysics(this.scene);
         physics
             .initializeAsync()

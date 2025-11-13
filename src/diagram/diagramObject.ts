@@ -323,6 +323,9 @@ export class DiagramObject {
                 return false;
             }
         });
+        if (!hit || hit.length < 2) {
+            return; // No valid intersection found, skip update
+        }
         if (hit[0].pickedMesh.id === this._to) {
             hit.reverse();
         }

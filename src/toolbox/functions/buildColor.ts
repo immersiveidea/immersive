@@ -16,8 +16,11 @@ export async function buildColor(color: Color3, scene: Scene, parent: TransformN
     const width = .1;
     const height = .1;
     const material = new StandardMaterial("material-" + color.toHexString(), scene);
+    material.emissiveColor = color;
     material.diffuseColor = color;
-    material.ambientColor = color;
+    material.disableLighting = true;
+    // material.diffuseColor = color;
+    // material.ambientColor = color;
     //material.roughness = 1;
     material.specularPower = 64;
     //     material.ambientColor = color;
