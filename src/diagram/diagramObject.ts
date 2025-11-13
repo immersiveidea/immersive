@@ -41,12 +41,14 @@ export class DiagramObject {
     private _labelBack: InstancedMesh;
     private _meshesPresent: boolean = false;
     private _positionHash: string;
-    private _fromPosition: number = 0;
-    private _toPosition: number = 0;
     private _disposed: boolean = false;
     private _fromMesh: AbstractMesh;
     private _toMesh: AbstractMesh;
     private _meshRemovedObserver: Observer<AbstractMesh>;
+    // Position caching for connection optimization
+    private _lastFromPosition: Vector3 = null;
+    private _lastToPosition: Vector3 = null;
+    private _positionTolerance: number = 0.001;
 
     constructor(scene: Scene, eventObservable: Observable<DiagramEvent>, options?: DiagramObjectOptionsType) {
         this._eventObservable = eventObservable;
@@ -213,6 +215,7 @@ export class DiagramObject {
                         switch (mesh.id) {
                             case this._from:
                                 this._fromMesh = null;
+                                this._lastFromPosition = null;
                                 this._meshesPresent = false;
                                 this._eventObservable.notifyObservers({
                                     type: DiagramEventType.REMOVE,
@@ -222,6 +225,7 @@ export class DiagramObject {
                                 break;
                             case this._to:
                                 this._toMesh = null;
+                                this._lastToPosition = null;
                                 this._meshesPresent = false;
                                 this._eventObservable.notifyObservers({
                                     type: DiagramEventType.REMOVE,
@@ -247,6 +251,9 @@ export class DiagramObject {
                             this._fromMesh = this._fromMesh || this._scene.getMeshById(this._from);
                             this._toMesh = this._toMesh || this._scene.getMeshById(this._to);
                             if (this._fromMesh && this._toMesh) {
+                                // Reset cache to force initial update
+                                this._lastFromPosition = null;
+                                this._lastToPosition = null;
                                 this.updateConnection();
                                 this._meshesPresent = true;
                             } else {
@@ -306,12 +313,37 @@ export class DiagramObject {
         this._scene = null;
         this._fromMesh = null;
         this._toMesh = null;
+        this._lastFromPosition = null;
+        this._lastToPosition = null;
         this._scene?.onMeshRemovedObservable.remove(this._meshRemovedObserver);
         this._disposed = true;
     }
 
+    private hasConnectionMoved(): boolean {
+        if (!this._fromMesh || !this._toMesh) {
+            return false;
+        }
+
+        const currentFromPos = this._fromMesh.getAbsolutePosition();
+        const currentToPos = this._toMesh.getAbsolutePosition();
+
+        // First update - always consider it moved
+        if (this._lastFromPosition === null || this._lastToPosition === null) {
+            return true;
+        }
+
+        // Check if either endpoint has moved beyond tolerance
+        const fromMoved = Vector3.DistanceSquared(currentFromPos, this._lastFromPosition) >
+                         (this._positionTolerance * this._positionTolerance);
+        const toMoved = Vector3.DistanceSquared(currentToPos, this._lastToPosition) >
+                       (this._positionTolerance * this._positionTolerance);
+
+        return fromMoved || toMoved;
+    }
+
     private updateConnection() {
-        if (this._toMesh.absolutePosition.length() == this._toPosition && this._fromMesh.absolutePosition.length() == this._fromPosition) {
+        // Early exit if positions haven't changed
+        if (!this.hasConnectionMoved()) {
             return;
         }
         const curve: GreasedLineMesh = ((this._mesh as unknown) as GreasedLineMesh);
@@ -342,8 +374,11 @@ export class DiagramObject {
         curve.setParent(null);
         curve.setPoints([p]);
         this._baseTransform.position = c.getPoints()[Math.floor(c.getPoints().length / 2)];
-        this._toPosition = this._toMesh.absolutePosition.length();
-        this._fromPosition = this._fromMesh.absolutePosition.length();
+
+        // Update cached positions after successful update
+        this._lastFromPosition = this._fromMesh.getAbsolutePosition().clone();
+        this._lastToPosition = this._toMesh.getAbsolutePosition().clone();
+
         curve.setParent(this._baseTransform);
         curve.setEnabled(true);
     }
