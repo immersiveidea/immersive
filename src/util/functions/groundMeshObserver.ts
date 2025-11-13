@@ -1,10 +1,11 @@
-import {AbstractMesh, WebXRDefaultExperience, WebXRMotionControllerManager, WebXRState} from "@babylonjs/core";
+import {AbstractMesh, Vector3, WebXRDefaultExperience, WebXRMotionControllerManager, WebXRState} from "@babylonjs/core";
 import log from "loglevel";
 import {WebController} from "../../controllers/webController";
 import {Rigplatform} from "../../controllers/rigplatform";
 import {DiagramManager} from "../../diagram/diagramManager";
 import {Spinner} from "../../objects/spinner";
 import {getAppConfig} from "../appConfig";
+import {Scene} from "@babylonjs/core";
 
 
 export async function groundMeshObserver(ground: AbstractMesh,
@@ -60,6 +61,8 @@ export async function groundMeshObserver(ground: AbstractMesh,
                         logger.debug(event.detail);
                     }
                 });
+                // Position components relative to camera on XR entry
+                positionComponentsRelativeToCamera(ground.getScene(), diagramManager);
                 break;
             case WebXRState.EXITING_XR:
                 setTimeout(() => {
@@ -76,4 +79,68 @@ export async function groundMeshObserver(ground: AbstractMesh,
     rig.turnSnap = parseFloat(config.snapTurnSnap);
     const webController = new WebController(ground.getScene(), rig, diagramManager);
 
+}
+
+function positionComponentsRelativeToCamera(scene: Scene, diagramManager: DiagramManager) {
+    const logger = log.getLogger('positionComponentsRelativeToCamera');
+    const platform = scene.getMeshByName('platform');
+    if (!platform) {
+        logger.warn('Platform not found, cannot position components');
+        return;
+    }
+
+    const camera = scene.activeCamera;
+    if (!camera) {
+        logger.warn('Active camera not found, cannot position components');
+        return;
+    }
+
+    // Get camera world position
+    const cameraWorldPos = camera.globalPosition;
+
+    // Create a horizontal forward direction from camera's world rotation
+    const cameraRotationY = camera.absoluteRotation.toEulerAngles().y;
+    const horizontalForward = new Vector3(
+        Math.sin(cameraRotationY),
+        0,
+        Math.cos(cameraRotationY)
+    );
+
+    // Create a left direction (perpendicular to forward)
+    const horizontalLeft = new Vector3(
+        -Math.cos(cameraRotationY),
+        0,
+        Math.sin(cameraRotationY)
+    );
+
+    // Calculate base target world position: 0.5m ahead horizontally and 0.5m below camera Y
+    const baseTargetWorldPos = new Vector3(
+        cameraWorldPos.x + (horizontalForward.x * 0.5),
+        cameraWorldPos.y - 0.5,
+        cameraWorldPos.z + (horizontalForward.z * 0.5)
+    );
+
+    logger.info('Camera world Y:', cameraWorldPos.y);
+    logger.info('Base target world position:', baseTargetWorldPos);
+
+    // Position toolbox: 0.2m to the left of base position
+    const toolbox = diagramManager.diagramMenuManager.toolbox;
+    if (toolbox && toolbox.handleMesh) {
+        const toolboxWorldPos = new Vector3(
+            baseTargetWorldPos.x + (horizontalLeft.x * 0.2),
+            baseTargetWorldPos.y,
+            baseTargetWorldPos.z + (horizontalLeft.z * 0.2)
+        );
+        const toolboxLocalPos = Vector3.TransformCoordinates(toolboxWorldPos, platform.getWorldMatrix().invert());
+        toolbox.handleMesh.position = toolboxLocalPos;
+        logger.info('Toolbox positioned at:', toolboxLocalPos);
+    }
+
+    // Position input text view: at base position
+    const inputTextView = diagramManager.diagramMenuManager['_inputTextView'];
+    if (inputTextView && inputTextView.handleMesh) {
+        const inputLocalPos = Vector3.TransformCoordinates(baseTargetWorldPos, platform.getWorldMatrix().invert());
+        inputTextView.handleMesh.position = inputLocalPos;
+        logger.info('InputTextView positioned at:', inputLocalPos);
+    }
 }
