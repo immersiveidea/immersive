@@ -1,8 +1,9 @@
-import {AbstractMesh, Color3, InstancedMesh, Node, Observable, Scene, TransformNode, Vector3} from "@babylonjs/core";
+import {AbstractMesh, Color3, InstancedMesh, Node, Observable, Scene, TransformNode, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {buildColor} from "./functions/buildColor";
 import log from "loglevel";
 import {Handle} from "../objects/handle";
 import {DefaultScene} from "../defaultScene";
+import {Button} from "../objects/Button";
 
 const colors: string[] = [
     "#222222", "#8b4513", "#006400", "#778899",
@@ -18,6 +19,7 @@ export class Toolbox {
     private readonly _logger = log.getLogger('Toolbox');
     private readonly _handle: Handle;
     private readonly _scene: Scene;
+    private _xr?: WebXRDefaultExperience;
 
     constructor(readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
@@ -30,6 +32,11 @@ export class Toolbox {
             this._logger.info('Toolbox built');
         });
         Toolbox._instance = this;
+    }
+
+    public setXR(xr: WebXRDefaultExperience): void {
+        this._xr = xr;
+        this.setupXRButton();
     }
     private index = 0;
     private colorPicker: TransformNode;
@@ -127,6 +134,34 @@ export class Toolbox {
             handle.transformNode.rotation = rotation;
         }
 
+    }
+
+    private setupXRButton() {
+        if (!this._xr) {
+            this._logger.warn('XR not available, exit XR button will not be created');
+            return;
+        }
+
+        this._xr.baseExperience.onStateChangedObservable.add((state) => {
+            if (state == 2) {  // WebXRState.IN_XR
+                const button = Button.CreateButton("exitXr", "exitXr", this._scene, {});
+
+                // Position button at bottom-right of toolbox, matching handle size and orientation
+                button.transform.position.x = 0.5;   // Right side
+                button.transform.position.y = -0.35; // Below color grid
+                button.transform.position.z = 0;     // Coplanar with toolbox
+                button.transform.rotation.y = Math.PI; // Flip 180° on local x-axis to face correctly
+                button.transform.scaling = new Vector3(.2, .2, .2); // Match handle height
+                button.transform.parent = this._toolboxBaseNode;
+
+                button.onPointerObservable.add((evt) => {
+                    this._logger.debug(evt);
+                    if (evt.sourceEvent.type == 'pointerdown') {
+                        this._xr.baseExperience.exitXRAsync();
+                    }
+                });
+            }
+        });
     }
 }
 

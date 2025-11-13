@@ -1,4 +1,4 @@
-import {AbstractActionManager, AbstractMesh, ActionManager, Observable, Scene} from "@babylonjs/core";
+import {AbstractActionManager, AbstractMesh, ActionManager, Observable, Scene, WebXRDefaultExperience} from "@babylonjs/core";
 import {DiagramEntity, DiagramEntityType, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
 import log from "loglevel";
 
@@ -28,6 +28,14 @@ export class DiagramManager {
     private readonly _me: string;
     private _moving: number = 10;
     private _i: number = 0;
+
+    public get diagramMenuManager(): DiagramMenuManager {
+        return this._diagramMenuManager;
+    }
+
+    public setXR(xr: WebXRDefaultExperience): void {
+        this._diagramMenuManager.setXR(xr);
+    }
 
     constructor(readyObservable: Observable<boolean>) {
         this._me = getMe();

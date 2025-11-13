@@ -1,5 +1,5 @@
 import {DiagramEntityType, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
-import {AbstractMesh, ActionEvent, Observable, Scene, Vector3, WebXRInputSource} from "@babylonjs/core";
+import {AbstractMesh, ActionEvent, Observable, Scene, Vector3, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {InputTextView} from "../information/inputTextView";
 import {DefaultScene} from "../defaultScene";
 import log from "loglevel";
@@ -126,5 +126,9 @@ export class DiagramMenuManager {
 
     private notifyAll(event: DiagramEvent) {
         this._notifier.notifyObservers(event, DiagramEventObserverMask.ALL);
+    }
+
+    public setXR(xr: WebXRDefaultExperience): void {
+        this.toolbox.setXR(xr);
     }
 }

@@ -79,6 +79,9 @@ export async function groundMeshObserver(ground: AbstractMesh,
     rig.turnSnap = parseFloat(config.snapTurnSnap);
     const webController = new WebController(ground.getScene(), rig, diagramManager);
 
+    // Set XR on diagram manager so toolbox can create exit button
+    diagramManager.setXR(xr);
+
 }
 
 function positionComponentsRelativeToCamera(scene: Scene, diagramManager: DiagramManager) {
