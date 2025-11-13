@@ -19,6 +19,8 @@ import {v4 as uuidv4} from 'uuid';
 import {xyztovec} from "./vectorConversion";
 import {AnimatedLineTexture} from "../../util/animatedLineTexture";
 import {LightmapGenerator} from "../../util/lightmapGenerator";
+import {getToolboxColors} from "../../toolbox/toolbox";
+import {findClosestColor} from "../../util/functions/findClosestColor";
 
 // Material sharing statistics
 let materialStats = {
@@ -88,8 +90,29 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
             case DiagramTemplates.CONE:
             case DiagramTemplates.PLANE:
             case DiagramTemplates.PERSON:
-                const toolMeshId = "tool-" + entity.template + "-" + entity.color;
-                const toolMesh = scene.getMeshById(toolMeshId);
+                // Tool meshes are created with UPPERCASE hex codes (BabylonJS toHexString behavior)
+                let toolMeshId = "tool-" + entity.template + "-" + entity.color?.toUpperCase();
+                let toolMesh = scene.getMeshById(toolMeshId);
+
+                // If exact color match not found, try to find closest color
+                if (!toolMesh && entity.color) {
+                    const availableColors = getToolboxColors();
+                    const closestColor = findClosestColor(entity.color, availableColors);
+
+                    if (closestColor !== entity.color.toLowerCase()) {
+                        logger.info(`Color ${entity.color} not found in toolbox, using closest match: ${closestColor}`);
+                        // Tool IDs use uppercase hex codes
+                        toolMeshId = "tool-" + entity.template + "-" + closestColor.toUpperCase();
+                        toolMesh = scene.getMeshById(toolMeshId);
+
+                        if (toolMesh) {
+                            logger.info(`Successfully found tool mesh with closest color: ${toolMeshId}`);
+                        } else {
+                            logger.error(`Even with closest color, tool mesh not found: ${toolMeshId}`);
+                        }
+                    }
+                }
+
                 if (toolMesh && !oldMesh) {
                     // Verify tool mesh has material before creating instance
                     if (!toolMesh.material) {
@@ -133,6 +156,11 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
                 newMesh.metadata.template = entity.template;
                 newMesh.metadata.exportable = true;
                 newMesh.metadata.tool = false;
+            }
+
+            // Store color in metadata so it persists when entity is modified
+            if (entity.color) {
+                newMesh.metadata.color = entity.color;
             }
 
         }

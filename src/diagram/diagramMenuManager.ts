@@ -12,17 +12,24 @@ import {viewOnly} from "../util/functions/getPath";
 import {GroupMenu} from "../menus/groupMenu";
 import {ControllerEvent} from "../controllers/types/controllerEvent";
 import {ControllerEventType} from "../controllers/types/controllerEventType";
+import {ResizeGizmoManager} from "../gizmos/ResizeGizmo/ResizeGizmoManager";
+import {ResizeGizmoMode} from "../gizmos/ResizeGizmo/types";
+import {DiagramEntityAdapter} from "../integration/gizmo/DiagramEntityAdapter";
+import {toDiagramEntity} from "./functions/toDiagramEntity";
 
 
 export class DiagramMenuManager {
     public readonly toolbox: Toolbox;
     public readonly scaleMenu: ScaleMenu2;
+    public readonly resizeGizmo: ResizeGizmoManager;
+    private readonly _resizeGizmoAdapter: DiagramEntityAdapter;
     private readonly _notifier: Observable<DiagramEvent>;
     private readonly _inputTextView: InputTextView;
     private _groupMenu: GroupMenu;
     private readonly _scene: Scene;
     private _logger = log.getLogger('DiagramMenuManager');
     private _connectionPreview: ConnectionPreview;
+    private _currentHoveredMesh: AbstractMesh | null = null;
 
     constructor(notifier: Observable<DiagramEvent>, controllerObservable: Observable<ControllerEvent>, readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
@@ -41,8 +48,38 @@ export class DiagramMenuManager {
 
 
         this.scaleMenu = new ScaleMenu2(this._notifier);
+
+        // Initialize ResizeGizmo with auto-show on hover
+        this.resizeGizmo = new ResizeGizmoManager(this._scene, {
+            mode: ResizeGizmoMode.ALL,
+            enableSnapping: true,
+            snapDistanceX: 0.1,
+            snapDistanceY: 0.1,
+            snapDistanceZ: 0.1,
+            showNumericDisplay: true,
+            showGrid: true,
+            showSnapPoints: true,
+            hapticFeedback: true,
+            showBoundingBoxOnHoverOnly: false
+        });
+
+        // Create adapter for DiagramEntity persistence
+        // Inject toDiagramEntity converter for loose coupling
+        this._resizeGizmoAdapter = new DiagramEntityAdapter(
+            this.resizeGizmo,
+            { onDiagramEventObservable: this._notifier } as any,
+            toDiagramEntity,  // Injected mesh-to-entity converter
+            false             // Don't persist on drag, only on scale end
+        );
+
+        // Setup update loop for resize gizmo
+        this._scene.onBeforeRenderObservable.add(() => {
+            this.resizeGizmo.update();
+        });
+
         if (viewOnly()) {
             this.toolbox.handleMesh.setEnabled(false);
+            this.resizeGizmo.setEnabled(false);
             //this.scaleMenu.handleMesh.setEnabled(false)
             //  this.configMenu.handleTransformNode.setEnabled(false);
         }
@@ -130,5 +167,87 @@ export class DiagramMenuManager {
 
     public setXR(xr: WebXRDefaultExperience): void {
         this.toolbox.setXR(xr);
+
+        // Register controllers with resize gizmo when they're added
+        xr.input.onControllerAddedObservable.add((controller) => {
+            this.resizeGizmo.registerController(controller);
+        });
+
+        xr.input.onControllerRemovedObservable.add((controller) => {
+            this.resizeGizmo.unregisterController(controller);
+        });
+    }
+
+    /**
+     * Handle pointer hovering over a diagram object
+     * Auto-shows resize gizmo
+     */
+    public handleDiagramObjectHover(mesh: AbstractMesh | null, pointerPosition?: Vector3): void {
+        // If hovering same mesh, do nothing
+        if (mesh === this._currentHoveredMesh) {
+            return;
+        }
+
+        // If no longer hovering any mesh, check if we should keep gizmo active
+        if (!mesh) {
+            if (this._currentHoveredMesh) {
+                // Check if pointer is still near the gizmo or within bounding box
+                const shouldKeepActive = this.shouldKeepGizmoActive(pointerPosition);
+
+                if (!shouldKeepActive) {
+                    this.resizeGizmo.detachFromMesh();
+                    this._currentHoveredMesh = null;
+                }
+            }
+            return;
+        }
+
+        // Hovering new mesh, attach gizmo
+        this._currentHoveredMesh = mesh;
+        this.resizeGizmo.attachToMesh(mesh);
+
+    }
+
+    /**
+     * Check if gizmo should remain active based on pointer position
+     */
+    private shouldKeepGizmoActive(pointerPosition?: Vector3): boolean {
+        if (!this._currentHoveredMesh) {
+            return false;
+        }
+
+        // Always keep gizmo active if currently scaling
+        if (this.resizeGizmo.isScaling()) {
+            return true;
+        }
+
+        // Keep active if pointer is within bounding box area
+        if (!pointerPosition) {
+            return false;
+        }
+
+        // Get the attached mesh's bounding box
+        const boundingInfo = this._currentHoveredMesh.getBoundingInfo();
+        const boundingBox = boundingInfo.boundingBox;
+
+        // Add padding to the bounding box (same as gizmo padding + handle size)
+        const padding = 0.3; // Generous padding to include handles
+        const min = boundingBox.minimumWorld.subtract(new Vector3(padding, padding, padding));
+        const max = boundingBox.maximumWorld.add(new Vector3(padding, padding, padding));
+
+        // Check if pointer is within the padded bounding box
+        const withinBounds =
+            pointerPosition.x >= min.x && pointerPosition.x <= max.x &&
+            pointerPosition.y >= min.y && pointerPosition.y <= max.y &&
+            pointerPosition.z >= min.z && pointerPosition.z <= max.z;
+
+        return withinBounds;
+    }
+
+    /**
+     * Register a controller with the resize gizmo
+     */
+    public registerControllerWithGizmo(controller: WebXRInputSource): void {
+        this.resizeGizmo.registerController(controller);
     }
 }

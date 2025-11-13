@@ -40,6 +40,10 @@ export class ScaleMenu2 {
         return this._gizmoManager.attachedMesh;
     }
 
+    public get gizmoManager() {
+        return this._gizmoManager;
+    }
+
     public show(mesh: AbstractMesh) {
         if (mesh.metadata.image) {
             configureImageScale(this._gizmoManager.gizmos.scaleGizmo.yGizmo, true);
@@ -61,6 +65,9 @@ function configureGizmo(gizmo: IAxisScaleGizmo) {
     gizmo.scaleRatio = 3;
     gizmo.sensitivity = 3;
 
+    // Disable automatic pointer-based drag, we'll control it manually via squeeze button
+    // This prevents conflicts with trigger button and enables squeeze-based manipulation
+    gizmo.dragBehavior.startAndReleaseDragOnPointerEvents = false;
 }
 
 function configureImageScale(gizmo: IAxisScaleGizmo, enabled: boolean) {

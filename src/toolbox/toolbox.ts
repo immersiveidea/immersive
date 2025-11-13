@@ -14,6 +14,13 @@ const colors: string[] = [
     "#1e90ff", "#98fb98", "#ffe4b5", "#ff69b4"
 ]
 
+/**
+ * Get the list of available toolbox colors
+ */
+export function getToolboxColors(): string[] {
+    return [...colors];
+}
+
 
 export class Toolbox {
     public readonly _toolboxBaseNode: TransformNode;

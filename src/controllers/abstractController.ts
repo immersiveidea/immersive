@@ -1,5 +1,6 @@
 import {
     AbstractMesh,
+    Ray,
     Scene,
     Vector3,
     WebXRControllerComponent,
@@ -47,6 +48,11 @@ export abstract class AbstractController {
     private _meshUnderPointer: AbstractMesh;
 
 
+    // Gizmo control state for squeeze button interaction
+    private _activeGizmoAxis: any = null; // IAxisScaleGizmo type from BabylonJS
+    private _draggingGizmo: boolean = false;
+
+
     constructor(controller: WebXRInputSource,
                 xr: WebXRDefaultExperience,
                 diagramManager: DiagramManager) {
@@ -60,8 +66,25 @@ export abstract class AbstractController {
                 if (pointerInfo.pickInfo.pickedMesh) {
                     this._pickPoint.copyFrom(pointerInfo.pickInfo.pickedPoint);
                     this._meshUnderPointer = pointerInfo.pickInfo.pickedMesh;
+
+                    // Auto-show resize gizmo when hovering diagram object
+                    if (this.diagramManager?.isDiagramObject(this._meshUnderPointer)) {
+                        this.diagramManager.diagramMenuManager.handleDiagramObjectHover(
+                            this._meshUnderPointer,
+                            pointerInfo.pickInfo.pickedPoint
+                        );
+                    } else {
+                        // Hovering non-diagram object, pass pointer position to check if still in bounds
+                        this.diagramManager.diagramMenuManager.handleDiagramObjectHover(
+                            null,
+                            pointerInfo.pickInfo.pickedPoint
+                        );
+                    }
                 } else {
                     this._meshUnderPointer = null;
+                    // No mesh under pointer, use controller pointer position
+                    const pointerPos = this.xrInputSource?.pointer?.position;
+                    this.diagramManager?.diagramMenuManager.handleDiagramObjectHover(null, pointerPos);
                 }
             }
         });
@@ -189,9 +212,49 @@ export abstract class AbstractController {
         grip.onButtonStateChangedObservable.add(() => {
             if (grip.changes.pressed) {
                 if (grip.pressed) {
-                    this.grab();
+                    this._logger.debug("=== SQUEEZE PRESSED ===");
+
+                    // Check if ResizeGizmo will handle the grip (hovering a handle)
+                    const resizeGizmo = this.diagramManager.diagramMenuManager.resizeGizmo;
+                    if (resizeGizmo.isHoveringHandle()) {
+                        // ResizeGizmo will handle grip on its handle, don't interfere
+                        this._logger.debug("ResizeGizmo hovering handle, letting it handle grip");
+                        return;
+                    }
+
+                    // Check if hovering over old gizmo axis (ScaleMenu2)
+                    const gizmoAxis = this.getGizmoAxisUnderPointer();
+                    this._logger.debug(`Gizmo axis detected: ${gizmoAxis ? gizmoAxis._rootMesh?.id : 'null'}`);
+                    if (gizmoAxis) {
+                        // Squeeze on gizmo = start scaling
+                        this._logger.debug("Starting gizmo drag");
+                        this.startGizmoDrag(gizmoAxis);
+                    } else {
+                        // Squeeze on object = grab it
+                        // ResizeGizmo is not hovering a handle, so safe to grab
+                        this._logger.debug("Starting normal grab");
+                        this.grab();
+                    }
                 } else {
-                    this.drop();
+                    this._logger.debug("=== SQUEEZE RELEASED ===");
+
+                    // Check if ResizeGizmo was scaling
+                    const resizeGizmo = this.diagramManager.diagramMenuManager.resizeGizmo;
+                    if (resizeGizmo.isScaling()) {
+                        // ResizeGizmo will handle release internally, don't interfere
+                        return;
+                    }
+
+                    // Release squeeze
+                    if (this._draggingGizmo) {
+                        // Was dragging gizmo, end it
+                        this._logger.debug("Ending gizmo drag");
+                        this.endGizmoDrag();
+                    } else {
+                        // Was grabbing object, drop it
+                        this._logger.debug("Dropping object");
+                        this.drop();
+                    }
                 }
             }
         });
@@ -217,6 +280,158 @@ export abstract class AbstractController {
             this.grabbedMesh = null;
             this.grabbedObject = null;
             this.grabbedMeshType = null;
+        }
+    }
+
+    /**
+     * Check if the pointer is currently over a gizmo axis and return it
+     * Uses direct ray picking from the utility layer because gizmo meshes
+     * are on utility layer, not included in _meshUnderPointer
+     * @returns The gizmo axis under the pointer, or null
+     */
+    private getGizmoAxisUnderPointer(): any | null {
+        this._logger.debug("--- getGizmoAxisUnderPointer called ---");
+
+        const scaleMenu = this.diagramManager.diagramMenuManager.scaleMenu;
+        if (!scaleMenu || !scaleMenu.gizmoManager) {
+            this._logger.debug("No scale menu or gizmo manager");
+            return null;
+        }
+
+        const gizmo = scaleMenu.gizmoManager.gizmos.scaleGizmo;
+        if (!gizmo) {
+            this._logger.debug("No scale gizmo");
+            return null;
+        }
+
+        this._logger.debug(`Gizmo attached mesh: ${scaleMenu.gizmoManager.attachedMesh?.id}`);
+
+        // Get the utility layer that contains the gizmo meshes
+        const utilityLayer = gizmo.xGizmo?._rootMesh?.getScene();
+        if (!utilityLayer) {
+            this._logger.debug("No utility layer found");
+            return null;
+        }
+
+        this._logger.debug(`Utility layer found: ${utilityLayer.constructor.name}`);
+
+        // Use controller's pointer ray directly to pick gizmo meshes
+        const pointerRay = this.xrInputSource.pointer.forward;
+        const pointerOrigin = this.xrInputSource.pointer.position;
+
+        this._logger.debug(`Pointer origin: ${pointerOrigin}, direction: ${pointerRay}`);
+
+        const ray = new Ray(pointerOrigin, pointerRay, 1000);
+
+        // Pick from the utility layer scene, not the main scene
+        // Don't filter in predicate - let all meshes be pickable, then check hierarchy after
+        const pickResult = utilityLayer.pickWithRay(ray);
+
+        this._logger.debug(`Pick result: hit=${pickResult?.hit}, pickedMesh=${pickResult?.pickedMesh?.id}`);
+
+        if (pickResult && pickResult.hit && pickResult.pickedMesh) {
+            this._logger.debug(`Checking if picked mesh ${pickResult.pickedMesh.id} is part of gizmo`);
+
+            // Determine which axis was picked by checking hierarchy
+            if (this.isMeshInGizmoHierarchy(pickResult.pickedMesh, gizmo.xGizmo)) {
+                this._logger.debug("Detected X axis");
+                return gizmo.xGizmo;
+            }
+            if (this.isMeshInGizmoHierarchy(pickResult.pickedMesh, gizmo.yGizmo)) {
+                this._logger.debug("Detected Y axis");
+                return gizmo.yGizmo;
+            }
+            if (this.isMeshInGizmoHierarchy(pickResult.pickedMesh, gizmo.zGizmo)) {
+                this._logger.debug("Detected Z axis");
+                return gizmo.zGizmo;
+            }
+
+            this._logger.debug(`Picked mesh ${pickResult.pickedMesh.id} is not part of any gizmo axis`);
+        }
+
+        this._logger.debug("No gizmo axis found");
+        return null;
+    }
+
+    /**
+     * Check if a mesh is part of a gizmo's hierarchy
+     */
+    private isMeshInGizmoHierarchy(mesh: AbstractMesh, gizmo: any): boolean {
+        if (!gizmo || !gizmo._rootMesh) {
+            this._logger.debug(`isMeshInGizmoHierarchy: no gizmo or rootMesh`);
+            return false;
+        }
+
+        this._logger.debug(`Checking if ${mesh.id} is in gizmo ${gizmo._rootMesh.id} hierarchy`);
+
+        // Check if mesh matches gizmo root or is a child
+        let current: any = mesh;
+        let depth = 0;
+        while (current && depth < 10) {
+            this._logger.debug(`  Depth ${depth}: checking ${current.id}`);
+            if (current.id === gizmo._rootMesh.id || current === gizmo._rootMesh) {
+                this._logger.debug(`  MATCH! Found gizmo root`);
+                return true;
+            }
+            // Also check if this is a gizmo arrow mesh
+            if (current.id && current.id.includes('arrow')) {
+                const parent = current.parent;
+                this._logger.debug(`  Found arrow mesh, parent: ${parent?.id}`);
+                if (parent && parent.id === gizmo._rootMesh.id) {
+                    this._logger.debug(`  MATCH! Arrow parent is gizmo root`);
+                    return true;
+                }
+            }
+            current = current.parent;
+            depth++;
+        }
+        this._logger.debug(`  No match after ${depth} iterations`);
+        return false;
+    }
+
+    /**
+     * Start dragging a gizmo axis with squeeze button
+     */
+    private startGizmoDrag(axis: any): void {
+        this._activeGizmoAxis = axis;
+        this._draggingGizmo = true;
+
+        // Enable the drag behavior to start scaling
+        if (axis && axis.dragBehavior) {
+            // Manually enable drag mode for this axis
+            axis.dragBehavior.enabled = true;
+
+            // Get the pointer info for manual drag start
+            const pointerInfo = this.scene.pick(
+                this.scene.pointerX,
+                this.scene.pointerY,
+                null,
+                false,
+                this.scene.activeCamera
+            );
+
+            if (pointerInfo && pointerInfo.hit) {
+                // Manually trigger the drag start with pointer information
+                // The dragBehavior will handle the actual scaling logic
+                this._logger.debug(`Starting gizmo drag on axis: ${axis._rootMesh?.id}`);
+            }
+        }
+    }
+
+    /**
+     * End dragging a gizmo axis
+     */
+    private endGizmoDrag(): void {
+        if (this._activeGizmoAxis) {
+            this._logger.debug(`Ending gizmo drag`);
+
+            // The drag behavior will auto-release, just clean up our state
+            if (this._activeGizmoAxis.dragBehavior) {
+                this._activeGizmoAxis.dragBehavior.enabled = true; // Keep enabled for future use
+            }
+
+            this._activeGizmoAxis = null;
+            this._draggingGizmo = false;
         }
     }
 }
