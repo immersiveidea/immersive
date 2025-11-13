@@ -17,11 +17,17 @@ export async function buildColor(color: Color3, scene: Scene, parent: TransformN
     const width = .1;
     const height = .1;
     const material = new StandardMaterial("material-" + color.toHexString(), scene);
-    material.diffuseColor = color;
-    material.disableLighting = false;
-    material.lightmapTexture = LightmapGenerator.generateLightmapForColor(color, scene);
-    material.useLightmapAsShadowmap = false;
-    material.specularPower = 64;
+
+    if (LightmapGenerator.ENABLED) {
+        // Lightmap as emissive texture (lighting illusion, no lighting calculations)
+        material.emissiveColor = color;
+        material.emissiveTexture = LightmapGenerator.generateLightmapForColor(color, scene);
+        material.disableLighting = true;
+    } else {
+        // Flat emissive-only rendering (no lighting illusion)
+        material.emissiveColor = color;
+        material.disableLighting = true;
+    }
 
     const colorBoxMesh = MeshBuilder.CreatePlane("toolbox-color-" + color.toHexString(), {
         width: width,

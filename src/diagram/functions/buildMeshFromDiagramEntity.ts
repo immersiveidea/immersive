@@ -194,10 +194,18 @@ export function buildMissingMaterial(name: string, scene: Scene, color: string):
     const colorObj = Color3.FromHexString(color);
     const newMaterial = new StandardMaterial(name, scene);
     newMaterial.id = name;
-    newMaterial.diffuseColor = colorObj;
-    newMaterial.disableLighting = false;
-    newMaterial.lightmapTexture = LightmapGenerator.generateLightmapForColor(colorObj, scene);
-    newMaterial.useLightmapAsShadowmap = false;
+
+    if (LightmapGenerator.ENABLED) {
+        // Lightmap as emissive texture (lighting illusion, no lighting calculations)
+        newMaterial.emissiveColor = colorObj;
+        newMaterial.emissiveTexture = LightmapGenerator.generateLightmapForColor(colorObj, scene);
+        newMaterial.disableLighting = true;
+    } else {
+        // Flat emissive-only rendering (no lighting illusion)
+        newMaterial.emissiveColor = colorObj;
+        newMaterial.disableLighting = true;
+    }
+
     newMaterial.alpha = 1;
     return newMaterial;
 }

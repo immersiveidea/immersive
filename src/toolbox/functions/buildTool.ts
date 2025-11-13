@@ -9,8 +9,11 @@ export async function buildTool(tool: ToolType, colorParent: AbstractMesh, mater
     let color = "#000000";
     switch (material.getClassName()) {
         case "StandardMaterial":
-            id = toolId(tool, (material as StandardMaterial).diffuseColor);
-            color = (material as StandardMaterial).diffuseColor.toHexString();
+            const stdMat = material as StandardMaterial;
+            // Use emissiveColor (set for both lightmap and non-lightmap modes)
+            const materialColor = stdMat.emissiveColor || stdMat.diffuseColor;
+            id = toolId(tool, materialColor);
+            color = materialColor.toHexString();
             break;
         case "PBRMaterial":
             id = toolId(tool, (material as PBRMaterial).albedoColor);

@@ -5,6 +5,9 @@ export class LightmapGenerator {
     private static lightmapCache: Map<string, DynamicTexture> = new Map();
     private static readonly DEFAULT_RESOLUTION = 512;
 
+    // Toggle to enable/disable lightmap usage (for performance testing)
+    public static ENABLED = true;
+
     /**
      * Generates or retrieves cached lightmap for a given color
      * @param color The base color for the lightmap
