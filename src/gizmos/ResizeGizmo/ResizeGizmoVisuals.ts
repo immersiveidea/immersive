@@ -135,14 +135,10 @@ export class ResizeGizmoVisuals {
         const min = boundingBox.minimumWorld;
         const max = boundingBox.maximumWorld;
 
-        // Calculate padding
-        const padding = HandleGeometry.calculatePadding(
-            boundingBox,
-            this._config.current.boundingBoxPadding
-        );
-
-        const paddedMin = min.subtract(new Vector3(padding, padding, padding));
-        const paddedMax = max.add(new Vector3(padding, padding, padding));
+        // Use original bounding box without padding for wireframe
+        // (handles are now positioned inside, so box matches actual mesh bounds)
+        const paddedMin = min;
+        const paddedMax = max;
 
         // Create line points for bounding box edges
         const points = [

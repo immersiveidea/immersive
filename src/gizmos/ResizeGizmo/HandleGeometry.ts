@@ -19,9 +19,9 @@ export class HandleGeometry {
         const max = boundingBox.maximumWorld;
         const center = boundingBox.centerWorld;
 
-        // Apply padding
-        const paddedMin = min.subtract(new Vector3(padding, padding, padding));
-        const paddedMax = max.add(new Vector3(padding, padding, padding));
+        // Apply padding to position handles inward from bounding box edges
+        const paddedMin = min.add(new Vector3(padding, padding, padding));
+        const paddedMax = max.subtract(new Vector3(padding, padding, padding));
 
         const corners: HandlePosition[] = [];
         const positions = [
@@ -60,9 +60,9 @@ export class HandleGeometry {
         const max = boundingBox.maximumWorld;
         const center = boundingBox.centerWorld;
 
-        // Apply padding
-        const paddedMin = min.subtract(new Vector3(padding, padding, padding));
-        const paddedMax = max.add(new Vector3(padding, padding, padding));
+        // Apply padding to position handles inward from bounding box edges
+        const paddedMin = min.add(new Vector3(padding, padding, padding));
+        const paddedMax = max.subtract(new Vector3(padding, padding, padding));
 
         // Calculate midpoints
         const midX = (paddedMin.x + paddedMax.x) / 2;
@@ -178,9 +178,9 @@ export class HandleGeometry {
         const min = boundingBox.minimumWorld;
         const max = boundingBox.maximumWorld;
 
-        // Apply padding
-        const paddedMin = min.subtract(new Vector3(padding, padding, padding));
-        const paddedMax = max.add(new Vector3(padding, padding, padding));
+        // Apply padding to position handles inward from bounding box edges
+        const paddedMin = min.add(new Vector3(padding, padding, padding));
+        const paddedMax = max.subtract(new Vector3(padding, padding, padding));
 
         // Calculate midpoints
         const midX = (paddedMin.x + paddedMax.x) / 2;
