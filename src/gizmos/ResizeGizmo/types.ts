@@ -15,10 +15,7 @@ export enum ResizeGizmoMode {
     /** Only corner handles (8 handles) - uniform scaling all axes */
     UNIFORM = "UNIFORM",
 
-    /** Only edge-center handles (12 handles) - scale two axes simultaneously */
-    TWO_AXIS = "TWO_AXIS",
-
-    /** All handles enabled (26 total) - behavior depends on grabbed handle */
+    /** All handles enabled (14 total: 6 faces + 8 corners) - behavior depends on grabbed handle */
     ALL = "ALL"
 }
 

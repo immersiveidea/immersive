@@ -258,6 +258,14 @@ export class ResizeGizmoManager {
         return this._interaction.isHoveringHandle();
     }
 
+    /**
+     * Get the utility layer scene (for filtering picks in main scene)
+     * This is used to prevent pointer events on gizmo handles from leaking to main scene
+     */
+    getUtilityScene(): Scene {
+        return this._visuals.getUtilityScene();
+    }
+
     // ===== Event System =====
 
     /**

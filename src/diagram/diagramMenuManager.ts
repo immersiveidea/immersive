@@ -176,6 +176,29 @@ export class DiagramMenuManager {
         xr.input.onControllerRemovedObservable.add((controller) => {
             this.resizeGizmo.unregisterController(controller);
         });
+
+        // Configure pointer selection to exclude utility layer meshes (primary defense against event leak-through)
+        if (xr.pointerSelection) {
+            const utilityScene = this.resizeGizmo.getUtilityScene();
+
+            // Wrap or replace the mesh predicate
+            const originalMeshPredicate = xr.pointerSelection.meshPredicate;
+
+            xr.pointerSelection.meshPredicate = (mesh) => {
+                // Exclude utility layer meshes (gizmo handles)
+                if (mesh.getScene() === utilityScene) {
+                    return false;
+                }
+
+                // Apply original predicate if it exists
+                if (originalMeshPredicate) {
+                    return originalMeshPredicate(mesh);
+                }
+
+                // Default: mesh must be pickable, visible, and enabled
+                return mesh.isPickable && mesh.isVisible && mesh.isEnabled();
+            };
+        }
     }
 
     /**

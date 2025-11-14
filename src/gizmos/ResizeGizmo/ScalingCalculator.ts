@@ -150,44 +150,17 @@ export class ScalingCalculator {
             return newScale;
         }
 
-        // Calculate vector from pivot to virtual points
-        const startVector = startVirtualPoint.subtract(boundingBoxCenter);
-        const currentVector = currentVirtualPoint.subtract(boundingBoxCenter);
+        // Calculate distance from pivot to virtual points
+        const startDistance = Vector3.Distance(boundingBoxCenter, startVirtualPoint);
+        const currentDistance = Vector3.Distance(boundingBoxCenter, currentVirtualPoint);
 
-        // Determine which two axes to scale
+        // Calculate single scale ratio based on distance change
+        // This ensures both axes scale uniformly (same amount)
+        const scaleRatio = currentDistance / startDistance;
+
+        // Apply same scale ratio to both axes
         const axes = handle.axes;
-        const worldMatrix = mesh.getWorldMatrix();
-
-        // For each axis involved, calculate scale ratio based on projection
         for (const axis of axes) {
-            // Get local axis vector
-            let localAxisVector: Vector3;
-            switch (axis) {
-                case "X":
-                    localAxisVector = Vector3.Right();
-                    break;
-                case "Y":
-                    localAxisVector = Vector3.Up();
-                    break;
-                case "Z":
-                    localAxisVector = Vector3.Forward();
-                    break;
-            }
-
-            // Transform axis to world space
-            const worldAxisVector = Vector3.TransformNormal(localAxisVector, worldMatrix).normalize();
-
-            // Project start and current vectors onto this axis
-            const startProjection = Vector3.Dot(startVector, worldAxisVector);
-            const currentProjection = Vector3.Dot(currentVector, worldAxisVector);
-
-            // Calculate scale ratio for this axis
-            // Avoid division by zero
-            const scaleRatio = Math.abs(startProjection) > 0.001
-                ? currentProjection / startProjection
-                : 1.0;
-
-            // Apply scale to this axis
             switch (axis) {
                 case "X":
                     newScale.x = startScale.x * scaleRatio;

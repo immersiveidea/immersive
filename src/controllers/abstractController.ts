@@ -64,6 +64,17 @@ export abstract class AbstractController {
         this.scene.onPointerObservable.add((pointerInfo) => {
             if (pointerInfo?.pickInfo?.gripTransform?.id == this.xrInputSource?.grip?.id) {
                 if (pointerInfo.pickInfo.pickedMesh) {
+                    // Filter out utility layer meshes (secondary defense against event leak-through)
+                    const resizeGizmo = this.diagramManager?.diagramMenuManager?.resizeGizmo;
+                    if (resizeGizmo) {
+                        const utilityScene = resizeGizmo.getUtilityScene();
+                        if (pointerInfo.pickInfo.pickedMesh.getScene() === utilityScene) {
+                            // This is a gizmo handle, ignore it in main scene pointer handling
+                            this._meshUnderPointer = null;
+                            return;
+                        }
+                    }
+
                     this._pickPoint.copyFrom(pointerInfo.pickInfo.pickedPoint);
                     this._meshUnderPointer = pointerInfo.pickInfo.pickedMesh;
 
@@ -192,6 +203,20 @@ export abstract class AbstractController {
 
     private click() {
         let mesh = this.xr.pointerSelection.getMeshUnderPointer(this.xrInputSource.uniqueId);
+
+        // Filter out utility layer meshes (tertiary defense against event leak-through)
+        if (mesh) {
+            const resizeGizmo = this.diagramManager?.diagramMenuManager?.resizeGizmo;
+            if (resizeGizmo) {
+                const utilityScene = resizeGizmo.getUtilityScene();
+                if (mesh.getScene() === utilityScene) {
+                    // This is a gizmo handle, ignore click
+                    this._logger.debug("click on utility layer mesh (gizmo), ignoring");
+                    return;
+                }
+            }
+        }
+
         if (this.diagramManager.isDiagramObject(mesh)) {
             this._logger.debug("click on " + mesh.id);
             if (this.diagramManager.diagramMenuManager.connectionPreview) {

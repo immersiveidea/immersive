@@ -94,26 +94,17 @@ export class ResizeGizmoVisuals {
     }
 
     /**
-     * Generate handle positions based on current config and mesh bounding box
+     * Generate handle positions based on current config and mesh bounding box (OBB-based)
      */
     private generateHandlePositions(): HandlePosition[] {
         if (!this._targetMesh) {
             return [];
         }
 
-        const boundingInfo = this._targetMesh.getBoundingInfo();
-        const boundingBox = boundingInfo.boundingBox;
-
-        // Calculate padding
-        const padding = HandleGeometry.calculatePadding(
-            boundingBox,
-            this._config.current.boundingBoxPadding
-        );
-
-        // Generate handles based on mode
+        // Generate handles based on mode (using OBB)
         return HandleGeometry.generateHandles(
-            boundingBox,
-            padding,
+            this._targetMesh,
+            this._config.current.boundingBoxPadding,
             this._config.usesCornerHandles(),
             this._config.usesEdgeHandles(),
             this._config.usesFaceHandles()
@@ -121,7 +112,42 @@ export class ResizeGizmoVisuals {
     }
 
     /**
-     * Create bounding box wireframe
+     * Calculate the 8 corners of the oriented bounding box (OBB) in world space
+     */
+    private calculateOBBCorners(): Vector3[] {
+        if (!this._targetMesh) {
+            return [];
+        }
+
+        // Get bounding box in local space
+        const boundingInfo = this._targetMesh.getBoundingInfo();
+        const boundingBox = boundingInfo.boundingBox;
+        const min = boundingBox.minimum;
+        const max = boundingBox.maximum;
+
+        // Define 8 corners in local space
+        const localCorners = [
+            new Vector3(min.x, min.y, min.z), // 0: left-bottom-back
+            new Vector3(max.x, min.y, min.z), // 1: right-bottom-back
+            new Vector3(max.x, min.y, max.z), // 2: right-bottom-front
+            new Vector3(min.x, min.y, max.z), // 3: left-bottom-front
+            new Vector3(min.x, max.y, min.z), // 4: left-top-back
+            new Vector3(max.x, max.y, min.z), // 5: right-top-back
+            new Vector3(max.x, max.y, max.z), // 6: right-top-front
+            new Vector3(min.x, max.y, max.z)  // 7: left-top-front
+        ];
+
+        // Transform corners to world space using mesh's world matrix
+        const worldMatrix = this._targetMesh.computeWorldMatrix(true);
+        const worldCorners = localCorners.map(corner =>
+            Vector3.TransformCoordinates(corner, worldMatrix)
+        );
+
+        return worldCorners;
+    }
+
+    /**
+     * Create bounding box wireframe (OBB - oriented bounding box)
      */
     private createBoundingBox(): void {
         if (!this._targetMesh) {
@@ -130,40 +156,31 @@ export class ResizeGizmoVisuals {
 
         this.disposeBoundingBox();
 
-        const boundingInfo = this._targetMesh.getBoundingInfo();
-        const boundingBox = boundingInfo.boundingBox;
-        const min = boundingBox.minimumWorld;
-        const max = boundingBox.maximumWorld;
-
-        // Use original bounding box without padding for wireframe
-        // (handles are now positioned inside, so box matches actual mesh bounds)
-        const paddedMin = min;
-        const paddedMax = max;
+        // Get OBB corners in world space
+        const corners = this.calculateOBBCorners();
+        if (corners.length !== 8) {
+            return;
+        }
 
         // Create line points for bounding box edges
+        // Using corner indices: 0-7 as defined in calculateOBBCorners
         const points = [
-            // Bottom face
-            [paddedMin, new Vector3(paddedMax.x, paddedMin.y, paddedMin.z)],
-            [new Vector3(paddedMax.x, paddedMin.y, paddedMin.z), new Vector3(paddedMax.x, paddedMin.y, paddedMax.z)],
-            [new Vector3(paddedMax.x, paddedMin.y, paddedMax.z), new Vector3(paddedMin.x, paddedMin.y, paddedMax.z)],
-            [new Vector3(paddedMin.x, paddedMin.y, paddedMax.z), paddedMin],
-            // Top face
-            [new Vector3(paddedMin.x, paddedMax.y, paddedMin.z), new Vector3(paddedMax.x, paddedMax.y, paddedMin.z)],
-            [new Vector3(paddedMax.x, paddedMax.y, paddedMin.z), paddedMax],
-            [paddedMax, new Vector3(paddedMin.x, paddedMax.y, paddedMax.z)],
-            [new Vector3(paddedMin.x, paddedMax.y, paddedMax.z), new Vector3(paddedMin.x, paddedMax.y, paddedMin.z)],
+            // Bottom face (y = min)
+            [corners[0], corners[1]], // left-back to right-back
+            [corners[1], corners[2]], // right-back to right-front
+            [corners[2], corners[3]], // right-front to left-front
+            [corners[3], corners[0]], // left-front to left-back
+            // Top face (y = max)
+            [corners[4], corners[5]], // left-back to right-back
+            [corners[5], corners[6]], // right-back to right-front
+            [corners[6], corners[7]], // right-front to left-front
+            [corners[7], corners[4]], // left-front to left-back
             // Vertical edges
-            [paddedMin, new Vector3(paddedMin.x, paddedMax.y, paddedMin.z)],
-            [new Vector3(paddedMax.x, paddedMin.y, paddedMin.z), new Vector3(paddedMax.x, paddedMax.y, paddedMin.z)],
-            [new Vector3(paddedMax.x, paddedMin.y, paddedMax.z), paddedMax],
-            [new Vector3(paddedMin.x, paddedMin.y, paddedMax.z), new Vector3(paddedMin.x, paddedMax.y, paddedMax.z)]
+            [corners[0], corners[4]], // left-back bottom to top
+            [corners[1], corners[5]], // right-back bottom to top
+            [corners[2], corners[6]], // right-front bottom to top
+            [corners[3], corners[7]]  // left-front bottom to top
         ];
-
-        // Flatten points
-        const flatPoints: Vector3[] = [];
-        for (const line of points) {
-            flatPoints.push(...line);
-        }
 
         // Create lines mesh
         this._boundingBoxLines = MeshBuilder.CreateLineSystem(

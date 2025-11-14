@@ -143,10 +143,10 @@ export class ResizeGizmoConfigManager {
 
     /**
      * Check if a mode uses edge handles
+     * Edge handles are disabled to simplify UX
      */
     usesEdgeHandles(): boolean {
-        const mode = this._config.mode;
-        return mode === ResizeGizmoMode.TWO_AXIS || mode === ResizeGizmoMode.ALL;
+        return false;
     }
 
     /**
