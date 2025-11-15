@@ -73,6 +73,13 @@ export abstract class AbstractController {
                             this._meshUnderPointer = null;
                             return;
                         }
+
+                        // Don't set _meshUnderPointer if ResizeGizmo is active
+                        // Prevents main scene mesh grab from conflicting with handle interaction
+                        if (resizeGizmo.isHoveringHandle() || resizeGizmo.isScaling()) {
+                            this._meshUnderPointer = null;
+                            return;
+                        }
                     }
 
                     this._pickPoint.copyFrom(pointerInfo.pickInfo.pickedPoint);
@@ -289,6 +296,15 @@ export abstract class AbstractController {
         if (viewOnly() || this._meshUnderPointer == null) {
             return;
         }
+
+        // Defense in depth: Verify ResizeGizmo isn't active
+        // Prevents race conditions where grip press happens during state transitions
+        const resizeGizmo = this.diagramManager?.diagramMenuManager?.resizeGizmo;
+        if (resizeGizmo && (resizeGizmo.isHoveringHandle() || resizeGizmo.isScaling())) {
+            this._logger.debug("ResizeGizmo is active, aborting grab");
+            return;
+        }
+
         const {
             grabbedMesh,
             grabbedObject,

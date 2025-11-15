@@ -75,8 +75,8 @@ export class HandleGeometry {
             // Calculate normal from center to corner
             const normal = cornerPos.subtract(center).normalize();
 
-            // Apply padding by moving corner inward along the normal
-            const position = cornerPos.subtract(normal.scale(paddingDistance));
+            // Apply padding by moving corner outward along the normal
+            const position = cornerPos.add(normal.scale(paddingDistance));
 
             corners.push({
                 position,
@@ -139,8 +139,8 @@ export class HandleGeometry {
             // Calculate normal from center to midpoint
             const normal = midpoint.subtract(center).normalize();
 
-            // Apply padding by moving inward along the normal
-            const position = midpoint.subtract(normal.scale(paddingDistance));
+            // Apply padding by moving outward along the normal
+            const position = midpoint.add(normal.scale(paddingDistance));
 
             edges.push({
                 position,
@@ -195,8 +195,8 @@ export class HandleGeometry {
             // Calculate normal from center to face center
             const normal = faceCenter.subtract(center).normalize();
 
-            // Apply padding by moving inward along the normal
-            const position = faceCenter.subtract(normal.scale(paddingDistance));
+            // Apply padding by moving outward along the normal
+            const position = faceCenter.add(normal.scale(paddingDistance));
 
             faces.push({
                 position,

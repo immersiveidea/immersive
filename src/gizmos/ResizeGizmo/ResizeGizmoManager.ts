@@ -7,7 +7,8 @@ import {
     Scene,
     AbstractMesh,
     Observable,
-    WebXRInputSource
+    WebXRInputSource,
+    Ray
 } from "@babylonjs/core";
 import {
     ResizeGizmoMode,
@@ -256,6 +257,21 @@ export class ResizeGizmoManager {
      */
     isHoveringHandle(): boolean {
         return this._interaction.isHoveringHandle();
+    }
+
+    /**
+     * Get current interaction state (for external integration)
+     */
+    getInteractionState(): string {
+        return this._interaction.getState().state;
+    }
+
+    /**
+     * Check if pointer ray is inside handle boundary (for external integration)
+     * This is used by DiagramMenuManager to determine if gizmo should stay active
+     */
+    isPointerInsideHandleBoundary(ray: Ray): boolean {
+        return this._visuals.isPointerInsideHandleBoundary(ray);
     }
 
     /**

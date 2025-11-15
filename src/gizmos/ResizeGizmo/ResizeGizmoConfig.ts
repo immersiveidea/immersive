@@ -49,10 +49,16 @@ export class ResizeGizmoConfigManager {
             c.handleSize = DEFAULT_RESIZE_GIZMO_CONFIG.handleSize;
         }
 
-        // Validate bounding box padding
-        if (c.boundingBoxPadding < 0) {
-            console.warn(`[ResizeGizmo] Invalid boundingBoxPadding (${c.boundingBoxPadding}), using 0`);
-            c.boundingBoxPadding = 0;
+        // Validate handle offset
+        if (c.handleOffset < 0) {
+            console.warn(`[ResizeGizmo] Invalid handleOffset (${c.handleOffset}), using 0`);
+            c.handleOffset = 0;
+        }
+
+        // Validate wireframe padding
+        if (c.wireframePadding < 0) {
+            console.warn(`[ResizeGizmo] Invalid wireframePadding (${c.wireframePadding}), using 0`);
+            c.wireframePadding = 0;
         }
 
         // Validate wireframe alpha

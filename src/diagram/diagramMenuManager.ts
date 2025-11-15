@@ -1,5 +1,5 @@
 import {DiagramEntityType, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
-import {AbstractMesh, ActionEvent, Observable, Scene, Vector3, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
+import {AbstractMesh, ActionEvent, Observable, Ray, Scene, Vector3, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {InputTextView} from "../information/inputTextView";
 import {DefaultScene} from "../defaultScene";
 import log from "loglevel";
@@ -232,39 +232,25 @@ export class DiagramMenuManager {
     }
 
     /**
-     * Check if gizmo should remain active based on pointer position
+     * Check if gizmo should remain active
+     * Trusts ResizeGizmo's internal state management rather than recalculating
      */
     private shouldKeepGizmoActive(pointerPosition?: Vector3): boolean {
         if (!this._currentHoveredMesh) {
             return false;
         }
 
-        // Always keep gizmo active if currently scaling
-        if (this.resizeGizmo.isScaling()) {
-            return true;
-        }
+        // Trust ResizeGizmo's internal state management
+        // ResizeGizmo already tracks hover state correctly with proper controller rays
+        const state = this.resizeGizmo.getInteractionState();
 
-        // Keep active if pointer is within bounding box area
-        if (!pointerPosition) {
-            return false;
-        }
-
-        // Get the attached mesh's bounding box
-        const boundingInfo = this._currentHoveredMesh.getBoundingInfo();
-        const boundingBox = boundingInfo.boundingBox;
-
-        // Add padding to the bounding box (same as gizmo padding + handle size)
-        const padding = 0.3; // Generous padding to include handles
-        const min = boundingBox.minimumWorld.subtract(new Vector3(padding, padding, padding));
-        const max = boundingBox.maximumWorld.add(new Vector3(padding, padding, padding));
-
-        // Check if pointer is within the padded bounding box
-        const withinBounds =
-            pointerPosition.x >= min.x && pointerPosition.x <= max.x &&
-            pointerPosition.y >= min.y && pointerPosition.y <= max.y &&
-            pointerPosition.z >= min.z && pointerPosition.z <= max.z;
-
-        return withinBounds;
+        // Keep active if ResizeGizmo is in any active state:
+        // - ACTIVE_SCALING: User is actively scaling (grip held)
+        // - HOVER_HANDLE: Pointer is hovering a handle (ready to scale)
+        // - HOVER_MESH: Pointer is within handle boundary (grace zone)
+        return state === 'ACTIVE_SCALING' ||
+               state === 'HOVER_HANDLE' ||
+               state === 'HOVER_MESH';
     }
 
     /**

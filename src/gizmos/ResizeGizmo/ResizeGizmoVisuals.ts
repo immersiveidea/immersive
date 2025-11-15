@@ -13,7 +13,9 @@ import {
     UtilityLayerRenderer,
     LinesMesh,
     Vector3,
-    Quaternion
+    Quaternion,
+    Ray,
+    BoundingBox
 } from "@babylonjs/core";
 import { HandlePosition, HandleType } from "./types";
 import { ResizeGizmoConfigManager } from "./ResizeGizmoConfig";
@@ -105,7 +107,7 @@ export class ResizeGizmoVisuals {
         // Generate handles based on mode (using OBB)
         return HandleGeometry.generateHandles(
             this._targetMesh,
-            this._config.current.boundingBoxPadding,
+            this._config.current.handleOffset,
             this._config.usesCornerHandles(),
             this._config.usesEdgeHandles(),
             this._config.usesFaceHandles()
@@ -114,8 +116,9 @@ export class ResizeGizmoVisuals {
 
     /**
      * Calculate the 8 corners of the oriented bounding box (OBB) in world space
+     * @param paddingFactor Optional padding factor to expand corners outward (0.03 = 3%)
      */
-    private calculateOBBCorners(): Vector3[] {
+    private calculateOBBCorners(paddingFactor: number = 0): Vector3[] {
         if (!this._targetMesh) {
             return [];
         }
@@ -144,6 +147,19 @@ export class ResizeGizmoVisuals {
             Vector3.TransformCoordinates(corner, worldMatrix)
         );
 
+        // Apply padding if specified (expand outward from center)
+        if (paddingFactor > 0) {
+            const center = this._targetMesh.absolutePosition;
+            const size = boundingBox.extendSize;
+            const avgSize = (size.x + size.y + size.z) / 3;
+            const paddingDistance = avgSize * paddingFactor;
+
+            return worldCorners.map(corner => {
+                const normal = corner.subtract(center).normalize();
+                return corner.add(normal.scale(paddingDistance));
+            });
+        }
+
         return worldCorners;
     }
 
@@ -157,8 +173,8 @@ export class ResizeGizmoVisuals {
 
         this.disposeBoundingBox();
 
-        // Get OBB corners in world space
-        const corners = this.calculateOBBCorners();
+        // Get OBB corners in world space with wireframe padding
+        const corners = this.calculateOBBCorners(this._config.current.wireframePadding);
         if (corners.length !== 8) {
             return;
         }
@@ -404,6 +420,73 @@ export class ResizeGizmoVisuals {
      */
     getUtilityScene(): Scene {
         return this._utilityLayer.utilityLayerScene;
+    }
+
+    /**
+     * Check if a ray intersects the expanded bounding volume that encompasses all handles
+     * This creates a "grace zone" to prevent hover state loss in whitespace between mesh and handles
+     *
+     * Uses local space transformation for accuracy - transforms ray to mesh local space
+     * and performs AABB intersection test with manual slab method
+     */
+    isPointerInsideHandleBoundary(ray: Ray): boolean {
+        if (!this._targetMesh || !this._config.current.keepHoverInHandleBoundary) {
+            return false;
+        }
+
+        // Transform ray from world space to mesh local space
+        const worldMatrix = this._targetMesh.computeWorldMatrix(true);
+        const invWorldMatrix = worldMatrix.clone().invert();
+
+        const localOrigin = Vector3.TransformCoordinates(ray.origin, invWorldMatrix);
+        const localDirection = Vector3.TransformNormal(ray.direction, invWorldMatrix);
+
+        // Get local space bounding box
+        const boundingInfo = this._targetMesh.getBoundingInfo();
+        const boundingBox = boundingInfo.boundingBox;
+        const size = boundingBox.extendSize;
+        const avgSize = (size.x + size.y + size.z) / 3;
+
+        // Calculate expanded padding (handleOffset is a fraction, need to scale by avgSize)
+        const handleSize = avgSize * this._config.current.handleSize;
+        const paddingDistance = avgSize * this._config.current.handleOffset;
+        const totalPadding = paddingDistance + (handleSize / 2);
+
+        // Create expanded AABB in local space
+        const paddingVec = new Vector3(totalPadding, totalPadding, totalPadding);
+        const min = boundingBox.minimum.subtract(paddingVec);
+        const max = boundingBox.maximum.add(paddingVec);
+
+        // Ray-AABB intersection test using slab method
+        // https://tavianator.com/2011/ray_box.html
+        const invDir = new Vector3(
+            1 / localDirection.x,
+            1 / localDirection.y,
+            1 / localDirection.z
+        );
+
+        const t1 = (min.x - localOrigin.x) * invDir.x;
+        const t2 = (max.x - localOrigin.x) * invDir.x;
+        const t3 = (min.y - localOrigin.y) * invDir.y;
+        const t4 = (max.y - localOrigin.y) * invDir.y;
+        const t5 = (min.z - localOrigin.z) * invDir.z;
+        const t6 = (max.z - localOrigin.z) * invDir.z;
+
+        const tmin = Math.max(Math.max(Math.min(t1, t2), Math.min(t3, t4)), Math.min(t5, t6));
+        const tmax = Math.min(Math.min(Math.max(t1, t2), Math.max(t3, t4)), Math.max(t5, t6));
+
+        // If tmax < 0, ray is intersecting AABB but the box is behind the ray
+        if (tmax < 0) {
+            return false;
+        }
+
+        // If tmin > tmax, ray doesn't intersect AABB
+        if (tmin > tmax) {
+            return false;
+        }
+
+        // Ray intersects the expanded bounding box
+        return true;
     }
 
     /**

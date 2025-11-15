@@ -147,8 +147,11 @@ export interface ResizeGizmoConfig {
     hoverScaleFactor: number;
 
     // === Bounding Box ===
-    /** Padding around mesh bounding box (0.05 = 5% padding) */
-    boundingBoxPadding: number;
+    /** Handle offset from bounding box surface (0.05 = 5% outward) */
+    handleOffset: number;
+
+    /** Padding for bounding box wireframe (0.03 = 3% outward breathing room) */
+    wireframePadding: number;
 
     /** Bounding box wireframe color */
     boundingBoxColor: Color3;
@@ -158,6 +161,9 @@ export interface ResizeGizmoConfig {
 
     /** Show bounding box only on hover */
     showBoundingBoxOnHoverOnly: boolean;
+
+    /** Keep hover state when pointer is within handle boundary (prevents loss in whitespace) */
+    keepHoverInHandleBoundary: boolean;
 
     // === Snapping ===
     /** Enable snap-to-grid during scaling */
@@ -232,10 +238,12 @@ export const DEFAULT_RESIZE_GIZMO_CONFIG: ResizeGizmoConfig = {
     hoverScaleFactor: 1.3,
 
     // Bounding box
-    boundingBoxPadding: 0.05,
+    handleOffset: 0.05,
+    wireframePadding: 0.03,
     boundingBoxColor: new Color3(1.0, 1.0, 1.0),     // White
     wireframeAlpha: 0.3,
     showBoundingBoxOnHoverOnly: false,
+    keepHoverInHandleBoundary: true,
 
     // Snapping
     enableSnapping: true,

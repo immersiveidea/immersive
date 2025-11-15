@@ -221,6 +221,30 @@ export class ResizeGizmoInteraction {
     }
 
     /**
+     * Check if any XR controller pointer is inside the expanded handle boundary
+     * Used to prevent hover state loss when pointer crosses whitespace between mesh and handles
+     */
+    private isPointerInsideHandleBoundary(): boolean {
+        // Iterate through registered XR controllers
+        for (const controller of this._xrControllers.values()) {
+            if (!controller.pointer) {
+                continue;
+            }
+
+            // Get controller ray in world space
+            const ray = new Ray(Vector3.Zero(), Vector3.Forward(), 1000);
+            controller.getWorldPointerRayToRef(ray);
+
+            // Check if this ray intersects the handle boundary
+            if (this._visuals.isPointerInsideHandleBoundary(ray)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Handle mesh hover
      */
     private onMeshHovered(mesh: AbstractMesh): void {
@@ -373,7 +397,19 @@ export class ResizeGizmoInteraction {
                 this.onHandleHovered(handlePickResult);
             } else if (this._state.hoveredHandle) {
                 // Was hovering a handle, but not anymore
-                this.onHoverExit();
+                // Check if still inside handle boundary before exiting hover (prevents loss in whitespace)
+                const stillInsideBoundary = this.isPointerInsideHandleBoundary();
+
+                if (stillInsideBoundary) {
+                    // Keep gizmo active but unhighlight the specific handle
+                    this._visuals.unhighlightHandle(this._state.hoveredHandle.id);
+                    this._state.hoveredHandle = undefined;
+                    // Keep state as HOVER_MESH (don't drop to IDLE)
+                    this._state.state = InteractionState.HOVER_MESH;
+                } else {
+                    // Pointer left the boundary entirely, exit hover completely
+                    this.onHoverExit();
+                }
             }
         }
 
@@ -513,6 +549,13 @@ export class ResizeGizmoInteraction {
      */
     isHoveringHandle(): boolean {
         return this._state.state === InteractionState.HOVER_HANDLE && this._state.hoveredHandle != null;
+    }
+
+    /**
+     * Get current interaction state (for external integration)
+     */
+    getState(): Readonly<GizmoInteractionState> {
+        return this._state;
     }
 
     /**
