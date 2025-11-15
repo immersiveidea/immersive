@@ -12,7 +12,8 @@ import {
     Color3,
     UtilityLayerRenderer,
     LinesMesh,
-    Vector3
+    Vector3,
+    Quaternion
 } from "@babylonjs/core";
 import { HandlePosition, HandleType } from "./types";
 import { ResizeGizmoConfigManager } from "./ResizeGizmoConfig";
@@ -90,7 +91,7 @@ export class ResizeGizmoVisuals {
 
         // Update visuals
         this.updateBoundingBox();
-        this.updateHandlePositions();
+        this.updateHandleTransforms();
     }
 
     /**
@@ -240,7 +241,15 @@ export class ResizeGizmoVisuals {
                 this._utilityLayer.utilityLayerScene
             );
 
-            mesh.position = handle.position.clone();
+            // Extract and set rotation first (from world matrix)
+            const worldMatrix = this._targetMesh.computeWorldMatrix(true);
+            const rotation = new Quaternion();
+            worldMatrix.decompose(undefined, rotation, undefined);
+            mesh.rotationQuaternion = rotation;
+
+            // Set world-space position (works correctly with rotation)
+            mesh.setAbsolutePosition(handle.position);
+
             mesh.isPickable = true;
 
             // Create material
@@ -277,13 +286,24 @@ export class ResizeGizmoVisuals {
     }
 
     /**
-     * Update handle positions
+     * Update handle transforms (position and rotation)
      */
-    private updateHandlePositions(): void {
+    private updateHandleTransforms(): void {
+        if (!this._targetMesh) {
+            return;
+        }
+
         for (const handle of this._handles) {
             const mesh = this._handleMeshes.get(handle.id);
             if (mesh) {
-                mesh.position = handle.position.clone();
+                // Update rotation to match target mesh (from world matrix)
+                const worldMatrix = this._targetMesh.computeWorldMatrix(true);
+                const rotation = new Quaternion();
+                worldMatrix.decompose(undefined, rotation, undefined);
+                mesh.rotationQuaternion = rotation;
+
+                // Set world-space position (works correctly with rotation)
+                mesh.setAbsolutePosition(handle.position);
             }
         }
     }
