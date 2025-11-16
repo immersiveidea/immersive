@@ -1,5 +1,5 @@
 import {DiagramEntityType, DiagramEvent, DiagramEventType} from "./types/diagramEntity";
-import {AbstractMesh, ActionEvent, Observable, Ray, Scene, Vector3, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
+import {AbstractMesh, ActionEvent, Observable, Scene, Vector3, WebXRDefaultExperience, WebXRInputSource} from "@babylonjs/core";
 import {InputTextView} from "../information/inputTextView";
 import {DefaultScene} from "../defaultScene";
 import log from "loglevel";
@@ -7,29 +7,22 @@ import {Toolbox} from "../toolbox/toolbox";
 import {ClickMenu} from "../menus/clickMenu";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import {ConnectionPreview} from "../menus/connectionPreview";
-import {ScaleMenu2} from "../menus/ScaleMenu2";
 import {viewOnly} from "../util/functions/getPath";
 import {GroupMenu} from "../menus/groupMenu";
 import {ControllerEvent} from "../controllers/types/controllerEvent";
 import {ControllerEventType} from "../controllers/types/controllerEventType";
-import {ResizeGizmoManager} from "../gizmos/ResizeGizmo/ResizeGizmoManager";
-import {ResizeGizmoMode} from "../gizmos/ResizeGizmo/types";
-import {DiagramEntityAdapter} from "../integration/gizmo/DiagramEntityAdapter";
-import {toDiagramEntity} from "./functions/toDiagramEntity";
+import {ResizeGizmo} from "../gizmos/ResizeGizmo";
 
 
 export class DiagramMenuManager {
     public readonly toolbox: Toolbox;
-    public readonly scaleMenu: ScaleMenu2;
-    public readonly resizeGizmo: ResizeGizmoManager;
-    private readonly _resizeGizmoAdapter: DiagramEntityAdapter;
     private readonly _notifier: Observable<DiagramEvent>;
     private readonly _inputTextView: InputTextView;
     private _groupMenu: GroupMenu;
     private readonly _scene: Scene;
     private _logger = log.getLogger('DiagramMenuManager');
     private _connectionPreview: ConnectionPreview;
-    private _currentHoveredMesh: AbstractMesh | null = null;
+    private _activeResizeGizmo: ResizeGizmo | null = null;
 
     constructor(notifier: Observable<DiagramEvent>, controllerObservable: Observable<ControllerEvent>, readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
@@ -46,42 +39,8 @@ export class DiagramMenuManager {
         });
         this.toolbox = new Toolbox(readyObservable);
 
-
-        this.scaleMenu = new ScaleMenu2(this._notifier);
-
-        // Initialize ResizeGizmo with auto-show on hover
-        this.resizeGizmo = new ResizeGizmoManager(this._scene, {
-            mode: ResizeGizmoMode.ALL,
-            enableSnapping: true,
-            snapDistanceX: 0.1,
-            snapDistanceY: 0.1,
-            snapDistanceZ: 0.1,
-            showNumericDisplay: true,
-            showGrid: true,
-            showSnapPoints: true,
-            hapticFeedback: true,
-            showBoundingBoxOnHoverOnly: false
-        });
-
-        // Create adapter for DiagramEntity persistence
-        // Inject toDiagramEntity converter for loose coupling
-        this._resizeGizmoAdapter = new DiagramEntityAdapter(
-            this.resizeGizmo,
-            { onDiagramEventObservable: this._notifier } as any,
-            toDiagramEntity,  // Injected mesh-to-entity converter
-            false             // Don't persist on drag, only on scale end
-        );
-
-        // Setup update loop for resize gizmo
-        this._scene.onBeforeRenderObservable.add(() => {
-            this.resizeGizmo.update();
-        });
-
         if (viewOnly()) {
             this.toolbox.handleMesh.setEnabled(false);
-            this.resizeGizmo.setEnabled(false);
-            //this.scaleMenu.handleMesh.setEnabled(false)
-            //  this.configMenu.handleTransformNode.setEnabled(false);
         }
         controllerObservable.add((event: ControllerEvent) => {
             if (event.type == ControllerEventType.B_BUTTON) {
@@ -126,6 +85,32 @@ export class DiagramMenuManager {
         this._inputTextView.show(mesh);
     }
 
+    public activateResizeGizmo(mesh: AbstractMesh) {
+        // Dispose existing gizmo if any
+        if (this._activeResizeGizmo) {
+            this._activeResizeGizmo.dispose();
+            this._activeResizeGizmo = null;
+        }
+
+        // Create new resize gizmo for the mesh
+        this._activeResizeGizmo = new ResizeGizmo(mesh);
+
+        // Listen for scale end event to notify diagram manager
+        this._activeResizeGizmo.onScaleEnd.add(() => {
+            this.notifyAll({
+                type: DiagramEventType.MODIFY,
+                entity: {id: mesh.id, type: DiagramEntityType.ENTITY}
+            });
+        });
+    }
+
+    public disposeResizeGizmo() {
+        if (this._activeResizeGizmo) {
+            this._activeResizeGizmo.dispose();
+            this._activeResizeGizmo = null;
+        }
+    }
+
     public createClickMenu(mesh: AbstractMesh, input: WebXRInputSource): ClickMenu {
         const clickMenu = new ClickMenu(mesh);
         clickMenu.onClickMenuObservable.add((evt: ActionEvent) => {
@@ -145,14 +130,14 @@ export class DiagramMenuManager {
                     this._connectionPreview = new ConnectionPreview(clickMenu.mesh.id, input, evt.additionalData.pickedPoint, this._notifier);
                     break;
                 case "size":
-                    this.scaleMenu.show(clickMenu.mesh);
+                    this.activateResizeGizmo(clickMenu.mesh);
                     break;
                 case "group":
                     this._groupMenu = new GroupMenu(clickMenu.mesh);
                     break;
-                case "close":
-                    this.scaleMenu.hide();
-                    break;
+                // case "close":
+                //     // DISCONNECTED - Ready for new scaling implementation
+                //     break;
             }
             this._logger.debug(evt);
 
@@ -167,96 +152,5 @@ export class DiagramMenuManager {
 
     public setXR(xr: WebXRDefaultExperience): void {
         this.toolbox.setXR(xr);
-
-        // Register controllers with resize gizmo when they're added
-        xr.input.onControllerAddedObservable.add((controller) => {
-            this.resizeGizmo.registerController(controller);
-        });
-
-        xr.input.onControllerRemovedObservable.add((controller) => {
-            this.resizeGizmo.unregisterController(controller);
-        });
-
-        // Configure pointer selection to exclude utility layer meshes (primary defense against event leak-through)
-        if (xr.pointerSelection) {
-            const utilityScene = this.resizeGizmo.getUtilityScene();
-
-            // Wrap or replace the mesh predicate
-            const originalMeshPredicate = xr.pointerSelection.meshPredicate;
-
-            xr.pointerSelection.meshPredicate = (mesh) => {
-                // Exclude utility layer meshes (gizmo handles)
-                if (mesh.getScene() === utilityScene) {
-                    return false;
-                }
-
-                // Apply original predicate if it exists
-                if (originalMeshPredicate) {
-                    return originalMeshPredicate(mesh);
-                }
-
-                // Default: mesh must be pickable, visible, and enabled
-                return mesh.isPickable && mesh.isVisible && mesh.isEnabled();
-            };
-        }
-    }
-
-    /**
-     * Handle pointer hovering over a diagram object
-     * Auto-shows resize gizmo
-     */
-    public handleDiagramObjectHover(mesh: AbstractMesh | null, pointerPosition?: Vector3): void {
-        // If hovering same mesh, do nothing
-        if (mesh === this._currentHoveredMesh) {
-            return;
-        }
-
-        // If no longer hovering any mesh, check if we should keep gizmo active
-        if (!mesh) {
-            if (this._currentHoveredMesh) {
-                // Check if pointer is still near the gizmo or within bounding box
-                const shouldKeepActive = this.shouldKeepGizmoActive(pointerPosition);
-
-                if (!shouldKeepActive) {
-                    this.resizeGizmo.detachFromMesh();
-                    this._currentHoveredMesh = null;
-                }
-            }
-            return;
-        }
-
-        // Hovering new mesh, attach gizmo
-        this._currentHoveredMesh = mesh;
-        this.resizeGizmo.attachToMesh(mesh);
-
-    }
-
-    /**
-     * Check if gizmo should remain active
-     * Trusts ResizeGizmo's internal state management rather than recalculating
-     */
-    private shouldKeepGizmoActive(pointerPosition?: Vector3): boolean {
-        if (!this._currentHoveredMesh) {
-            return false;
-        }
-
-        // Trust ResizeGizmo's internal state management
-        // ResizeGizmo already tracks hover state correctly with proper controller rays
-        const state = this.resizeGizmo.getInteractionState();
-
-        // Keep active if ResizeGizmo is in any active state:
-        // - ACTIVE_SCALING: User is actively scaling (grip held)
-        // - HOVER_HANDLE: Pointer is hovering a handle (ready to scale)
-        // - HOVER_MESH: Pointer is within handle boundary (grace zone)
-        return state === 'ACTIVE_SCALING' ||
-               state === 'HOVER_HANDLE' ||
-               state === 'HOVER_MESH';
-    }
-
-    /**
-     * Register a controller with the resize gizmo
-     */
-    public registerControllerWithGizmo(controller: WebXRInputSource): void {
-        this.resizeGizmo.registerController(controller);
     }
 }
