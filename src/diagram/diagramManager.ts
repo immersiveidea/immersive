@@ -111,10 +111,6 @@ export class DiagramManager {
         return this._diagramEntityActionManager;
     }
 
-    public get diagramMenuManager(): DiagramMenuManager {
-        return this._diagramMenuManager;
-    }
-
     public getDiagramObject(id: string) {
         return this._diagramObjects.get(id);
     }
@@ -147,6 +143,7 @@ export class DiagramManager {
         switch (event.type) {
             case DiagramEventType.CLEAR:
                 this._diagramObjects.forEach((value) => {
+
                     value.dispose();
                 });
                 this._diagramObjects.clear();

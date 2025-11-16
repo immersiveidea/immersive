@@ -23,6 +23,7 @@ export class DiagramMenuManager {
     private _logger = log.getLogger('DiagramMenuManager');
     private _connectionPreview: ConnectionPreview;
     private _activeResizeGizmo: ResizeGizmo | null = null;
+    private _xr: WebXRDefaultExperience | null = null;
 
     constructor(notifier: Observable<DiagramEvent>, controllerObservable: Observable<ControllerEvent>, readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
@@ -92,8 +93,14 @@ export class DiagramMenuManager {
             this._activeResizeGizmo = null;
         }
 
+        // XR must be available to create resize gizmo
+        if (!this._xr) {
+            this._logger.warn('Cannot activate resize gizmo: XR not initialized');
+            return;
+        }
+
         // Create new resize gizmo for the mesh
-        this._activeResizeGizmo = new ResizeGizmo(mesh);
+        this._activeResizeGizmo = new ResizeGizmo(mesh, this._xr);
 
         // Listen for scale end event to notify diagram manager
         this._activeResizeGizmo.onScaleEnd.add(() => {
@@ -135,9 +142,9 @@ export class DiagramMenuManager {
                 case "group":
                     this._groupMenu = new GroupMenu(clickMenu.mesh);
                     break;
-                // case "close":
-                //     // DISCONNECTED - Ready for new scaling implementation
-                //     break;
+                case "close":
+                    this.disposeResizeGizmo();
+                    break;
             }
             this._logger.debug(evt);
 
@@ -151,6 +158,7 @@ export class DiagramMenuManager {
     }
 
     public setXR(xr: WebXRDefaultExperience): void {
+        this._xr = xr;
         this.toolbox.setXR(xr);
     }
 }

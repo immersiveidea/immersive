@@ -4,6 +4,9 @@ import {Rigplatform} from "./rigplatform";
 import {DiagramManager} from "../diagram/diagramManager";
 import {wheelHandler} from "./functions/wheelHandler";
 import log, {Logger} from "loglevel";
+import {DiagramEntityType, DiagramEventType, DiagramTemplates} from "../diagram/types/diagramEntity";
+import {DiagramEventObserverMask} from "../diagram/types/diagramEventObserverMask";
+import {getToolboxColors} from "../toolbox/toolbox";
 
 export class WebController {
     private readonly scene: Scene;
@@ -93,6 +96,18 @@ export class WebController {
                         }
 
                          */
+                        break;
+                    case "T":
+                        // Ctrl+Shift+T: Create test entities (sphere and box)
+                        if (kbInfo.event.ctrlKey && kbInfo.event.shiftKey) {
+                            this.createTestEntities();
+                        }
+                        break;
+                    case "X":
+                        // Ctrl+Shift+X: Clear all entities from diagram
+                        if (kbInfo.event.ctrlKey && kbInfo.event.shiftKey) {
+                            this.clearAllEntities();
+                        }
                         break;
                     default:
 
@@ -239,5 +254,58 @@ export class WebController {
             }
         }
         this._mesh = mesh;
+    }
+
+    /**
+     * Create test entities for testing ResizeGizmo
+     * Creates a sphere at (-0.25, 1.5, 4) and a box at (0.25, 1.5, 4)
+     */
+    private createTestEntities(): void {
+        this.logger.info('Creating test entities (Ctrl+Shift+T)');
+
+        // Get first color from toolbox colors array
+        const firstColor = getToolboxColors()[0];
+        const colorHex = firstColor.replace('#', '');
+
+        // Create sphere
+        this.diagramManager.onDiagramEventObservable.notifyObservers({
+            type: DiagramEventType.ADD,
+            entity: {
+                id: `test-sphere-${colorHex}`,
+                type: DiagramEntityType.ENTITY,
+                template: DiagramTemplates.SPHERE,
+                position: { x: -0.25, y: 1.5, z: 4 },
+                scale: { x: 0.1, y: 0.1, z: 0.1 },
+                color: firstColor
+            }
+        }, DiagramEventObserverMask.ALL);
+
+        // Create box
+        this.diagramManager.onDiagramEventObservable.notifyObservers({
+            type: DiagramEventType.ADD,
+            entity: {
+                id: `test-box-${colorHex}`,
+                type: DiagramEntityType.ENTITY,
+                template: DiagramTemplates.BOX,
+                position: { x: 0.25, y: 1.5, z: 4 },
+                scale: { x: 0.1, y: 0.1, z: 0.1 },
+                color: firstColor
+            }
+        }, DiagramEventObserverMask.ALL);
+
+        this.logger.info(`Test entities created with color ${firstColor}: test-sphere-${colorHex} at (-0.25, 1.5, 4) and test-box-${colorHex} at (0.25, 1.5, 4)`);
+    }
+
+    /**
+     * Clear all entities from the diagram
+     */
+    private clearAllEntities(): void {
+        this.logger.info('Clearing all entities from diagram (Ctrl+Shift+X)');
+
+        this.diagramManager.onDiagramEventObservable.notifyObservers({
+            type: DiagramEventType.CLEAR
+        }, DiagramEventObserverMask.TO_DB);
+
+        this.logger.info('All entities cleared from diagram');
     }
 }
