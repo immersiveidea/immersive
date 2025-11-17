@@ -4,6 +4,7 @@ import {
     Observable,
     Observer,
     PickingInfo,
+    Quaternion,
     Ray,
     Scene,
     StandardMaterial,
@@ -15,7 +16,7 @@ import {
 } from '@babylonjs/core';
 
 import log from 'loglevel';
-import { HandleState, CORNER_POSITIONS} from './enums';
+import { HandleState, CORNER_POSITIONS, FACE_POSITIONS} from './enums';
 import { ResizeGizmoEvent } from './types';
 
 /**
@@ -41,9 +42,15 @@ export class ResizeGizmo {
     private _isScaling: boolean = false;
     private _activeController: WebXRInputSource | null = null;
     private _activeHandle: AbstractMesh | null = null;
+    private _activeHandleType: 'corner' | 'face' = 'corner';
+    private _activeAxis: 'x' | 'y' | 'z' | null = null; // Only used for face handles
     private _originalStickLength: number = 0;
     private _originalHandleDistance: number = 0;
     private _initialScale: Vector3 | null = null;
+
+    // Track target mesh transform changes
+    private _lastPosition: Vector3 | null = null;
+    private _lastRotationQuaternion: Quaternion | null = null;
 
     // Frame update observer
     private _frameObserver: Observer<Scene> | null = null;
@@ -99,33 +106,33 @@ export class ResizeGizmo {
     }
 
     /**
-     * Create 8 corner handles as 0.1 size cubes
+     * Create corner and face handles
      */
     private createHandles(): void {
         // Get bounding box for positioning
-
         const targetBoundingInfo = this._targetMesh.getBoundingInfo();
         const boundingBox = targetBoundingInfo.boundingBox;
-
+        const bboxCenter = boundingBox.centerWorld;
+        const extents = boundingBox.extendSize;
         const innerCorners = boundingBox.vectorsWorld;
+        const worldMatrix = this._targetMesh.getWorldMatrix();
 
+        // Calculate handle size once (based on corner distance)
+        const handleSize = innerCorners[0].subtract(bboxCenter).length() * .2;
 
+        // Create corner handles
         CORNER_POSITIONS.forEach((cornerDef, index) => {
-
             const cornerPos = innerCorners[index];
-            const size = cornerPos.subtract(boundingBox.centerWorld).length() * .2;
-
 
             const handleMesh = MeshBuilder.CreateBox(
                 `resizeHandle_${cornerDef.name}`,
-                { size: size },
+                { size: handleSize },
                 this._utilityLayer.utilityLayerScene
             );
 
             // Position outward from center so handle corner touches bounding box corner
-            // Cube diagonal = size * sqrt(3), so half diagonal = size * sqrt(3) / 2
-            const direction = cornerPos.subtract(boundingBox.centerWorld).normalize();
-            const offset = direction.scale(size * Math.sqrt(3) / 2);
+            const direction = cornerPos.subtract(bboxCenter).normalize();
+            const offset = direction.scale(handleSize * Math.sqrt(3) / 2);
             handleMesh.position = cornerPos.add(offset);
             handleMesh.rotationQuaternion = this._targetMesh.absoluteRotationQuaternion;
             handleMesh.material = this._handleMaterial;
@@ -134,7 +141,34 @@ export class ResizeGizmo {
             this._handles.push(handleMesh);
         });
 
-        this._logger.debug(`Created ${this._handles.length} corner handles`);
+        // Create face handles
+        FACE_POSITIONS.forEach((faceDef) => {
+            // Calculate face center position in world space
+            const localFacePos = new Vector3(
+                faceDef.position.x * extents.x,
+                faceDef.position.y * extents.y,
+                faceDef.position.z * extents.z
+            );
+            const faceCenterWorld = Vector3.TransformCoordinates(localFacePos, worldMatrix);
+
+            const handleMesh = MeshBuilder.CreateBox(
+                `resizeHandle_${faceDef.name}`,
+                { size: handleSize },
+                this._utilityLayer.utilityLayerScene
+            );
+
+            // Position outward from center so handle touches face center
+            const direction = faceCenterWorld.subtract(bboxCenter).normalize();
+            const offset = direction.scale(handleSize * Math.sqrt(3) / 2);
+            handleMesh.position = faceCenterWorld.add(offset);
+            handleMesh.rotationQuaternion = this._targetMesh.absoluteRotationQuaternion;
+            handleMesh.material = this._handleMaterial;
+            handleMesh.isPickable = true;
+
+            this._handles.push(handleMesh);
+        });
+
+        this._logger.debug(`Created ${this._handles.length} handles (8 corner + 6 face)`);
     }
 
 
@@ -142,6 +176,10 @@ export class ResizeGizmo {
      * Set up per-frame updates
      */
     private setupFrameUpdates(): void {
+        // Initialize position and rotation tracking
+        this._lastPosition = this._targetMesh.absolutePosition.clone();
+        this._lastRotationQuaternion = this._targetMesh.absoluteRotationQuaternion.clone();
+
         this._frameObserver = this._scene.onBeforeRenderObservable.add(() => {
             // Check for handle picking with XR controllers
             this.checkXRControllerPicking();
@@ -149,6 +187,9 @@ export class ResizeGizmo {
             // Update scaling if active
             if (this._isScaling) {
                 this.updateScaling();
+            } else {
+                // Only check for transform changes when not actively scaling
+                this.checkTransformChanges();
             }
         });
     }
@@ -275,6 +316,23 @@ export class ResizeGizmo {
             // Store initial scale
             this._initialScale = this._targetMesh.scaling.clone();
 
+            // Determine handle type and axis from handle name
+            const handleName = this._hoveredHandle.name;
+            if (handleName.includes('FACE_')) {
+                this._activeHandleType = 'face';
+                // Extract axis from face name (FACE_POS_X, FACE_NEG_Y, etc.)
+                if (handleName.includes('_X')) {
+                    this._activeAxis = 'x';
+                } else if (handleName.includes('_Y')) {
+                    this._activeAxis = 'y';
+                } else if (handleName.includes('_Z')) {
+                    this._activeAxis = 'z';
+                }
+            } else {
+                this._activeHandleType = 'corner';
+                this._activeAxis = null;
+            }
+
             // Set scaling state
             this._isScaling = true;
             this._activeController = controller;
@@ -283,7 +341,7 @@ export class ResizeGizmo {
             // Change outline to blue to indicate grabbed state
             this._activeHandle.edgesColor = Color4.FromColor3(Color3.Blue());
 
-            this._logger.debug(`Scaling started: stickLength=${this._originalStickLength}, handleDistance=${this._originalHandleDistance}`);
+            this._logger.debug(`Scaling started: type=${this._activeHandleType}, axis=${this._activeAxis}, stickLength=${this._originalStickLength}, handleDistance=${this._originalHandleDistance}`);
         }
     }
 
@@ -297,11 +355,20 @@ export class ResizeGizmo {
 
             // Snap scale to 0.1 increments
             const currentScale = this._targetMesh.scaling;
-            const roundedScale = new Vector3(
-                Math.round(currentScale.x * 10) / 10,
-                Math.round(currentScale.y * 10) / 10,
-                Math.round(currentScale.z * 10) / 10
-            );
+            let roundedScale: Vector3;
+
+            if (this._activeHandleType === 'face' && this._activeAxis) {
+                // Face handle: only round the active axis
+                roundedScale = currentScale.clone();
+                roundedScale[this._activeAxis] = Math.round(currentScale[this._activeAxis] * 10) / 10;
+            } else {
+                // Corner handle: round all axes
+                roundedScale = new Vector3(
+                    Math.round(currentScale.x * 10) / 10,
+                    Math.round(currentScale.y * 10) / 10,
+                    Math.round(currentScale.z * 10) / 10
+                );
+            }
 
             // Apply snapped scale
             this._targetMesh.scaling = roundedScale;
@@ -352,11 +419,99 @@ export class ResizeGizmo {
         // Calculate scale ratio
         const scaleRatio = newDistance / this._originalHandleDistance;
 
-        // Apply uniform scaling (smooth, no snapping yet)
-        this._targetMesh.scaling = this._initialScale.scale(scaleRatio);
+        // Apply scaling based on handle type
+        if (this._activeHandleType === 'face' && this._activeAxis) {
+            // Face handle: scale only on the active axis
+            const newScale = this._initialScale.clone();
+            newScale[this._activeAxis] = this._initialScale[this._activeAxis] * scaleRatio;
+            this._targetMesh.scaling = newScale;
+        } else {
+            // Corner handle: uniform scaling on all axes
+            this._targetMesh.scaling = this._initialScale.scale(scaleRatio);
+        }
+
+        // Update handle positions and sizes to match new bounding box
+        this.updateHandleTransforms();
 
         // Notify observers
         this.onScaleDrag.notifyObservers({ mesh: this._targetMesh });
+    }
+
+    /**
+     * Check if target mesh position or rotation has changed, and update handles if needed
+     */
+    private checkTransformChanges(): void {
+        if (!this._lastPosition || !this._lastRotationQuaternion) return;
+
+        const currentPosition = this._targetMesh.absolutePosition;
+        const currentRotationQuaternion = this._targetMesh.absoluteRotationQuaternion;
+
+        // Check if position changed (using a small epsilon for floating point comparison)
+        const positionChanged = !currentPosition.equalsWithEpsilon(this._lastPosition, 0.0001);
+
+        // Check if rotation changed
+        const rotationChanged = !currentRotationQuaternion.equalsWithEpsilon(this._lastRotationQuaternion, 0.0001);
+
+        if (positionChanged || rotationChanged) {
+            // Update handles to match new transform
+            this.updateHandleTransforms();
+
+            // Update tracked values
+            this._lastPosition = currentPosition.clone();
+            this._lastRotationQuaternion = currentRotationQuaternion.clone();
+        }
+    }
+
+    /**
+     * Update handle positions and sizes to match current target mesh bounding box
+     */
+    private updateHandleTransforms(): void {
+        const targetBoundingInfo = this._targetMesh.getBoundingInfo();
+        const boundingBox = targetBoundingInfo.boundingBox;
+        const bboxCenter = boundingBox.centerWorld;
+        const extents = boundingBox.extendSize;
+        const innerCorners = boundingBox.vectorsWorld;
+        const worldMatrix = this._targetMesh.getWorldMatrix();
+
+        // Recalculate handle size based on new bounding box
+        const newHandleSize = innerCorners[0].subtract(bboxCenter).length() * .2;
+
+        let handleIndex = 0;
+
+        // Update corner handles (first 8 handles)
+        for (let i = 0; i < CORNER_POSITIONS.length; i++) {
+            const handle = this._handles[handleIndex];
+            const cornerPos = innerCorners[i];
+
+            // Update position
+            const direction = cornerPos.subtract(bboxCenter).normalize();
+            const offset = direction.scale(newHandleSize * Math.sqrt(3) / 2);
+            handle.position = cornerPos.add(offset);
+            handle.rotationQuaternion = this._targetMesh.absoluteRotationQuaternion;
+
+            handleIndex++;
+        }
+
+        // Update face handles (next 6 handles)
+        for (const faceDef of FACE_POSITIONS) {
+            const handle = this._handles[handleIndex];
+
+            // Calculate face center position in world space
+            const localFacePos = new Vector3(
+                faceDef.position.x * extents.x,
+                faceDef.position.y * extents.y,
+                faceDef.position.z * extents.z
+            );
+            const faceCenterWorld = Vector3.TransformCoordinates(localFacePos, worldMatrix);
+
+            // Update position
+            const direction = faceCenterWorld.subtract(bboxCenter).normalize();
+            const offset = direction.scale(newHandleSize * Math.sqrt(3) / 2);
+            handle.position = faceCenterWorld.add(offset);
+            handle.rotationQuaternion = this._targetMesh.absoluteRotationQuaternion;
+
+            handleIndex++;
+        }
     }
 
     /**

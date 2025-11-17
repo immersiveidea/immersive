@@ -4,6 +4,10 @@ import log from "loglevel";
 
 export class DefaultScene {
     private static _Scene: Scene;
+    private static _UtilityScene: Scene;
+    public static get UtilityScene(): Scene {
+        return this._UtilityScene;
+    }
 
     public static get Scene(): Scene {
         if (!DefaultScene._Scene) {

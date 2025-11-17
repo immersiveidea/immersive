@@ -83,3 +83,40 @@ export const CORNER_POSITIONS: readonly HandlePositionDef[] = [
         description: 'Top-front-left (-X, +Y, +Z)'
     },
 ] as const;
+
+/**
+ * Face handle positions as static constants
+ * Normalized coordinates have one axis at 0 (face center), others at -1 or +1
+ */
+export const FACE_POSITIONS: readonly HandlePositionDef[] = [
+    {
+        name: 'FACE_POS_X',
+        position: { x: +1, y: 0, z: 0 },
+        description: 'Right face (+X)'
+    },
+    {
+        name: 'FACE_NEG_X',
+        position: { x: -1, y: 0, z: 0 },
+        description: 'Left face (-X)'
+    },
+    {
+        name: 'FACE_POS_Y',
+        position: { x: 0, y: +1, z: 0 },
+        description: 'Top face (+Y)'
+    },
+    {
+        name: 'FACE_NEG_Y',
+        position: { x: 0, y: -1, z: 0 },
+        description: 'Bottom face (-Y)'
+    },
+    {
+        name: 'FACE_POS_Z',
+        position: { x: 0, y: 0, z: +1 },
+        description: 'Front face (+Z)'
+    },
+    {
+        name: 'FACE_NEG_Z',
+        position: { x: 0, y: 0, z: -1 },
+        description: 'Back face (-Z)'
+    },
+] as const;

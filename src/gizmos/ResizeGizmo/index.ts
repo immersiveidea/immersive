@@ -8,6 +8,6 @@
  */
 
 export { ResizeGizmo } from './ResizeGizmo';
-export type { ResizeGizmoEvent, HandleInfo } from './types';
+export type { ResizeGizmoEvent } from './types';
 export type { HandlePositionDef } from './enums';
-export { HandleType, HandleState, CORNER_POSITIONS } from './enums';
+export { HandleType, HandleState, CORNER_POSITIONS, FACE_POSITIONS } from './enums';
