@@ -1,6 +1,7 @@
 import {
     AbstractActionManager,
     AbstractMesh,
+    Color3,
     Curve3,
     GreasedLineMesh,
     InstancedMesh,
@@ -9,6 +10,7 @@ import {
     Observer,
     Ray,
     Scene,
+    StandardMaterial,
     TransformNode,
     Vector3
 } from "@babylonjs/core";
@@ -20,6 +22,21 @@ import {createLabel} from "./functions/createLabel";
 import {DiagramEventObserverMask} from "./types/diagramEventObserverMask";
 import log, {Logger} from "loglevel";
 import {xyztovec} from "./functions/vectorConversion";
+import {AnimatedLineTexture} from "../util/animatedLineTexture";
+import {getToolboxColors} from "../toolbox/toolbox";
+import {findClosestColor} from "../util/functions/findClosestColor";
+
+/**
+ * Converts a Color3 to a hex color string
+ * @param color - BabylonJS Color3
+ * @returns Hex color string (e.g., '#ff0000')
+ */
+function color3ToHex(color: Color3): string {
+    const r = Math.floor(color.r * 255).toString(16).padStart(2, '0');
+    const g = Math.floor(color.g * 255).toString(16).padStart(2, '0');
+    const b = Math.floor(color.b * 255).toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+}
 
 type DiagramObjectOptionsType = {
     diagramEntity?: DiagramEntity,
@@ -374,6 +391,52 @@ export class DiagramObject {
         curve.setParent(null);
         curve.setPoints([p]);
         this._baseTransform.position = c.getPoints()[Math.floor(c.getPoints().length / 2)];
+
+        // Update connection texture color to match the "from" mesh using toolbox color
+        let hexColor: string | null = null;
+
+        // Extract color using same priority system as toDiagramEntity
+        if (this._fromMesh.metadata?.color) {
+            // Priority 1: Explicit metadata color (most reliable)
+            hexColor = this._fromMesh.metadata.color;
+        } else if (this._fromMesh instanceof InstancedMesh && this._fromMesh.sourceMesh?.id) {
+            // Priority 2: Extract from tool mesh ID (e.g., "tool-#box-template-#FF0000")
+            const toolId = this._fromMesh.sourceMesh.id;
+            const parts = toolId.split('-');
+            if (parts.length >= 3 && parts[0] === 'tool') {
+                const color = parts.slice(2).join('-'); // Handle colors with dashes
+                if (color.startsWith('#')) {
+                    hexColor = color.toLowerCase(); // Normalize to lowercase
+                }
+            }
+        } else {
+            // Priority 3: Fallback to material extraction
+            const fromMaterial = this._fromMesh.material as StandardMaterial;
+            if (fromMaterial) {
+                const fromColor = fromMaterial.diffuseColor || fromMaterial.emissiveColor || Color3.White();
+                hexColor = color3ToHex(fromColor);
+            }
+        }
+
+        if (hexColor) {
+            // Find the closest toolbox color
+            const availableColors = getToolboxColors();
+            const closestColor = findClosestColor(hexColor, availableColors);
+
+            // Get or create material
+            const material = curve.material as StandardMaterial;
+            if (material) {
+                // Dispose old texture if it exists
+                if (material.emissiveTexture) {
+                    AnimatedLineTexture.DisposeTexture(material.emissiveTexture);
+                }
+
+                // Create new colored texture using the closest toolbox color
+                const coloredTexture = AnimatedLineTexture.CreateColoredTexture(closestColor);
+                material.emissiveTexture = coloredTexture;
+                material.opacityTexture = coloredTexture;
+            }
+        }
 
         // Update cached positions after successful update
         this._lastFromPosition = this._fromMesh.getAbsolutePosition().clone();
