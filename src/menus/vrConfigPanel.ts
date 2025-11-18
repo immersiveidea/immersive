@@ -1,5 +1,6 @@
 import {
     AdvancedDynamicTexture,
+    Button,
     Control,
     Rectangle,
     StackPanel,
@@ -49,6 +50,11 @@ export class VRConfigPanel {
     private _flyModeContent: StackPanel;
     private _snapTurnContent: StackPanel;
     private _labelModeContent: StackPanel;
+
+    // Location Snap UI controls
+    private _locationSnapEnabled: boolean = true;
+    private _locationSnapToggle: Button;
+    private _locationSnapButtons: Map<number, Button> = new Map();
 
     constructor(scene: Scene) {
         this._scene = scene || DefaultScene.Scene;
@@ -170,10 +176,11 @@ export class VRConfigPanel {
         this._panelMesh.material = material;
 
         // Create AdvancedDynamicTexture with high resolution for crisp text in VR
+        // Match aspect ratio of plane (2m x 1.5m = 4:3)
         this._advancedTexture = AdvancedDynamicTexture.CreateForMesh(
             this._panelMesh,
             2048,  // Width in pixels
-            2048   // Height in pixels (square for now, will adjust if needed)
+            1536   // Height in pixels (4:3 aspect ratio)
         );
 
         // Create main container (vertical stack)
@@ -212,6 +219,7 @@ export class VRConfigPanel {
     private buildConfigSections(): void {
         // Section 1: Location Snap
         this._locationSnapContent = this.createSectionContainer("Location Snap");
+        this.buildLocationSnapControls();
         this.addSeparator();
 
         // Section 2: Rotation Snap
@@ -238,7 +246,7 @@ export class VRConfigPanel {
         const section = new StackPanel(`section_${sectionTitle.replace(/\s+/g, '_')}`);
         section.isVertical = true;
         section.width = "100%";
-        section.height = "auto";
+        section.adaptHeightToChildren = true;
         section.paddingTop = "20px";
         section.paddingBottom = "20px";
         this._mainContainer.addControl(section);
@@ -257,7 +265,7 @@ export class VRConfigPanel {
         const contentContainer = new StackPanel(`content_${sectionTitle.replace(/\s+/g, '_')}`);
         contentContainer.isVertical = true;
         contentContainer.width = "100%";
-        contentContainer.height = "auto";
+        contentContainer.adaptHeightToChildren = true;
         contentContainer.paddingLeft = "40px";
         contentContainer.paddingRight = "40px";
         section.addControl(contentContainer);
@@ -278,6 +286,125 @@ export class VRConfigPanel {
         separator.paddingTop = "10px";
         separator.paddingBottom = "10px";
         this._mainContainer.addControl(separator);
+    }
+
+    /**
+     * Build Location Snap controls
+     */
+    private buildLocationSnapControls(): void {
+        const currentSnap = appConfigInstance.current.locationSnap;
+        this._locationSnapEnabled = currentSnap > 0;
+
+        // Create horizontal container for toggle button
+        const toggleContainer = new StackPanel("locationSnapToggleContainer");
+        toggleContainer.isVertical = false;
+        toggleContainer.width = "100%";
+        toggleContainer.height = "80px";
+        toggleContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        toggleContainer.paddingBottom = "20px";
+        this._locationSnapContent.addControl(toggleContainer);
+
+        // Create toggle button
+        this._locationSnapToggle = Button.CreateSimpleButton(
+            "locationSnapToggle",
+            this._locationSnapEnabled ? "Enabled" : "Disabled"
+        );
+        this._locationSnapToggle.width = "300px";
+        this._locationSnapToggle.height = "70px";
+        this._locationSnapToggle.fontSize = 48;
+        this._locationSnapToggle.color = "white";
+        this._locationSnapToggle.background = this._locationSnapEnabled ? "#4A9EFF" : "#666666";
+        this._locationSnapToggle.thickness = 0;
+        this._locationSnapToggle.cornerRadius = 10;
+        toggleContainer.addControl(this._locationSnapToggle);
+
+        // Toggle button click handler
+        this._locationSnapToggle.onPointerClickObservable.add(() => {
+            this._locationSnapEnabled = !this._locationSnapEnabled;
+            this._locationSnapToggle.textBlock.text = this._locationSnapEnabled ? "Enabled" : "Disabled";
+            this._locationSnapToggle.background = this._locationSnapEnabled ? "#4A9EFF" : "#666666";
+
+            if (this._locationSnapEnabled) {
+                // Re-enable with last selected value or default
+                const lastValue = appConfigInstance.current.locationSnap || 0.1;
+                appConfigInstance.setGridSnap(lastValue > 0 ? lastValue : 0.1);
+                this.updateLocationSnapButtonStates(lastValue);
+            } else {
+                // Disable by setting to 0
+                appConfigInstance.setGridSnap(0);
+                this.updateLocationSnapButtonStates(0);
+            }
+        });
+
+        // Create horizontal container for snap value buttons
+        const valuesContainer = new StackPanel("locationSnapValuesContainer");
+        valuesContainer.isVertical = false;
+        valuesContainer.width = "100%";
+        valuesContainer.height = "80px";
+        valuesContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        this._locationSnapContent.addControl(valuesContainer);
+
+        // Define snap values
+        const snapValues = [
+            { value: 0.01, label: "1cm" },
+            { value: 0.05, label: "5cm" },
+            { value: 0.1, label: "10cm" },
+            { value: 0.5, label: "50cm" },
+            { value: 1.0, label: "1m" }
+        ];
+
+        // Create button for each snap value
+        snapValues.forEach((snap, index) => {
+            const isSelected = this._locationSnapEnabled && Math.abs(currentSnap - snap.value) < 0.001;
+
+            const btn = Button.CreateSimpleButton(`locationSnap_${snap.value}`, snap.label);
+            btn.width = "120px";
+            btn.height = "70px";
+            btn.fontSize = 42;
+            btn.color = "white";
+            btn.paddingRight = "10px";
+            btn.thickness = 0;
+            btn.cornerRadius = 8;
+
+            // Set initial appearance
+            if (isSelected) {
+                btn.background = "#4A9EFF";
+                btn.fontWeight = "bold";
+            } else {
+                btn.background = this._locationSnapEnabled ? "#333333" : "#222222";
+                btn.alpha = this._locationSnapEnabled ? 1.0 : 0.5;
+            }
+
+            // Click handler
+            btn.onPointerClickObservable.add(() => {
+                if (this._locationSnapEnabled) {
+                    appConfigInstance.setGridSnap(snap.value);
+                    this.updateLocationSnapButtonStates(snap.value);
+                }
+            });
+
+            this._locationSnapButtons.set(snap.value, btn);
+            valuesContainer.addControl(btn);
+        });
+    }
+
+    /**
+     * Update Location Snap button visual states
+     */
+    private updateLocationSnapButtonStates(selectedValue: number): void {
+        this._locationSnapButtons.forEach((btn, value) => {
+            const isSelected = this._locationSnapEnabled && Math.abs(selectedValue - value) < 0.001;
+
+            if (isSelected) {
+                btn.background = "#4A9EFF";
+                btn.fontWeight = "bold";
+            } else {
+                btn.background = this._locationSnapEnabled ? "#333333" : "#222222";
+                btn.fontWeight = "normal";
+            }
+
+            btn.alpha = this._locationSnapEnabled ? 1.0 : 0.5;
+        });
     }
 
     /**
@@ -307,11 +434,15 @@ export class VRConfigPanel {
     private updateUIFromConfig(config: AppConfigType): void {
         this._logger.debug('Updating UI from config', config);
 
-        // UI update logic will be implemented in subsequent phases
-        // For now, just log the config change
+        // Update Location Snap UI
+        if (this._locationSnapToggle && this._locationSnapButtons.size > 0) {
+            this._locationSnapEnabled = config.locationSnap > 0;
+            this._locationSnapToggle.textBlock.text = this._locationSnapEnabled ? "Enabled" : "Disabled";
+            this._locationSnapToggle.background = this._locationSnapEnabled ? "#4A9EFF" : "#666666";
+            this.updateLocationSnapButtonStates(config.locationSnap);
+        }
 
-        // Phase 3-7 will add:
-        // - Location snap UI update
+        // Phase 4-7 will add:
         // - Rotation snap UI update
         // - Fly mode UI update
         // - Snap turn UI update
