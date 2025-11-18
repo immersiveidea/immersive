@@ -56,6 +56,11 @@ export class VRConfigPanel {
     private _locationSnapToggle: Button;
     private _locationSnapButtons: Map<number, Button> = new Map();
 
+    // Rotation Snap UI controls
+    private _rotationSnapEnabled: boolean = true;
+    private _rotationSnapToggle: Button;
+    private _rotationSnapButtons: Map<number, Button> = new Map();
+
     constructor(scene: Scene) {
         this._scene = scene || DefaultScene.Scene;
         this._logger.debug('VRConfigPanel constructor called');
@@ -224,6 +229,7 @@ export class VRConfigPanel {
 
         // Section 2: Rotation Snap
         this._rotationSnapContent = this.createSectionContainer("Rotation Snap");
+        this.buildRotationSnapControls();
         this.addSeparator();
 
         // Section 3: Fly Mode
@@ -329,10 +335,12 @@ export class VRConfigPanel {
                 const lastValue = appConfigInstance.current.locationSnap || 0.1;
                 appConfigInstance.setGridSnap(lastValue > 0 ? lastValue : 0.1);
                 this.updateLocationSnapButtonStates(lastValue);
+                this.syncLegacyConfig();
             } else {
                 // Disable by setting to 0
                 appConfigInstance.setGridSnap(0);
                 this.updateLocationSnapButtonStates(0);
+                this.syncLegacyConfig();
             }
         });
 
@@ -380,6 +388,7 @@ export class VRConfigPanel {
                 if (this._locationSnapEnabled) {
                     appConfigInstance.setGridSnap(snap.value);
                     this.updateLocationSnapButtonStates(snap.value);
+                    this.syncLegacyConfig();
                 }
             });
 
@@ -404,6 +413,128 @@ export class VRConfigPanel {
             }
 
             btn.alpha = this._locationSnapEnabled ? 1.0 : 0.5;
+        });
+    }
+
+    /**
+     * Build Rotation Snap controls
+     */
+    private buildRotationSnapControls(): void {
+        const currentSnap = appConfigInstance.current.rotateSnap;
+        this._rotationSnapEnabled = currentSnap > 0;
+
+        // Create horizontal container for toggle button
+        const toggleContainer = new StackPanel("rotationSnapToggleContainer");
+        toggleContainer.isVertical = false;
+        toggleContainer.width = "100%";
+        toggleContainer.height = "80px";
+        toggleContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        toggleContainer.paddingBottom = "20px";
+        this._rotationSnapContent.addControl(toggleContainer);
+
+        // Create toggle button
+        this._rotationSnapToggle = Button.CreateSimpleButton(
+            "rotationSnapToggle",
+            this._rotationSnapEnabled ? "Enabled" : "Disabled"
+        );
+        this._rotationSnapToggle.width = "300px";
+        this._rotationSnapToggle.height = "70px";
+        this._rotationSnapToggle.fontSize = 48;
+        this._rotationSnapToggle.color = "white";
+        this._rotationSnapToggle.background = this._rotationSnapEnabled ? "#4A9EFF" : "#666666";
+        this._rotationSnapToggle.thickness = 0;
+        this._rotationSnapToggle.cornerRadius = 10;
+        toggleContainer.addControl(this._rotationSnapToggle);
+
+        // Toggle button click handler
+        this._rotationSnapToggle.onPointerClickObservable.add(() => {
+            this._rotationSnapEnabled = !this._rotationSnapEnabled;
+            this._rotationSnapToggle.textBlock.text = this._rotationSnapEnabled ? "Enabled" : "Disabled";
+            this._rotationSnapToggle.background = this._rotationSnapEnabled ? "#4A9EFF" : "#666666";
+
+            if (this._rotationSnapEnabled) {
+                // Re-enable with last selected value or default
+                const lastValue = appConfigInstance.current.rotateSnap || 90;
+                appConfigInstance.setRotateSnap(lastValue > 0 ? lastValue : 90);
+                this.updateRotationSnapButtonStates(lastValue);
+                this.syncLegacyConfig();
+            } else {
+                // Disable by setting to 0
+                appConfigInstance.setRotateSnap(0);
+                this.updateRotationSnapButtonStates(0);
+                this.syncLegacyConfig();
+            }
+        });
+
+        // Create horizontal container for snap value buttons
+        const valuesContainer = new StackPanel("rotationSnapValuesContainer");
+        valuesContainer.isVertical = false;
+        valuesContainer.width = "100%";
+        valuesContainer.height = "80px";
+        valuesContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        this._rotationSnapContent.addControl(valuesContainer);
+
+        // Define rotation snap values
+        const snapValues = [
+            { value: 22.5, label: "22.5°" },
+            { value: 45, label: "45°" },
+            { value: 90, label: "90°" },
+            { value: 180, label: "180°" },
+            { value: 360, label: "360°" }
+        ];
+
+        // Create button for each snap value
+        snapValues.forEach((snap) => {
+            const isSelected = this._rotationSnapEnabled && Math.abs(currentSnap - snap.value) < 0.001;
+
+            const btn = Button.CreateSimpleButton(`rotationSnap_${snap.value}`, snap.label);
+            btn.width = "120px";
+            btn.height = "70px";
+            btn.fontSize = 42;
+            btn.color = "white";
+            btn.paddingRight = "10px";
+            btn.thickness = 0;
+            btn.cornerRadius = 8;
+
+            // Set initial appearance
+            if (isSelected) {
+                btn.background = "#4A9EFF";
+                btn.fontWeight = "bold";
+            } else {
+                btn.background = this._rotationSnapEnabled ? "#333333" : "#222222";
+                btn.alpha = this._rotationSnapEnabled ? 1.0 : 0.5;
+            }
+
+            // Click handler
+            btn.onPointerClickObservable.add(() => {
+                if (this._rotationSnapEnabled) {
+                    appConfigInstance.setRotateSnap(snap.value);
+                    this.updateRotationSnapButtonStates(snap.value);
+                    this.syncLegacyConfig();
+                }
+            });
+
+            this._rotationSnapButtons.set(snap.value, btn);
+            valuesContainer.addControl(btn);
+        });
+    }
+
+    /**
+     * Update Rotation Snap button visual states
+     */
+    private updateRotationSnapButtonStates(selectedValue: number): void {
+        this._rotationSnapButtons.forEach((btn, value) => {
+            const isSelected = this._rotationSnapEnabled && Math.abs(selectedValue - value) < 0.001;
+
+            if (isSelected) {
+                btn.background = "#4A9EFF";
+                btn.fontWeight = "bold";
+            } else {
+                btn.background = this._rotationSnapEnabled ? "#333333" : "#222222";
+                btn.fontWeight = "normal";
+            }
+
+            btn.alpha = this._rotationSnapEnabled ? 1.0 : 0.5;
         });
     }
 
@@ -442,10 +573,39 @@ export class VRConfigPanel {
             this.updateLocationSnapButtonStates(config.locationSnap);
         }
 
-        // Phase 4-7 will add:
-        // - Rotation snap UI update
+        // Update Rotation Snap UI
+        if (this._rotationSnapToggle && this._rotationSnapButtons.size > 0) {
+            this._rotationSnapEnabled = config.rotateSnap > 0;
+            this._rotationSnapToggle.textBlock.text = this._rotationSnapEnabled ? "Enabled" : "Disabled";
+            this._rotationSnapToggle.background = this._rotationSnapEnabled ? "#4A9EFF" : "#666666";
+            this.updateRotationSnapButtonStates(config.rotateSnap);
+        }
+
+        // Phase 5-7 will add:
         // - Fly mode UI update
         // - Snap turn UI update
         // - Label rendering mode UI update
+    }
+
+    /**
+     * Sync changes to legacy config for backward compatibility
+     * Legacy config is used by snapAll.ts and other older code
+     */
+    private syncLegacyConfig(): void {
+        const config = appConfigInstance.current;
+
+        const legacyConfig = {
+            locationSnap: config.locationSnap.toString(),
+            locationSnapEnabled: config.locationSnap > 0,
+            rotationSnap: config.rotateSnap.toString(),
+            rotationSnapEnabled: config.rotateSnap > 0,
+            snapTurnSnap: config.turnSnap.toString(),
+            snapTurnSnapEnabled: config.turnSnap > 0,
+            flyModeEnabled: config.flyMode,
+            labelRenderingMode: config.labelRenderingMode
+        };
+
+        localStorage.setItem('config', JSON.stringify(legacyConfig));
+        this._logger.debug('Synced legacy config', legacyConfig);
     }
 }
