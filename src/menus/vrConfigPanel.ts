@@ -61,6 +61,9 @@ export class VRConfigPanel {
     private _rotationSnapToggle: Button;
     private _rotationSnapButtons: Map<number, Button> = new Map();
 
+    // Fly Mode UI controls
+    private _flyModeToggle: Button;
+
     constructor(scene: Scene) {
         this._scene = scene || DefaultScene.Scene;
         this._logger.debug('VRConfigPanel constructor called');
@@ -234,6 +237,7 @@ export class VRConfigPanel {
 
         // Section 3: Fly Mode
         this._flyModeContent = this.createSectionContainer("Fly Mode");
+        this.buildFlyModeControls();
         this.addSeparator();
 
         // Section 4: Snap Turn
@@ -533,6 +537,43 @@ export class VRConfigPanel {
     }
 
     /**
+     * Build Fly Mode controls
+     */
+    private buildFlyModeControls(): void {
+        const flyModeEnabled = appConfigInstance.current.flyMode;
+
+        // Create horizontal container for toggle button
+        const toggleContainer = new StackPanel("flyModeToggleContainer");
+        toggleContainer.isVertical = false;
+        toggleContainer.width = "100%";
+        toggleContainer.height = "80px";
+        toggleContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        this._flyModeContent.addControl(toggleContainer);
+
+        // Create toggle button
+        this._flyModeToggle = Button.CreateSimpleButton(
+            "flyModeToggle",
+            flyModeEnabled ? "Fly Mode Enabled" : "Fly Mode Disabled"
+        );
+        this._flyModeToggle.width = "400px";
+        this._flyModeToggle.height = "70px";
+        this._flyModeToggle.fontSize = 48;
+        this._flyModeToggle.color = "white";
+        this._flyModeToggle.background = flyModeEnabled ? "#4A9EFF" : "#666666";
+        this._flyModeToggle.thickness = 0;
+        this._flyModeToggle.cornerRadius = 10;
+        toggleContainer.addControl(this._flyModeToggle);
+
+        // Toggle button click handler
+        this._flyModeToggle.onPointerClickObservable.add(() => {
+            const newValue = !appConfigInstance.current.flyMode;
+            appConfigInstance.setFlyMode(newValue);
+            this._flyModeToggle.textBlock.text = newValue ? "Fly Mode Enabled" : "Fly Mode Disabled";
+            this._flyModeToggle.background = newValue ? "#4A9EFF" : "#666666";
+        });
+    }
+
+    /**
      * Set up parenting to platform for world movement tracking
      */
     private setupPlatformParenting(): void {
@@ -575,8 +616,13 @@ export class VRConfigPanel {
             this.updateRotationSnapButtonStates(config.rotateSnap);
         }
 
-        // Phase 5-7 will add:
-        // - Fly mode UI update
+        // Update Fly Mode UI
+        if (this._flyModeToggle) {
+            this._flyModeToggle.textBlock.text = config.flyMode ? "Fly Mode Enabled" : "Fly Mode Disabled";
+            this._flyModeToggle.background = config.flyMode ? "#4A9EFF" : "#666666";
+        }
+
+        // Phase 6-7 will add:
         // - Snap turn UI update
         // - Label rendering mode UI update
     }
