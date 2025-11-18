@@ -4,7 +4,7 @@ import {WebController} from "../../controllers/webController";
 import {Rigplatform} from "../../controllers/rigplatform";
 import {DiagramManager} from "../../diagram/diagramManager";
 import {Spinner} from "../../objects/spinner";
-import {getAppConfig} from "../appConfig";
+import {appConfigInstance} from "../appConfig";
 import {Scene} from "@babylonjs/core";
 
 
@@ -114,9 +114,9 @@ export async function groundMeshObserver(ground: AbstractMesh,
     });
 
     const rig = new Rigplatform(xr, diagramManager);
-    const config = getAppConfig();
-    rig.flyMode = config.flyModeEnabled;
-    rig.turnSnap = parseFloat(config.snapTurnSnap);
+    const config = appConfigInstance.current;
+    rig.flyMode = config.flyMode;
+    rig.turnSnap = config.turnSnap;
     const webController = new WebController(ground.getScene(), rig, diagramManager);
 
     // Set XR on diagram manager so toolbox can create exit button

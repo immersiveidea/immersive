@@ -59,20 +59,6 @@ export default function ConfigModal({configOpened, closeConfig}) {
         appConfigInstance.setGridSnap(parseFloat(locationSnap));
         appConfigInstance.setRotateSnap(parseFloat(rotationSnap));
         appConfigInstance.setTurnSnap(parseFloat(snapTurnSnap));
-
-        // Also update legacy config for backward compatibility
-        const legacyConfig = {
-            locationSnap: locationSnap,
-            locationSnapEnabled: locationSnapEnabled,
-            rotationSnap: rotationSnap,
-            rotationSnapEnabled: rotationSnapEnabled,
-            snapTurnSnap: snapTurnSnap,
-            snapTurnSnapEnabled: snapTurnSnapEnabled,
-            flyModeEnabled: flyModeEnabled,
-            labelRenderingMode: labelRenderingMode
-        };
-        localStorage.setItem('config', JSON.stringify(legacyConfig));
-
     }, [locationSnap, locationSnapEnabled, rotationSnap, rotationSnapEnabled, snapTurnSnap, snapTurnSnapEnabled, flyModeEnabled, labelRenderingMode]);
     return (
         <Modal onClose={closeConfig} opened={configOpened}>

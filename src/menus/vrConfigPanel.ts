@@ -335,12 +335,10 @@ export class VRConfigPanel {
                 const lastValue = appConfigInstance.current.locationSnap || 0.1;
                 appConfigInstance.setGridSnap(lastValue > 0 ? lastValue : 0.1);
                 this.updateLocationSnapButtonStates(lastValue);
-                this.syncLegacyConfig();
             } else {
                 // Disable by setting to 0
                 appConfigInstance.setGridSnap(0);
                 this.updateLocationSnapButtonStates(0);
-                this.syncLegacyConfig();
             }
         });
 
@@ -388,7 +386,6 @@ export class VRConfigPanel {
                 if (this._locationSnapEnabled) {
                     appConfigInstance.setGridSnap(snap.value);
                     this.updateLocationSnapButtonStates(snap.value);
-                    this.syncLegacyConfig();
                 }
             });
 
@@ -457,12 +454,10 @@ export class VRConfigPanel {
                 const lastValue = appConfigInstance.current.rotateSnap || 90;
                 appConfigInstance.setRotateSnap(lastValue > 0 ? lastValue : 90);
                 this.updateRotationSnapButtonStates(lastValue);
-                this.syncLegacyConfig();
             } else {
                 // Disable by setting to 0
                 appConfigInstance.setRotateSnap(0);
                 this.updateRotationSnapButtonStates(0);
-                this.syncLegacyConfig();
             }
         });
 
@@ -510,7 +505,6 @@ export class VRConfigPanel {
                 if (this._rotationSnapEnabled) {
                     appConfigInstance.setRotateSnap(snap.value);
                     this.updateRotationSnapButtonStates(snap.value);
-                    this.syncLegacyConfig();
                 }
             });
 
@@ -585,27 +579,5 @@ export class VRConfigPanel {
         // - Fly mode UI update
         // - Snap turn UI update
         // - Label rendering mode UI update
-    }
-
-    /**
-     * Sync changes to legacy config for backward compatibility
-     * Legacy config is used by snapAll.ts and other older code
-     */
-    private syncLegacyConfig(): void {
-        const config = appConfigInstance.current;
-
-        const legacyConfig = {
-            locationSnap: config.locationSnap.toString(),
-            locationSnapEnabled: config.locationSnap > 0,
-            rotationSnap: config.rotateSnap.toString(),
-            rotationSnapEnabled: config.rotateSnap > 0,
-            snapTurnSnap: config.turnSnap.toString(),
-            snapTurnSnapEnabled: config.turnSnap > 0,
-            flyModeEnabled: config.flyMode,
-            labelRenderingMode: config.labelRenderingMode
-        };
-
-        localStorage.setItem('config', JSON.stringify(legacyConfig));
-        this._logger.debug('Synced legacy config', legacyConfig);
     }
 }

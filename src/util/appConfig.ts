@@ -1,6 +1,6 @@
 import {Observable} from "@babylonjs/core";
 import {AppConfigType, LabelRenderingMode} from "./appConfigType";
-import log from "loglevel";
+
 export class AppConfig {
     public readonly onConfigChangedObservable = new Observable<AppConfigType>();
     private _currentConfig: AppConfigType;
@@ -89,41 +89,3 @@ export class AppConfig {
 // Singleton instance for app-wide configuration
 // Use this instead of creating new AppConfig() instances
 export const appConfigInstance = new AppConfig();
-
-let defaultConfig: ConfigType =
-    {
-        locationSnap: '.1',
-        locationSnapEnabled: true,
-        rotationSnap: '90',
-        rotationSnapEnabled: true,
-        flyModeEnabled: true,
-        snapTurnSnap: '45',
-        snapTurnSnapEnabled: false
-    }
-try {
-    const newConfig = JSON.parse(localStorage.getItem('config'));
-    defaultConfig = {...defaultConfig, ...newConfig};
-
-} catch (e) {
-
-}
-
-export type ConfigType = {
-    locationSnap: string,
-    locationSnapEnabled: boolean,
-    rotationSnap: string,
-    rotationSnapEnabled: boolean,
-    flyModeEnabled: boolean,
-    snapTurnSnap: string,
-    snapTurnSnapEnabled: boolean
-}
-
-export function getAppConfig(): ConfigType {
-    return defaultConfig;
-}
-
-export function setAppConfig(config: ConfigType) {
-    const logger = log.getLogger('setAppConfig');
-    logger.debug('setting config', JSON.stringify(config));
-    localStorage.setItem('config', JSON.stringify(config));
-}
