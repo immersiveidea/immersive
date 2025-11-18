@@ -64,6 +64,11 @@ export class VRConfigPanel {
     // Fly Mode UI controls
     private _flyModeToggle: Button;
 
+    // Snap Turn UI controls
+    private _snapTurnEnabled: boolean = true;
+    private _snapTurnToggle: Button;
+    private _snapTurnButtons: Map<number, Button> = new Map();
+
     constructor(scene: Scene) {
         this._scene = scene || DefaultScene.Scene;
         this._logger.debug('VRConfigPanel constructor called');
@@ -242,6 +247,7 @@ export class VRConfigPanel {
 
         // Section 4: Snap Turn
         this._snapTurnContent = this.createSectionContainer("Snap Turn");
+        this.buildSnapTurnControls();
         this.addSeparator();
 
         // Section 5: Label Rendering Mode
@@ -574,6 +580,125 @@ export class VRConfigPanel {
     }
 
     /**
+     * Build Snap Turn controls
+     */
+    private buildSnapTurnControls(): void {
+        const currentSnap = appConfigInstance.current.turnSnap;
+        this._snapTurnEnabled = currentSnap > 0;
+
+        // Create horizontal container for toggle button
+        const toggleContainer = new StackPanel("snapTurnToggleContainer");
+        toggleContainer.isVertical = false;
+        toggleContainer.width = "100%";
+        toggleContainer.height = "80px";
+        toggleContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        toggleContainer.paddingBottom = "20px";
+        this._snapTurnContent.addControl(toggleContainer);
+
+        // Create toggle button
+        this._snapTurnToggle = Button.CreateSimpleButton(
+            "snapTurnToggle",
+            this._snapTurnEnabled ? "Enabled" : "Disabled"
+        );
+        this._snapTurnToggle.width = "300px";
+        this._snapTurnToggle.height = "70px";
+        this._snapTurnToggle.fontSize = 48;
+        this._snapTurnToggle.color = "white";
+        this._snapTurnToggle.background = this._snapTurnEnabled ? "#4A9EFF" : "#666666";
+        this._snapTurnToggle.thickness = 0;
+        this._snapTurnToggle.cornerRadius = 10;
+        toggleContainer.addControl(this._snapTurnToggle);
+
+        // Toggle button click handler
+        this._snapTurnToggle.onPointerClickObservable.add(() => {
+            this._snapTurnEnabled = !this._snapTurnEnabled;
+            this._snapTurnToggle.textBlock.text = this._snapTurnEnabled ? "Enabled" : "Disabled";
+            this._snapTurnToggle.background = this._snapTurnEnabled ? "#4A9EFF" : "#666666";
+
+            if (this._snapTurnEnabled) {
+                // Re-enable with last selected value or default
+                const lastValue = appConfigInstance.current.turnSnap || 45;
+                appConfigInstance.setTurnSnap(lastValue > 0 ? lastValue : 45);
+                this.updateSnapTurnButtonStates(lastValue);
+            } else {
+                // Disable by setting to 0
+                appConfigInstance.setTurnSnap(0);
+                this.updateSnapTurnButtonStates(0);
+            }
+        });
+
+        // Create horizontal container for snap value buttons
+        const valuesContainer = new StackPanel("snapTurnValuesContainer");
+        valuesContainer.isVertical = false;
+        valuesContainer.width = "100%";
+        valuesContainer.height = "80px";
+        valuesContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        this._snapTurnContent.addControl(valuesContainer);
+
+        // Define snap turn values (same as rotation snap)
+        const snapValues = [
+            { value: 22.5, label: "22.5°" },
+            { value: 45, label: "45°" },
+            { value: 90, label: "90°" },
+            { value: 180, label: "180°" },
+            { value: 360, label: "360°" }
+        ];
+
+        // Create button for each snap value
+        snapValues.forEach((snap) => {
+            const isSelected = this._snapTurnEnabled && Math.abs(currentSnap - snap.value) < 0.001;
+
+            const btn = Button.CreateSimpleButton(`snapTurn_${snap.value}`, snap.label);
+            btn.width = "120px";
+            btn.height = "70px";
+            btn.fontSize = 42;
+            btn.color = "white";
+            btn.paddingRight = "10px";
+            btn.thickness = 0;
+            btn.cornerRadius = 8;
+
+            // Set initial appearance
+            if (isSelected) {
+                btn.background = "#4A9EFF";
+                btn.fontWeight = "bold";
+            } else {
+                btn.background = this._snapTurnEnabled ? "#333333" : "#222222";
+                btn.alpha = this._snapTurnEnabled ? 1.0 : 0.5;
+            }
+
+            // Click handler
+            btn.onPointerClickObservable.add(() => {
+                if (this._snapTurnEnabled) {
+                    appConfigInstance.setTurnSnap(snap.value);
+                    this.updateSnapTurnButtonStates(snap.value);
+                }
+            });
+
+            this._snapTurnButtons.set(snap.value, btn);
+            valuesContainer.addControl(btn);
+        });
+    }
+
+    /**
+     * Update Snap Turn button visual states
+     */
+    private updateSnapTurnButtonStates(selectedValue: number): void {
+        this._snapTurnButtons.forEach((btn, value) => {
+            const isSelected = this._snapTurnEnabled && Math.abs(selectedValue - value) < 0.001;
+
+            if (isSelected) {
+                btn.background = "#4A9EFF";
+                btn.fontWeight = "bold";
+            } else {
+                btn.background = this._snapTurnEnabled ? "#333333" : "#222222";
+                btn.fontWeight = "normal";
+            }
+
+            btn.alpha = this._snapTurnEnabled ? 1.0 : 0.5;
+        });
+    }
+
+    /**
      * Set up parenting to platform for world movement tracking
      */
     private setupPlatformParenting(): void {
@@ -622,8 +747,15 @@ export class VRConfigPanel {
             this._flyModeToggle.background = config.flyMode ? "#4A9EFF" : "#666666";
         }
 
-        // Phase 6-7 will add:
-        // - Snap turn UI update
+        // Update Snap Turn UI
+        if (this._snapTurnToggle && this._snapTurnButtons.size > 0) {
+            this._snapTurnEnabled = config.turnSnap > 0;
+            this._snapTurnToggle.textBlock.text = this._snapTurnEnabled ? "Enabled" : "Disabled";
+            this._snapTurnToggle.background = this._snapTurnEnabled ? "#4A9EFF" : "#666666";
+            this.updateSnapTurnButtonStates(config.turnSnap);
+        }
+
+        // Phase 7 will add:
         // - Label rendering mode UI update
     }
 }
