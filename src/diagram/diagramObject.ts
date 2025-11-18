@@ -25,6 +25,7 @@ import {xyztovec} from "./functions/vectorConversion";
 import {AnimatedLineTexture} from "../util/animatedLineTexture";
 import {getToolboxColors} from "../toolbox/toolbox";
 import {findClosestColor} from "../util/functions/findClosestColor";
+import {appConfigInstance} from "../util/appConfig";
 
 /**
  * Converts a Color3 to a hex color string
@@ -62,6 +63,7 @@ export class DiagramObject {
     private _fromMesh: AbstractMesh;
     private _toMesh: AbstractMesh;
     private _meshRemovedObserver: Observer<AbstractMesh>;
+    private _configObserver: Observer<any>;
     // Position caching for connection optimization
     private _lastFromPosition: Vector3 = null;
     private _lastToPosition: Vector3 = null;
@@ -70,6 +72,12 @@ export class DiagramObject {
     constructor(scene: Scene, eventObservable: Observable<DiagramEvent>, options?: DiagramObjectOptionsType) {
         this._eventObservable = eventObservable;
         this._scene = scene;
+
+        // Subscribe to config changes to update label rendering mode
+        this._configObserver = appConfigInstance.onConfigChangedObservable.add(() => {
+            this.updateLabelRenderingMode();
+        });
+
         if (options) {
             this._logger.debug('DiagramObject constructor called with options', options);
             if (options.diagramEntity) {
@@ -154,37 +162,69 @@ export class DiagramObject {
         this._labelBack.parent = this._label;
         this._labelBack.metadata = {exportable: true};
         this.updateLabelPosition();
+        this.updateLabelRenderingMode();
+    }
 
+    private updateLabelRenderingMode() {
+        if (!this._label) {
+            return;
+        }
 
+        const mode = appConfigInstance.current.labelRenderingMode || 'billboard';
+
+        // Reset billboard mode first
+        this._label.billboardMode = Mesh.BILLBOARDMODE_NONE;
+        if (this._labelBack) {
+            this._labelBack.billboardMode = Mesh.BILLBOARDMODE_NONE;
+        }
+
+        switch (mode) {
+            case 'billboard':
+                // Billboard mode - labels always face camera (Y-axis only to prevent tilting)
+                this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
+                if (this._labelBack) {
+                    this._labelBack.billboardMode = Mesh.BILLBOARDMODE_Y;
+                }
+                break;
+            case 'fixed':
+                // Fixed mode - no billboard (default state, already set above)
+                break;
+            case 'dynamic':
+                // Dynamic mode - to be implemented in future
+                // TODO: Implement screen-space positioning
+                this._logger.warn('Dynamic label rendering mode not yet implemented');
+                break;
+            case 'distance':
+                // Distance-based mode - to be implemented in future
+                // TODO: Implement distance-based offset
+                this._logger.warn('Distance-based label rendering mode not yet implemented');
+                break;
+        }
     }
 
     public updateLabelPosition() {
         if (this._label) {
             this._mesh.computeWorldMatrix(true);
-            this._mesh.refreshBoundingInfo({});
+            this._mesh.refreshBoundingInfo();
+
             if (this._from && this._to) {
-                //this._label.position.x = .06;
-                //this._label.position.z = .06;
+                // Connection labels (arrows/lines)
                 this._label.position.y = .05;
                 this._label.rotation.y = Math.PI / 2;
                 this._labelBack.rotation.y = Math.PI;
-                this._labelBack.position.z = 0.001
-                //this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
-                //this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
-
+                this._labelBack.position.z = 0.001;
             } else {
-                const top =
-                    this._mesh.getBoundingInfo().boundingBox.maximumWorld;
+                // Standard object labels - convert world space to parent's local space
+                // This accounts for mesh scaling, which is not included in boundingBox.maximum
+                const top = this._mesh.getBoundingInfo().boundingBox.maximumWorld;
                 const temp = new TransformNode("temp", this._scene);
                 temp.position = top;
                 temp.setParent(this._baseTransform);
                 const y = temp.position.y;
                 temp.dispose();
-                this._label.position.y = y + .06;
-                //this._labelBack.position.y = y + .06;
+                this._label.position.y = y + 0.06;
                 this._labelBack.rotation.y = Math.PI;
-                this._labelBack.position.z = 0.001
-                //this._label.billboardMode = Mesh.BILLBOARDMODE_Y;
+                this._labelBack.position.z = 0.001;
             }
         }
     }
@@ -320,6 +360,8 @@ export class DiagramObject {
         this._logger.debug('DiagramObject dispose called for ', this._diagramEntity?.id)
         this._scene?.onAfterRenderObservable.remove(this._sceneObserver);
         this._sceneObserver = null;
+        appConfigInstance?.onConfigChangedObservable.remove(this._configObserver);
+        this._configObserver = null;
         this._mesh?.setParent(null);
         this._mesh?.dispose(true, false);
         this._mesh = null;

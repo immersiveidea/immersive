@@ -14,7 +14,7 @@
     "privateDesigns": false,
     "encryptedDesigns": false,
     "editData": false,
-    "config": false,
+    "config": true,
     "enterImmersive": true,
     "launchMetaQuest": true
   },

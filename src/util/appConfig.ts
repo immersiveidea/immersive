@@ -1,5 +1,5 @@
 import {Observable} from "@babylonjs/core";
-import {AppConfigType} from "./appConfigType";
+import {AppConfigType, LabelRenderingMode} from "./appConfigType";
 import log from "loglevel";
 export class AppConfig {
     public readonly onConfigChangedObservable = new Observable<AppConfigType>();
@@ -13,7 +13,8 @@ export class AppConfig {
         newRelicKey: null,
         newRelicAccount: null,
         physicsEnabled: false,
-        flyMode: true
+        flyMode: true,
+        labelRenderingMode: 'billboard'
     }
 
     constructor() {
@@ -74,11 +75,20 @@ export class AppConfig {
         this.save();
     }
 
+    public setLabelRenderingMode(mode: LabelRenderingMode) {
+        this._currentConfig.labelRenderingMode = mode;
+        this.save();
+    }
+
     private save() {
         localStorage.setItem('appConfig', JSON.stringify(this._currentConfig));
         this.onConfigChangedObservable.notifyObservers(this._currentConfig, -1);
     }
 }
+
+// Singleton instance for app-wide configuration
+// Use this instead of creating new AppConfig() instances
+export const appConfigInstance = new AppConfig();
 
 let defaultConfig: ConfigType =
     {

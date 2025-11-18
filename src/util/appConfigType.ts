@@ -1,3 +1,5 @@
+export type LabelRenderingMode = 'fixed' | 'billboard' | 'dynamic' | 'distance';
+
 export type AppConfigType = {
     id?: number,
     currentDiagramId?: string,
@@ -10,5 +12,6 @@ export type AppConfigType = {
     newRelicAccount?: string,
     passphrase?: string,
     flyMode?: boolean,
+    labelRenderingMode?: LabelRenderingMode,
 
 }

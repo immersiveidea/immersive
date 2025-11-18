@@ -1,4 +1,4 @@
-import {AbstractMesh, Vector3, WebXRDefaultExperience, WebXRMotionControllerManager, WebXRState} from "@babylonjs/core";
+import {AbstractMesh, Quaternion, Vector3, WebXRDefaultExperience, WebXRMotionControllerManager, WebXRState} from "@babylonjs/core";
 import log from "loglevel";
 import {WebController} from "../../controllers/webController";
 import {Rigplatform} from "../../controllers/rigplatform";
@@ -33,6 +33,46 @@ export async function groundMeshObserver(ground: AbstractMesh,
         }
     });
     window.addEventListener('enterXr', async () => {
+        // Synchronize desktop camera position with platform before entering XR
+        // This prevents the jarring scene shift when transitioning to immersive mode
+        const scene = ground.getScene();
+        const desktopCamera = scene.activeCamera;
+        const platform = scene.getMeshByName('platform');
+
+        if (desktopCamera && platform) {
+            // Get desktop camera's world position
+            const cameraWorldPos = desktopCamera.globalPosition.clone();
+
+            // Calculate platform position accounting for camera's local offset
+            // Camera is at (0, 1.6, 0) in local space relative to cameraTransform
+            const platformTargetPos = cameraWorldPos.clone();
+            platformTargetPos.y = 0.01; // Platform stays at floor level
+
+            // Subtract camera's local Y offset (1.6m height) from platform position
+            const cameraLocalOffset = new Vector3(0, 1.59, 0); // 1.6 - 0.01
+            platformTargetPos.subtractInPlace(cameraLocalOffset);
+
+            // Set platform position
+            platform.setAbsolutePosition(platformTargetPos);
+
+            // Match platform rotation to desktop camera's viewing direction
+            const cameraForward = desktopCamera.getDirection(Vector3.Forward());
+            const yaw = Math.atan2(cameraForward.x, cameraForward.z);
+            platform.rotationQuaternion = Quaternion.FromEulerAngles(0, yaw, 0);
+
+            // Reset physics velocity to prevent drift on XR entry
+            if (platform.physicsBody) {
+                platform.physicsBody.setLinearVelocity(Vector3.Zero());
+                platform.physicsBody.setAngularVelocity(Vector3.Zero());
+            }
+
+            logger.debug("Synchronized camera position before XR entry:", {
+                cameraWorldPos: cameraWorldPos.asArray(),
+                platformPos: platformTargetPos.asArray(),
+                yaw: yaw
+            });
+        }
+
         await xr.baseExperience.enterXRAsync('immersive-vr', 'local-floor');
         logger.debug("Entering XR Experience");
     })

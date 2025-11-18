@@ -32,11 +32,12 @@ function createDynamicTexture(text: string, font: string, DTWidth: number, DTHei
 function createMaterial(dynamicTexture: DynamicTexture): Material {
     const mat = new StandardMaterial("text-mat", DefaultScene.Scene);
     //mat.diffuseColor = Color3.Black();
-    mat.disableLighting = false;
-    //mat.backFaceCulling = false;
+    mat.disableLighting = true;
+    mat.backFaceCulling = true;
     mat.emissiveTexture = dynamicTexture;
     mat.diffuseTexture = dynamicTexture;
     mat.metadata = {exportable: true};
+
     //mat.freeze();
     return mat;
 }

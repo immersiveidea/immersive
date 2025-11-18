@@ -1,6 +1,7 @@
-import {Group, Modal, SegmentedControl, Stack, Switch} from "@mantine/core";
+import {Group, Modal, SegmentedControl, Stack, Switch, Select} from "@mantine/core";
 import {useEffect, useState} from "react";
-import {setAppConfig} from "../../util/appConfig";
+import {appConfigInstance} from "../../util/appConfig";
+import {LabelRenderingMode} from "../../util/appConfigType";
 
 const locationSnaps = [
     {value: ".01", label: '1cm'},
@@ -16,6 +17,12 @@ const rotationSnaps = [
     {value: "180", label: '180°'},
     {value: "360", label: '360°'},
 ]
+const labelRenderingModes = [
+    {value: 'fixed', label: 'Fixed'},
+    {value: 'billboard', label: 'Billboard (Always Face Camera)'},
+    {value: 'dynamic', label: 'Dynamic (Coming Soon)', disabled: true},
+    {value: 'distance', label: 'Distance-based (Coming Soon)', disabled: true},
+]
 let defaultConfig =
     {
         locationSnap: '.1',
@@ -24,7 +31,8 @@ let defaultConfig =
         rotationSnapEnabled: true,
         flyModeEnabled: true,
         snapTurnSnap: '45',
-        snapTurnSnapEnabled: false
+        snapTurnSnapEnabled: false,
+        labelRenderingMode: 'billboard' as LabelRenderingMode
     }
 try {
     const newConfig = JSON.parse(localStorage.getItem('config'));
@@ -42,19 +50,30 @@ export default function ConfigModal({configOpened, closeConfig}) {
     const [rotationSnap, setRotationSnap] = useState(defaultConfig.rotationSnap);
     const [rotationSnapEnabled, setRotationSnapEnabled] = useState(defaultConfig.rotationSnapEnabled);
     const [flyModeEnabled, setFlyModeEnabled] = useState(defaultConfig.flyModeEnabled);
+    const [labelRenderingMode, setLabelRenderingMode] = useState<LabelRenderingMode>(defaultConfig.labelRenderingMode);
     useEffect(() => {
-        const config = {
+        // Update AppConfig singleton instance directly
+        // This triggers Observable notifications to all DiagramObjects
+        appConfigInstance.setLabelRenderingMode(labelRenderingMode);
+        appConfigInstance.setFlyMode(flyModeEnabled);
+        appConfigInstance.setGridSnap(parseFloat(locationSnap));
+        appConfigInstance.setRotateSnap(parseFloat(rotationSnap));
+        appConfigInstance.setTurnSnap(parseFloat(snapTurnSnap));
+
+        // Also update legacy config for backward compatibility
+        const legacyConfig = {
             locationSnap: locationSnap,
             locationSnapEnabled: locationSnapEnabled,
             rotationSnap: rotationSnap,
             rotationSnapEnabled: rotationSnapEnabled,
             snapTurnSnap: snapTurnSnap,
             snapTurnSnapEnabled: snapTurnSnapEnabled,
-            flyModeEnabled: flyModeEnabled
-        }
-        setAppConfig(config);
+            flyModeEnabled: flyModeEnabled,
+            labelRenderingMode: labelRenderingMode
+        };
+        localStorage.setItem('config', JSON.stringify(legacyConfig));
 
-    }, [locationSnap, locationSnapEnabled, rotationSnap, rotationSnapEnabled, snapTurnSnap, snapTurnSnapEnabled, flyModeEnabled]);
+    }, [locationSnap, locationSnapEnabled, rotationSnap, rotationSnapEnabled, snapTurnSnap, snapTurnSnapEnabled, flyModeEnabled, labelRenderingMode]);
     return (
         <Modal onClose={closeConfig} opened={configOpened}>
             <h1>Configuration</h1>
@@ -103,6 +122,16 @@ export default function ConfigModal({configOpened, closeConfig}) {
                                       color={snapTurnSnapEnabled ? "myColor" : "gray.9"}
                                       value={snapTurnSnap}
                                       onChange={setSnapTurnSnap}/>
+                </Group>
+                <Group key="labelmode">
+                    <label key="label">Label Rendering Mode</label>
+                    <Select
+                        w={300}
+                        key="select"
+                        data={labelRenderingModes}
+                        value={labelRenderingMode}
+                        onChange={(value) => setLabelRenderingMode(value as LabelRenderingMode)}
+                    />
                 </Group>
             </Stack>
         </Modal>
