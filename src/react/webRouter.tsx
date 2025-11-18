@@ -6,6 +6,7 @@ import Examples from "./marketing/examples";
 import Pricing from "./marketing/pricing";
 import VrExperience from "./pages/vrExperience";
 import NotFound from "./pages/notFound";
+import {ProtectedRoute} from "./components/ProtectedRoute";
 
 export const webRouter = createBrowserRouter([
     {
@@ -16,19 +17,39 @@ export const webRouter = createBrowserRouter([
     },
     {
         path: "/documentation",
-        element: (<Documentation/>)
+        element: (
+            <ProtectedRoute page="documentation">
+                <Documentation/>
+            </ProtectedRoute>
+        )
     }, {
         path: "/examples",
-        element: (<Examples/>)
+        element: (
+            <ProtectedRoute page="examples">
+                <Examples/>
+            </ProtectedRoute>
+        )
     }, {
         path: "/Pricing",
-        element: (<Pricing/>)
+        element: (
+            <ProtectedRoute page="pricing">
+                <Pricing/>
+            </ProtectedRoute>
+        )
     }, {
         path: "/db/public/:db",
-        element: (<VrExperience/>)
+        element: (
+            <ProtectedRoute page="vrExperience">
+                <VrExperience/>
+            </ProtectedRoute>
+        )
     }, {
         path: "/db/private/:db",
-        element: (<VrExperience/>)
+        element: (
+            <ProtectedRoute page="vrExperience">
+                <VrExperience/>
+            </ProtectedRoute>
+        )
     }, {
         path: "*",
         element: (<NotFound/>)

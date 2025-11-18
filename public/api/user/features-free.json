@@ -1,0 +1,26 @@
+{
+  "tier": "free",
+  "pages": {
+    "examples": true,
+    "documentation": true,
+    "pricing": true,
+    "vrExperience": true
+  },
+  "features": {
+    "createDiagram": true,
+    "createFromTemplate": false,
+    "manageDiagrams": true,
+    "shareCollaborate": false,
+    "privateDesigns": false,
+    "encryptedDesigns": false,
+    "editData": true,
+    "config": true,
+    "enterImmersive": true,
+    "launchMetaQuest": true
+  },
+  "limits": {
+    "maxDiagrams": 6,
+    "maxCollaborators": 0,
+    "storageQuotaMB": 100
+  }
+}

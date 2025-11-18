@@ -108,4 +108,30 @@ Databases can be optionally encrypted. The `Encryption` class handles AES encryp
 - `VITE_SYNCDB_ENDPOINT`: Remote database sync endpoint
 
 Check `.env.local` for local configuration.
-- document the toolId and material naming conventions.
+
+## Naming Conventions
+
+### Tool and Material Naming
+
+**Material Names:** Materials follow the pattern `material-{color}` where `{color}` is the hex color string (e.g., `material-#ff0000` for red).
+
+**Tool Mesh Names:** Tools use the pattern `tool-{toolType}-{color}`:
+- Example: `tool-BOX-#ff0000` (red box tool)
+- ToolTypes: `BOX`, `SPHERE`, `CYLINDER`, `CONE`, `PLANE`, `PERSON`
+
+**Tool Instance Names:** `tool-instance-{toolType}-{color}` (e.g., `tool-instance-BOX-#ff0000`)
+
+**Implementation details:**
+- 16 predefined toolbox colors (see docs/NAMING_CONVENTIONS.md)
+- Materials created in `src/toolbox/functions/buildColor.ts`
+- Tool meshes created in `src/toolbox/functions/buildTool.ts`
+- When extracting colors from materials, use: `emissiveColor || diffuseColor` (priority order)
+
+### Rendering Modes
+
+Three rendering modes affect material properties:
+1. **Lightmap with Lighting**: Uses `diffuseColor` + `lightmapTexture` (expensive)
+2. **Unlit with Emissive Texture** (default): Uses `emissiveColor` + `emissiveTexture` (lightmap)
+3. **Flat Emissive**: Uses only `emissiveColor` (fastest)
+
+See `src/util/renderingMode.ts` and `src/util/lightmapGenerator.ts` for implementation.

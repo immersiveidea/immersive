@@ -36,7 +36,7 @@ export default defineConfig({
             '^/api/images': {
                 target: 'https://www.deepdiagram.com/',
                 changeOrigin: true,
-            },
+            }
         }
 
     },
@@ -54,7 +54,7 @@ export default defineConfig({
             '^/api/images': {
                 target: 'https://www.deepdiagram.com/',
                 changeOrigin: true,
-            },
+            }
         }
     },
     base: "/"

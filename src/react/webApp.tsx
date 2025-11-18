@@ -4,6 +4,7 @@ import React from "react";
 import {RouterProvider} from "react-router-dom";
 import {webRouter} from "./webRouter";
 import {Auth0Provider} from "@auth0/auth0-react";
+import {FeatureProvider} from "./contexts/FeatureProvider";
 
 export default function WebApp() {
     document.addEventListener('promptpassword', () => {
@@ -20,7 +21,9 @@ export default function WebApp() {
             authorizationParams={{
                 redirect_uri: window.location.origin
             }}>
-            <RouterProvider router={webRouter}/>
+            <FeatureProvider>
+                <RouterProvider router={webRouter}/>
+            </FeatureProvider>
         </Auth0Provider>
     )
 }

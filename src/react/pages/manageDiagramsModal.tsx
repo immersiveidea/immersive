@@ -4,11 +4,13 @@ import {useDoc, usePouch} from "use-pouchdb";
 import {IconTrash} from "@tabler/icons-react";
 import {Link} from "react-router-dom";
 import log from "loglevel";
+import {useFeatureLimit} from "../hooks/useFeatures";
 
 export default function ManageDiagramsModal({openCreate, manageOpened, closeManage}) {
     const logger = log.getLogger('manageDiagramsModal');
     const {doc: diagram, error} = useDoc('directory', {}, {_id: 'directory', diagrams: []});
     const db = usePouch();
+    const maxDiagrams = useFeatureLimit('maxDiagrams');
     if (error) {
 
         if (error.status === 404) {
@@ -45,12 +47,15 @@ export default function ManageDiagramsModal({openCreate, manageOpened, closeMana
     });
 
     const buildCreateButton = () => {
-        if (diagrams.length < 6) {
+        // Check against the configured maxDiagrams limit
+        const hasReachedLimit = maxDiagrams > 0 && diagrams.length >= maxDiagrams;
+
+        if (!hasReachedLimit) {
             return <Button size="lg" onClick={openCreate} disabled={false}>Create</Button>
         } else {
             return (<Stack>
                 <Button key="create" size="lg" disabled={true}>Create</Button>
-                <Paper key="upgrademessage">You've reached the max number of diagrams for this Tier.</Paper>
+                <Paper key="upgrademessage">You've reached the max number of diagrams ({maxDiagrams}) for your current tier.</Paper>
                 <Button key="upgradebutton" size="xl">Upgrade To Pro</Button>
             </Stack>)
         }

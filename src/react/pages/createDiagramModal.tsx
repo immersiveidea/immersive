@@ -3,10 +3,17 @@ import {usePouch} from "use-pouchdb";
 import {useState} from "react";
 import {v4} from "uuid";
 import log from "loglevel";
+import {useIsFeatureEnabled} from "../hooks/useFeatures";
 
 export default function CreateDiagramModal({createOpened, closeCreate}) {
     const logger = log.getLogger('createDiagramModal');
     const db = usePouch();
+
+    // Feature flags
+    const privateDesignsEnabled = useIsFeatureEnabled('privateDesigns');
+    const encryptedDesignsEnabled = useIsFeatureEnabled('encryptedDesigns');
+    const shareCollaborateEnabled = useIsFeatureEnabled('shareCollaborate');
+
     const [diagram, setDiagram] = useState({
         name: '',
         description: '',
@@ -63,8 +70,8 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
                               onChange={(e) => {
                                   setDiagram({...diagram, private: e.currentTarget.checked})
                               }}
-                              disabled={true}/>
-                    <Pill>Basic</Pill>
+                              disabled={!privateDesignsEnabled}/>
+                    {!privateDesignsEnabled && <Pill>Basic</Pill>}
                 </Group>
                 <Group>
                     <Checkbox w={250}
@@ -74,8 +81,8 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
                               onChange={(e) => {
                                   setDiagram({...diagram, encrypted: e.currentTarget.checked})
                               }}
-                              disabled={true}/>
-                    <Pill>Pro</Pill>
+                              disabled={!encryptedDesignsEnabled}/>
+                    {!encryptedDesignsEnabled && <Pill>Pro</Pill>}
                 </Group>
                 <Group>
                     <Checkbox w={250}
@@ -85,8 +92,8 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
                               onChange={(e) => {
                                   setDiagram({...diagram, invite: e.currentTarget.checked})
                               }}
-                              disabled={true}/>
-                    <Pill>Pro</Pill>
+                              disabled={!shareCollaborateEnabled}/>
+                    {!shareCollaborateEnabled && <Pill>Pro</Pill>}
                 </Group>
                 <Group>
                     <Button key="create" onClick={createDiagram}>Create</Button>

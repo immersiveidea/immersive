@@ -2,9 +2,15 @@ import {Anchor, AppShell, Box, Burger, Button, Group, Image, Menu, Stack} from "
 import React from "react";
 import {Link} from "react-router-dom";
 import {useAuth0} from "@auth0/auth0-react";
+import {useIsPageEnabled} from "./hooks/useFeatures";
 
 export default function PageHeader() {
     const {user, isAuthenticated, loginWithRedirect, logout} = useAuth0();
+    const examplesEnabled = useIsPageEnabled('examples');
+    const documentationEnabled = useIsPageEnabled('documentation');
+    const pricingEnabled = useIsPageEnabled('pricing');
+    const vrExperienceEnabled = useIsPageEnabled('vrExperience');
+
     const picture = () => {
         if (user.picture) {
             return <Image w="32" h="32" src={user.picture} alt="user"/>
@@ -22,11 +28,18 @@ export default function PageHeader() {
             return <Button key="login" onClick={() => loginWithRedirect()}>Login</Button>
         }
     }
-    const items = [{name: 'Examples', href: '/examples', key: 'examples'},
-        {name: 'About', href: '/', key: 'about'},
-        {name: 'Documentation', href: '/documentation', key: 'documentation'},
-        {name: 'Pricing', href: '/pricing', key: 'pricing'},
-        {name: 'VR Experience', href: '/db/public/local', key: 'vrexperience'}]
+
+    // Define all possible menu items
+    const allItems = [
+        {name: 'Examples', href: '/examples', key: 'examples', enabled: examplesEnabled},
+        {name: 'About', href: '/', key: 'about', enabled: true}, // About (home) is always visible
+        {name: 'Documentation', href: '/documentation', key: 'documentation', enabled: documentationEnabled},
+        {name: 'Pricing', href: '/pricing', key: 'pricing', enabled: pricingEnabled},
+        {name: 'VR Experience', href: '/db/public/local', key: 'vrexperience', enabled: vrExperienceEnabled}
+    ];
+
+    // Filter to only enabled items
+    const items = allItems.filter(item => item.enabled)
     const mainMenu = function () {
         return items.map((item) => {
             return (
