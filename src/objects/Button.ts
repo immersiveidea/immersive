@@ -102,7 +102,12 @@ export class Button {
     }
 
     private buildMaterial(): StandardMaterial {
-        const mat = new StandardMaterial('buttonMat', this._scene);
+        // Use unique material name per button to prevent material sharing bugs
+        const mat = new StandardMaterial(`buttonMat-${this._mesh.id}`, this._scene);
+
+        // Mark as UI material to prevent lightmap/rendering mode modifications
+        mat.metadata = { isUI: true };
+
         //mat.diffuseColor.set(.5, .5, .5);
         mat.backFaceCulling = false;
         this._textures.set(states.NORMAL, this.drawText(this._mesh.name, this._color, this._background));

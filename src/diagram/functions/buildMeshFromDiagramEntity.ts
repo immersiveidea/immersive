@@ -82,6 +82,7 @@ function createNewInstanceIfNecessary(entity: DiagramEntity, scene: Scene): Abst
                 material.emissiveTexture = AnimatedLineTexture.Texture();
                 material.opacityTexture = AnimatedLineTexture.Texture();
                 material.disableLighting = true;
+                material.metadata = { isConnection: true, preserveTextures: true };  // Preserve animated arrow textures
                 newMesh.setEnabled(false);
                 break;
             case DiagramTemplates.BOX:
@@ -174,6 +175,7 @@ function buildImage(entity: DiagramEntity, scene: Scene): AbstractMesh {
     logger.debug("buildImage: entity is image");
     const plane = MeshBuilder.CreatePlane(entity.id, {size: 1}, scene);
     const material = new StandardMaterial("planeMaterial", scene);
+    material.metadata = { isUI: true };  // Mark as UI to prevent rendering mode modifications
     const image = new Image();
     image.src = entity.image;
     material.emissiveTexture = new Texture(entity.image, scene);

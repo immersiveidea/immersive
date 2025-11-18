@@ -31,6 +31,12 @@ export async function initializeEngine(params: EngineInitializerParams): Promise
     DefaultScene.Scene = scene;
     scene.ambientColor = new Color3(.1, .1, .1);
 
+    // Disable material dirty flagging for performance
+    // This prevents expensive material validation when animating texture offsets
+    // Safe for this app since we use unlit materials without complex dynamic properties
+    //
+    // scene.blockMaterialDirtyMechanism = true;
+
     await params.onSceneReady(scene);
 
     engine.runRenderLoop(() => {

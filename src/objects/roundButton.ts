@@ -23,6 +23,7 @@ export class RoundButton {
             height: 256
         }, this.parent.getScene());
         const descMaterial = new StandardMaterial('button_desc_' + label)
+        descMaterial.metadata = { isUI: true };  // Mark as UI to prevent rendering mode modifications
         descriptionPlane.material = descMaterial;
         descMaterial.diffuseTexture = descTexture;
         descTexture.drawText(description, null, null, 'bold 64px Arial',
@@ -30,6 +31,7 @@ export class RoundButton {
 
         const texture = new DynamicTexture('texture_' + label, {width: 256, height: 256}, this.parent.getScene());
         const material = new StandardMaterial('button_' + label)
+        material.metadata = { isUI: true };  // Mark as UI to prevent rendering mode modifications
         button.material = material;
         material.diffuseTexture = texture;
         texture.drawText(label, null, null, 'bold 128px Arial',

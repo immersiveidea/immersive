@@ -72,6 +72,7 @@ export class Introduction {
         const texture = new VideoTexture("video", vid, this._scene, true);
         const mesh = this.makeObject("video", position);
         const material = new StandardMaterial("video_material", this._scene);
+        material.metadata = { isUI: true };  // Mark as UI to prevent rendering mode modifications
         material.diffuseTexture = texture;
         material.diffuseColor = new Color3(1, 1, 1);
         material.emissiveColor = new Color3(1, 1, 1);

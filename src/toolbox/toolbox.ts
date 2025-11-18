@@ -6,6 +6,7 @@ import {DefaultScene} from "../defaultScene";
 import {Button} from "../objects/Button";
 import {LightmapGenerator} from "../util/lightmapGenerator";
 import {RenderingMode, RenderingModeLabels} from "../util/renderingMode";
+import {AnimatedLineTexture} from "../util/animatedLineTexture";
 
 const colors: string[] = [
     "#222222", "#8b4513", "#006400", "#778899",
@@ -41,6 +42,9 @@ export class Toolbox {
 
         // Preload lightmaps for all toolbox colors for better first-render performance
         LightmapGenerator.preloadLightmaps(colors, this._scene);
+
+        // Preload connection textures for all toolbox colors to prevent first-connection stutter
+        AnimatedLineTexture.PreloadTextures(colors);
 
         this.buildToolbox().then(() => {
             readyObservable.notifyObservers(true);

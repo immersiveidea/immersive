@@ -468,15 +468,20 @@ export class DiagramObject {
             // Get or create material
             const material = curve.material as StandardMaterial;
             if (material) {
-                // Dispose old texture if it exists
-                if (material.emissiveTexture) {
-                    AnimatedLineTexture.DisposeTexture(material.emissiveTexture);
-                }
 
-                // Create new colored texture using the closest toolbox color
-                const coloredTexture = AnimatedLineTexture.CreateColoredTexture(closestColor);
-                material.emissiveTexture = coloredTexture;
-                material.opacityTexture = coloredTexture;
+                // Check if we need to update the texture color
+                // Don't dispose cached textures - they're shared across connections!
+                const currentTextureName = material.emissiveTexture?.name || '';
+                const needsColorUpdate = !material.emissiveTexture ||
+                                        !currentTextureName.endsWith(closestColor);
+
+                if (needsColorUpdate) {
+                    // Get cached texture for the new color (creates if needed)
+                    const coloredTexture = AnimatedLineTexture.CreateColoredTexture(closestColor);
+                    material.emissiveTexture = coloredTexture;
+                    material.opacityTexture = coloredTexture;
+                }
+                // If color matches, keep existing texture reference (already correct)
             }
         }
 

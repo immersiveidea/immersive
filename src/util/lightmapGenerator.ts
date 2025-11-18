@@ -248,8 +248,11 @@ export class LightmapGenerator {
 
         scene.materials.forEach(material => {
             if (material instanceof StandardMaterial) {
-                // Skip UI materials (buttons, handles, and labels use emissiveTexture with text rendering)
-                if (material.name === 'buttonMat' ||
+                // Skip UI materials and connections that should preserve their textures
+                // Check metadata first (most reliable), then fall back to name/id checks
+                if (material.metadata?.isUI === true ||
+                    material.metadata?.isConnection === true ||  // Preserve connection animated arrow textures
+                    material.name.startsWith('buttonMat') ||  // Use startsWith for unique button names
                     material.name === 'handleMaterial' ||
                     material.name === 'text-mat' ||
                     material.id.includes('button') ||

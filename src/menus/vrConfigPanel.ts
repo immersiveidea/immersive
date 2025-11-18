@@ -187,6 +187,7 @@ export class VRConfigPanel {
 
         // Create material for panel backing
         const material = new StandardMaterial("vrConfigPanelMaterial", this._scene);
+        material.metadata = { isUI: true };  // Mark as UI to prevent rendering mode modifications
         material.diffuseColor = new Color3(0.1, 0.1, 0.15); // Dark blue-gray
         material.specularColor = new Color3(0.1, 0.1, 0.1);
         this._panelMesh.material = material;

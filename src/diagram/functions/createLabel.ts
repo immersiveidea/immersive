@@ -36,7 +36,7 @@ function createMaterial(dynamicTexture: DynamicTexture): Material {
     mat.backFaceCulling = true;
     mat.emissiveTexture = dynamicTexture;
     mat.diffuseTexture = dynamicTexture;
-    mat.metadata = {exportable: true};
+    mat.metadata = { exportable: true, isUI: true };  // Mark as UI to prevent rendering mode modifications
 
     //mat.freeze();
     return mat;

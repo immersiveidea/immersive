@@ -45,6 +45,7 @@ export class Handle {
         //button.transform.scaling.set(.1,.1,.1);
         const texture = this.drawText(this._label, Color3.White(), Color3.Black());
         const material = new StandardMaterial('handleMaterial', scene);
+        material.metadata = { isUI: true };  // Mark as UI to prevent rendering mode modifications
         material.emissiveTexture = texture;
         material.opacityTexture = texture;
         material.disableLighting = true;

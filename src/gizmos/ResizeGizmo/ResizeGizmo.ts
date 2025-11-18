@@ -99,6 +99,7 @@ export class ResizeGizmo {
      */
     private createMaterial(): void {
         this._handleMaterial = new StandardMaterial('resizeGizmoMaterial', this._utilityLayer.utilityLayerScene);
+        this._handleMaterial.metadata = { isUI: true };  // Mark as UI to prevent rendering mode modifications
         this._handleMaterial.diffuseColor = Color3.Blue();
         this._handleMaterial.emissiveColor = Color3.Blue().scale(0.3);
     }

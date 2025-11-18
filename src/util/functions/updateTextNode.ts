@@ -49,6 +49,7 @@ export function updateTextNode(mesh: AbstractMesh, text: string) {
     dynamicTexture.drawText(text, null, null, font, "#ffffff", "#000000", true);
 
     const mat = new StandardMaterial("mat", mesh.getScene());
+    mat.metadata = { isUI: true };  // Mark as UI to prevent rendering mode modifications
     mat.diffuseColor = Color3.Black();
     mat.disableLighting = true;
     mat.backFaceCulling = false;
