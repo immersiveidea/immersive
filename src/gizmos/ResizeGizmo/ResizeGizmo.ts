@@ -62,8 +62,6 @@ export class ResizeGizmo {
     // Static reference to utility layer
     public static utilityLayer: UtilityLayerRenderer;
 
-    // Constants
-    private static readonly HANDLE_SIZE = 0.05;
 
     constructor(targetMesh: AbstractMesh, xr: WebXRDefaultExperience) {
         this._scene = targetMesh.getScene();
@@ -101,8 +99,8 @@ export class ResizeGizmo {
      */
     private createMaterial(): void {
         this._handleMaterial = new StandardMaterial('resizeGizmoMaterial', this._utilityLayer.utilityLayerScene);
-        this._handleMaterial.diffuseColor = Color3.Yellow();
-        this._handleMaterial.emissiveColor = Color3.Yellow().scale(0.3);
+        this._handleMaterial.diffuseColor = Color3.Blue();
+        this._handleMaterial.emissiveColor = Color3.Blue().scale(0.3);
     }
 
     /**
@@ -118,7 +116,7 @@ export class ResizeGizmo {
         const worldMatrix = this._targetMesh.getWorldMatrix();
 
         // Calculate handle size once (based on corner distance)
-        const handleSize = innerCorners[0].subtract(bboxCenter).length() * .2;
+        const handleSize = innerCorners[0].subtract(bboxCenter).length() * .5;
 
         // Create corner handles
         CORNER_POSITIONS.forEach((cornerDef, index) => {
@@ -206,7 +204,7 @@ export class ResizeGizmo {
 
         for (const handle of this._handles) {
             const distance = Vector3.Distance(camera.globalPosition, handle.position);
-            const scaleFactor = distance * 0.2; // Adjust multiplier to control visual size
+            const scaleFactor = distance; // Adjust multiplier to control visual size
             handle.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
         }
     }
