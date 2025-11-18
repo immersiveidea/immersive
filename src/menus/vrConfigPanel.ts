@@ -17,7 +17,7 @@ import {
     Vector3
 } from "@babylonjs/core";
 import {appConfigInstance} from "../util/appConfig";
-import {AppConfigType} from "../util/appConfigType";
+import {AppConfigType, LabelRenderingMode} from "../util/appConfigType";
 import log from "loglevel";
 import {DefaultScene} from "../defaultScene";
 import {Handle} from "../objects/handle";
@@ -68,6 +68,9 @@ export class VRConfigPanel {
     private _snapTurnEnabled: boolean = true;
     private _snapTurnToggle: Button;
     private _snapTurnButtons: Map<number, Button> = new Map();
+
+    // Label Rendering Mode UI controls
+    private _labelModeButtons: Map<LabelRenderingMode, Button> = new Map();
 
     constructor(scene: Scene) {
         this._scene = scene || DefaultScene.Scene;
@@ -252,6 +255,7 @@ export class VRConfigPanel {
 
         // Section 5: Label Rendering Mode
         this._labelModeContent = this.createSectionContainer("Label Rendering Mode");
+        this.buildLabelModeControls();
     }
 
     /**
@@ -699,6 +703,91 @@ export class VRConfigPanel {
     }
 
     /**
+     * Build Label Rendering Mode controls
+     */
+    private buildLabelModeControls(): void {
+        const currentMode = appConfigInstance.current.labelRenderingMode || 'billboard';
+
+        // Create vertical container for mode buttons
+        const modesContainer = new StackPanel("labelModesContainer");
+        modesContainer.isVertical = true;
+        modesContainer.width = "100%";
+        modesContainer.adaptHeightToChildren = true;
+        this._labelModeContent.addControl(modesContainer);
+
+        // Define label rendering modes
+        const modes: Array<{ value: LabelRenderingMode, label: string, disabled: boolean }> = [
+            { value: 'fixed', label: 'Fixed', disabled: false },
+            { value: 'billboard', label: 'Billboard (Always Face Camera)', disabled: false },
+            { value: 'dynamic', label: 'Dynamic (Coming Soon)', disabled: true },
+            { value: 'distance', label: 'Distance-based (Coming Soon)', disabled: true }
+        ];
+
+        // Create button for each mode
+        modes.forEach((mode) => {
+            const isSelected = currentMode === mode.value;
+
+            const btn = Button.CreateSimpleButton(`labelMode_${mode.value}`, mode.label);
+            btn.width = "100%";
+            btn.height = "70px";
+            btn.fontSize = 42;
+            btn.color = "white";
+            btn.paddingBottom = "10px";
+            btn.thickness = 0;
+            btn.cornerRadius = 8;
+
+            // Set initial appearance
+            if (mode.disabled) {
+                btn.background = "#222222";
+                btn.alpha = 0.5;
+                btn.color = "#888888";
+            } else if (isSelected) {
+                btn.background = "#4A9EFF";
+                btn.fontWeight = "bold";
+            } else {
+                btn.background = "#333333";
+            }
+
+            // Click handler (only for enabled modes)
+            if (!mode.disabled) {
+                btn.onPointerClickObservable.add(() => {
+                    appConfigInstance.setLabelRenderingMode(mode.value);
+                    this.updateLabelModeButtonStates(mode.value);
+                });
+            }
+
+            this._labelModeButtons.set(mode.value, btn);
+            modesContainer.addControl(btn);
+        });
+    }
+
+    /**
+     * Update Label Rendering Mode button visual states
+     */
+    private updateLabelModeButtonStates(selectedValue: LabelRenderingMode): void {
+        this._labelModeButtons.forEach((btn, value) => {
+            const isSelected = selectedValue === value;
+            const isDisabled = value === 'dynamic' || value === 'distance';
+
+            if (isDisabled) {
+                // Keep disabled appearance
+                btn.background = "#222222";
+                btn.alpha = 0.5;
+                btn.color = "#888888";
+                btn.fontWeight = "normal";
+            } else if (isSelected) {
+                btn.background = "#4A9EFF";
+                btn.fontWeight = "bold";
+                btn.color = "white";
+            } else {
+                btn.background = "#333333";
+                btn.fontWeight = "normal";
+                btn.color = "white";
+            }
+        });
+    }
+
+    /**
      * Set up parenting to platform for world movement tracking
      */
     private setupPlatformParenting(): void {
@@ -755,7 +844,9 @@ export class VRConfigPanel {
             this.updateSnapTurnButtonStates(config.turnSnap);
         }
 
-        // Phase 7 will add:
-        // - Label rendering mode UI update
+        // Update Label Rendering Mode UI
+        if (this._labelModeButtons.size > 0 && config.labelRenderingMode) {
+            this.updateLabelModeButtonStates(config.labelRenderingMode);
+        }
     }
 }
