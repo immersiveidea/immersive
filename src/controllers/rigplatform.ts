@@ -1,4 +1,4 @@
-import {Angle, Mesh, Quaternion, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
+import {Angle, Mesh, Observer, Quaternion, Scene, Vector3, WebXRDefaultExperience} from "@babylonjs/core";
 import {RightController} from "./rightController";
 import {LeftController} from "./leftController";
 import log from "loglevel";
@@ -8,6 +8,8 @@ import {DefaultScene} from "../defaultScene";
 import {ControllerEvent} from "./types/controllerEvent";
 import {ControllerEventType} from "./types/controllerEventType";
 import {controllerObservable} from "./controllers";
+import {appConfigInstance} from "../util/appConfig";
+import {AppConfigType} from "../util/appConfigType";
 
 const RIGHT = "right";
 const LEFT = "left";
@@ -34,6 +36,7 @@ export class Rigplatform {
     private _turnVelocity: number = 0;
     private _registered = false;
     private _yRotation: number = 0;
+    private _configObserver: Observer<AppConfigType>;
 
     constructor(
         xr: WebXRDefaultExperience,
@@ -49,6 +52,26 @@ export class Rigplatform {
         this._fixRotation();
         this._initializeControllers();
         this._registerVelocityObserver();
+        this._subscribeToConfigChanges();
+    }
+
+    /**
+     * Subscribe to config changes to update flyMode and turnSnap at runtime
+     */
+    private _subscribeToConfigChanges(): void {
+        this._configObserver = appConfigInstance.onConfigChangedObservable.add((config) => {
+            // Update fly mode if changed
+            if (config.flyMode !== this._flyMode) {
+                this.flyMode = config.flyMode;
+                this._logger.debug('Fly mode updated from config:', config.flyMode);
+            }
+
+            // Update turn snap if changed
+            if (config.turnSnap !== this.turnSnap) {
+                this.turnSnap = config.turnSnap;
+                this._logger.debug('Turn snap updated from config:', config.turnSnap);
+            }
+        });
     }
 
     private _flyMode: boolean = true;
@@ -214,5 +237,26 @@ export class Rigplatform {
                 this.rigMesh.physicsBody.setAngularVelocity(Vector3.Up().scale(this._turnVelocity));
             }
         }, -1, false, this, false);
+    }
+
+    /**
+     * Clean up resources and observers
+     */
+    public dispose(): void {
+        // Remove config observer
+        if (this._configObserver) {
+            appConfigInstance.onConfigChangedObservable.remove(this._configObserver);
+            this._configObserver = null;
+        }
+
+        // Clean up controllers
+        if (this._rightController) {
+            this._rightController = null;
+        }
+        if (this._leftController) {
+            this._leftController = null;
+        }
+
+        this._logger.debug('Rigplatform disposed');
     }
 }

@@ -374,7 +374,7 @@ export class VRConfigPanel {
         ];
 
         // Create button for each snap value
-        snapValues.forEach((snap, index) => {
+        snapValues.forEach((snap) => {
             const isSelected = this._locationSnapEnabled && Math.abs(currentSnap - snap.value) < 0.001;
 
             const btn = Button.CreateSimpleButton(`locationSnap_${snap.value}`, snap.label);
