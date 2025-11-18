@@ -184,6 +184,9 @@ export class ResizeGizmo {
             // Check for handle picking with XR controllers
             this.checkXRControllerPicking();
 
+            // Update handle scaling based on camera distance
+            this.updateHandleScaling();
+
             // Update scaling if active
             if (this._isScaling) {
                 this.updateScaling();
@@ -192,6 +195,20 @@ export class ResizeGizmo {
                 this.checkTransformChanges();
             }
         });
+    }
+
+    /**
+     * Update handle scaling based on camera distance for consistent visual size
+     */
+    private updateHandleScaling(): void {
+        const camera = this._scene.activeCamera;
+        if (!camera) return;
+
+        for (const handle of this._handles) {
+            const distance = Vector3.Distance(camera.globalPosition, handle.position);
+            const scaleFactor = distance * 0.2; // Adjust multiplier to control visual size
+            handle.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+        }
     }
 
     /**
