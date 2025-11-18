@@ -12,12 +12,14 @@ import {GroupMenu} from "../menus/groupMenu";
 import {ControllerEvent} from "../controllers/types/controllerEvent";
 import {ControllerEventType} from "../controllers/types/controllerEventType";
 import {ResizeGizmo} from "../gizmos/ResizeGizmo";
+import {VRConfigPanel} from "../menus/vrConfigPanel";
 
 
 export class DiagramMenuManager {
     public readonly toolbox: Toolbox;
     private readonly _notifier: Observable<DiagramEvent>;
     private readonly _inputTextView: InputTextView;
+    private readonly _vrConfigPanel: VRConfigPanel;
     private _groupMenu: GroupMenu;
     private readonly _scene: Scene;
     private _logger = log.getLogger('DiagramMenuManager');
@@ -29,6 +31,7 @@ export class DiagramMenuManager {
         this._scene = DefaultScene.Scene;
         this._notifier = notifier;
         this._inputTextView = new InputTextView(controllerObservable);
+        this._vrConfigPanel = new VRConfigPanel(this._scene);
         //this.configMenu = new ConfigMenu(config);
 
         this._inputTextView.onTextObservable.add((evt) => {
@@ -62,10 +65,11 @@ export class DiagramMenuManager {
                     if (inputY > (cameraPos.y - .2)) {
                         this._inputTextView.handleMesh.position.y = localCamera.y - .2;
                     }
-                    const configY = this._inputTextView.handleMesh.absolutePosition.y;
-                    /*if (configY > (cameraPos.y - .2)) {
-                        this.configMenu.handleTransformNode.position.y = localCamera.y - .2;
-                    }*/
+
+                    const configY = this._vrConfigPanel.handleMesh.absolutePosition.y;
+                    if (configY > (cameraPos.y - .2)) {
+                        this._vrConfigPanel.handleMesh.position.y = localCamera.y - .2;
+                    }
                 }
             }
         });
@@ -159,6 +163,16 @@ export class DiagramMenuManager {
 
     public setXR(xr: WebXRDefaultExperience): void {
         this._xr = xr;
-        this.toolbox.setXR(xr);
+        this.toolbox.setXR(xr, this);
+    }
+
+    public toggleVRConfigPanel(): void {
+        // Toggle visibility of VR config panel
+        const isEnabled = this._vrConfigPanel.handleMesh.isEnabled(false);
+        if (isEnabled) {
+            this._vrConfigPanel.hide();
+        } else {
+            this._vrConfigPanel.show();
+        }
     }
 }

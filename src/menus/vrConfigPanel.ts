@@ -1,5 +1,7 @@
 import {
     AdvancedDynamicTexture,
+    Control,
+    Rectangle,
     StackPanel,
     TextBlock
 } from "@babylonjs/gui";
@@ -40,6 +42,13 @@ export class VRConfigPanel {
     private _advancedTexture: AdvancedDynamicTexture;
     private _configObserver: Observer<AppConfigType>;
     private _mainContainer: StackPanel;
+
+    // Section content containers (filled in Phases 3-7)
+    private _locationSnapContent: StackPanel;
+    private _rotationSnapContent: StackPanel;
+    private _flyModeContent: StackPanel;
+    private _snapTurnContent: StackPanel;
+    private _labelModeContent: StackPanel;
 
     constructor(scene: Scene) {
         this._scene = scene || DefaultScene.Scene;
@@ -188,10 +197,87 @@ export class VRConfigPanel {
         title.paddingBottom = "40px";
         this._mainContainer.addControl(title);
 
+        // Build configuration sections
+        this.buildConfigSections();
+
         // Parent handle to platform when available
         this.setupPlatformParenting();
 
         this._logger.debug('VR config panel built successfully');
+    }
+
+    /**
+     * Build all configuration sections with layout structure
+     */
+    private buildConfigSections(): void {
+        // Section 1: Location Snap
+        this._locationSnapContent = this.createSectionContainer("Location Snap");
+        this.addSeparator();
+
+        // Section 2: Rotation Snap
+        this._rotationSnapContent = this.createSectionContainer("Rotation Snap");
+        this.addSeparator();
+
+        // Section 3: Fly Mode
+        this._flyModeContent = this.createSectionContainer("Fly Mode");
+        this.addSeparator();
+
+        // Section 4: Snap Turn
+        this._snapTurnContent = this.createSectionContainer("Snap Turn");
+        this.addSeparator();
+
+        // Section 5: Label Rendering Mode
+        this._labelModeContent = this.createSectionContainer("Label Rendering Mode");
+    }
+
+    /**
+     * Create a section container with title
+     */
+    private createSectionContainer(sectionTitle: string): StackPanel {
+        // Create section container
+        const section = new StackPanel(`section_${sectionTitle.replace(/\s+/g, '_')}`);
+        section.isVertical = true;
+        section.width = "100%";
+        section.height = "auto";
+        section.paddingTop = "20px";
+        section.paddingBottom = "20px";
+        this._mainContainer.addControl(section);
+
+        // Add section title
+        const titleText = new TextBlock(`title_${sectionTitle.replace(/\s+/g, '_')}`, sectionTitle);
+        titleText.height = "60px";
+        titleText.fontSize = 60;
+        titleText.color = "#4A9EFF";  // Bright blue for section titles
+        titleText.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_LEFT;
+        titleText.paddingLeft = "20px";
+        titleText.paddingBottom = "10px";
+        section.addControl(titleText);
+
+        // Create content container for controls (to be filled in subsequent phases)
+        const contentContainer = new StackPanel(`content_${sectionTitle.replace(/\s+/g, '_')}`);
+        contentContainer.isVertical = true;
+        contentContainer.width = "100%";
+        contentContainer.height = "auto";
+        contentContainer.paddingLeft = "40px";
+        contentContainer.paddingRight = "40px";
+        section.addControl(contentContainer);
+
+        return contentContainer;
+    }
+
+    /**
+     * Add a visual separator line between sections
+     */
+    private addSeparator(): void {
+        const separator = new Rectangle(`separator_${Date.now()}`);
+        separator.height = "2px";
+        separator.width = "90%";
+        separator.thickness = 0;
+        separator.background = "#444444";  // Dark gray separator
+        separator.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        separator.paddingTop = "10px";
+        separator.paddingBottom = "10px";
+        this._mainContainer.addControl(separator);
     }
 
     /**

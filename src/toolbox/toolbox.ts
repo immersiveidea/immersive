@@ -30,6 +30,7 @@ export class Toolbox {
     private readonly _scene: Scene;
     private _xr?: WebXRDefaultExperience;
     private _renderModeDisplay?: Button;
+    private _diagramMenuManager?: any; // Import would create circular dependency
 
     constructor(readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
@@ -48,8 +49,9 @@ export class Toolbox {
         Toolbox._instance = this;
     }
 
-    public setXR(xr: WebXRDefaultExperience): void {
+    public setXR(xr: WebXRDefaultExperience, diagramMenuManager?: any): void {
         this._xr = xr;
+        this._diagramMenuManager = diagramMenuManager;
         this.setupXRButton();
     }
     private index = 0;
@@ -175,6 +177,26 @@ export class Toolbox {
                         this._xr.baseExperience.exitXRAsync();
                     }
                 });
+
+                // Create config button next to exit button
+                if (this._diagramMenuManager) {
+                    const configButton = Button.CreateButton("config", "config", this._scene, {});
+
+                    // Position button at bottom-left of toolbox, opposite the exit button
+                    configButton.transform.position.x = -0.5;  // Left side
+                    configButton.transform.position.y = -0.35; // Below color grid (same as exit)
+                    configButton.transform.position.z = 0;     // Coplanar with toolbox
+                    configButton.transform.rotation.y = Math.PI; // Flip 180° to face correctly
+                    configButton.transform.scaling = new Vector3(.2, .2, .2); // Match exit button size
+                    configButton.transform.parent = this._toolboxBaseNode;
+
+                    configButton.onPointerObservable.add((evt) => {
+                        this._logger.debug('Config button clicked', evt);
+                        if (evt.sourceEvent.type == 'pointerdown') {
+                            this._diagramMenuManager.toggleVRConfigPanel();
+                        }
+                    });
+                }
 
                 // Create rendering mode button that cycles through modes
                 this.createRenderModeButton();
