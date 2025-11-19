@@ -55,10 +55,6 @@ export class AppConfig {
         this.save();
     }
 
-    public setCreateSnap(value: number) {
-        this._currentConfig.createSnap = value;
-        this.save();
-    }
 
     public setTurnSnap(value: number) {
         this._currentConfig.turnSnap = value;
@@ -67,11 +63,6 @@ export class AppConfig {
 
     public setGridSnap(value: number) {
         this._currentConfig.locationSnap = value;
-        this.save();
-    }
-
-    public setPhysicsEnabled(physicsEnabled: boolean) {
-        this._currentConfig.physicsEnabled = physicsEnabled;
         this.save();
     }
 

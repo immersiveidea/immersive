@@ -79,6 +79,9 @@ export class VRConfigPanel {
         // Create base transform for the entire panel hierarchy
         this._baseTransform = new TransformNode("vrConfigPanelBase", this._scene);
 
+        // Scale down to match toolbox compact size (makes 2m×1.5m panel → 1.2m×0.9m)
+        this._baseTransform.scaling = new Vector3(0.6, 0.6, 0.6);
+
         // Create handle for grabbing (Handle will become parent of baseTransform)
         this._handle = new Handle(
             this._baseTransform,
@@ -182,8 +185,14 @@ export class VRConfigPanel {
         // Parent to base transform
         this._panelMesh.parent = this._baseTransform;
 
-        // Position slightly forward and up from handle
-        this._panelMesh.position = new Vector3(0, 0.2, 0);
+        // Calculate position to place panel bottom just above handle
+        // Panel is 1.5m tall, so center needs to be at half-height + small gap above handle
+        const panelHeight = 1.5;
+        const gapAboveHandle = 0.05;  // 5cm gap above handle for spacing
+        const panelCenterY = (panelHeight / 2) + gapAboveHandle;  // 0.75 + 0.05 = 0.8m
+
+        // Position panel so bottom edge sits just above handle, matching toolbox appearance
+        this._panelMesh.position = new Vector3(0, panelCenterY, 0);
 
         // Create material for panel backing
         const material = new StandardMaterial("vrConfigPanelMaterial", this._scene);
