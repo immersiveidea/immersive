@@ -3,10 +3,11 @@ import {buildColor} from "./functions/buildColor";
 import log from "loglevel";
 import {Handle} from "../objects/handle";
 import {DefaultScene} from "../defaultScene";
-import {Button} from "../objects/Button";
-import {LightmapGenerator} from "../util/lightmapGenerator";
-import {RenderingMode, RenderingModeLabels} from "../util/renderingMode";
 import {AnimatedLineTexture} from "../util/animatedLineTexture";
+import {ExitXRButton} from "../objects/buttons/ExitXRButton";
+import {ConfigButton} from "../objects/buttons/ConfigButton";
+import {RenderModeButton} from "../objects/buttons/RenderModeButton";
+import {LightmapGenerator} from "../util/lightmapGenerator";
 
 const colors: string[] = [
     "#222222", "#8b4513", "#006400", "#778899",
@@ -30,8 +31,12 @@ export class Toolbox {
     private readonly _handle: Handle;
     private readonly _scene: Scene;
     private _xr?: WebXRDefaultExperience;
-    private _renderModeDisplay?: Button;
     private _diagramMenuManager?: any; // Import would create circular dependency
+
+    // Button instances
+    private _exitXRButton?: ExitXRButton;
+    private _configButton?: ConfigButton;
+    private _renderModeButton?: RenderModeButton;
 
     constructor(readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
@@ -145,145 +150,33 @@ export class Toolbox {
         this._xr.baseExperience.onStateChangedObservable.add((state) => {
             if (state == 2) {  // WebXRState.IN_XR
                 // Create exit XR button
-                const exitButton = Button.CreateButton("exitXr", "exitXr", this._scene, {});
+                this._exitXRButton = new ExitXRButton(
+                    this._xr,
+                    this._scene,
+                    this._toolboxBaseNode,
+                    new Vector3(-0.5, -0.35, 0)  // Bottom-right
+                );
 
-                // Position button at bottom-right of toolbox, matching handle size and orientation
-                exitButton.transform.position.x = -0.5;   // Right side
-                exitButton.transform.position.y = -0.35; // Below color grid
-                exitButton.transform.position.z = 0;     // Coplanar with toolbox
-                exitButton.transform.rotation.y = Math.PI; // Flip 180° on local x-axis to face correctly
-                exitButton.transform.scaling = new Vector3(.2, .2, .2); // Match handle height
-                exitButton.transform.parent = this._toolboxBaseNode;
-
-                exitButton.onPointerObservable.add((evt) => {
-                    this._logger.debug(evt);
-                    if (evt.sourceEvent.type == 'pointerdown') {
-                        this._xr.baseExperience.exitXRAsync();
-                    }
-                });
-
-                // Create config button next to exit button
+                // Create config button if diagram menu manager is available
                 if (this._diagramMenuManager) {
-                    const configButton = Button.CreateButton("config", "config", this._scene, {});
-
-                    // Position button at bottom-left of toolbox, opposite the exit button
-                    configButton.transform.position.x = 0.5;  // Left side
-                    configButton.transform.position.y = -0.35; // Below color grid (same as exit)
-                    configButton.transform.position.z = 0;     // Coplanar with toolbox
-                    configButton.transform.rotation.y = Math.PI; // Flip 180° to face correctly
-                    configButton.transform.scaling = new Vector3(.2, .2, .2); // Match exit button size
-                    configButton.transform.parent = this._toolboxBaseNode;
-
-                    configButton.onPointerObservable.add((evt) => {
-                        this._logger.debug('Config button clicked', evt);
-                        if (evt.sourceEvent.type == 'pointerdown') {
-                            this._diagramMenuManager.toggleVRConfigPanel();
-                        }
-                    });
+                    this._configButton = new ConfigButton(
+                        () => this._diagramMenuManager.toggleVRConfigPanel(),
+                        this._scene,
+                        this._toolboxBaseNode,
+                        new Vector3(0.5, -0.35, 0)  // Bottom-left
+                    );
                 }
 
-                // Create rendering mode button that cycles through modes
-                this.createRenderModeButton();
+                // Create rendering mode button
+                this._renderModeButton = new RenderModeButton(
+                    this._scene,
+                    this._toolboxBaseNode,
+                    new Vector3(0, -0.2, 0),  // Center below grid
+                    new Vector3(0.4, 0.4, 0.4)
+                );
             }
         });
     }
 
-    private createRenderModeButton() {
-        const modes = [
-            RenderingMode.LIGHTMAP_WITH_LIGHTING,
-            RenderingMode.UNLIT_WITH_EMISSIVE_TEXTURE,
-            RenderingMode.FLAT_EMISSIVE,
-            RenderingMode.DIFFUSE_WITH_LIGHTS
-        ];
-
-        const currentMode = LightmapGenerator.getRenderingMode();
-
-        this._renderModeDisplay = Button.CreateButton(
-            `Mode: ${RenderingModeLabels[currentMode]}`,
-            `renderModeButton`,
-            this._scene,
-            {
-                width: 0.5,
-                height: 0.2,
-                background: Color3.FromHexString("#333333"),
-                color: Color3.White(),
-                fontSize: 240
-            }
-        );
-
-        // Position below the color grid
-        this._renderModeDisplay.transform.position.x = 0;
-        this._renderModeDisplay.transform.position.y = -.2;
-        this._renderModeDisplay.transform.position.z = 0;
-        this._renderModeDisplay.transform.rotation.y = Math.PI;
-        this._renderModeDisplay.transform.scaling = new Vector3(.4, .4, .4);
-        this._renderModeDisplay.transform.parent = this._toolboxBaseNode;
-
-        // Add click handler to cycle through modes
-        this._renderModeDisplay.onPointerObservable.add((evt) => {
-            if (evt.sourceEvent.type == 'pointerdown') {
-                const currentMode = LightmapGenerator.getRenderingMode();
-                const currentIndex = modes.indexOf(currentMode);
-                const nextIndex = (currentIndex + 1) % modes.length;
-                const nextMode = modes[nextIndex];
-
-                this._logger.info(`Cycling to rendering mode: ${nextMode}`);
-                LightmapGenerator.updateAllMaterials(this._scene, nextMode);
-
-                // Update button text
-                this.updateRenderModeButton(nextMode);
-            }
-        });
-    }
-
-    private updateRenderModeButton(mode: RenderingMode) {
-        if (this._renderModeDisplay) {
-            // Dispose old button and create new one with updated text
-            this._renderModeDisplay.dispose();
-
-            this._renderModeDisplay = Button.CreateButton(
-                `Mode: ${RenderingModeLabels[mode]}`,
-                `renderModeButton`,
-                this._scene,
-                {
-                    width: 0.5,
-                    height: 0.2,
-                    background: Color3.FromHexString("#333333"),
-                    color: Color3.White(),
-                    fontSize: 240
-                }
-            );
-
-            this._renderModeDisplay.transform.position.x = 0;
-            this._renderModeDisplay.transform.position.y = -.2;
-            this._renderModeDisplay.transform.position.z = 0;
-            this._renderModeDisplay.transform.rotation.y = Math.PI;
-            this._renderModeDisplay.transform.scaling = new Vector3(.15, .15, .15);
-            this._renderModeDisplay.transform.parent = this._toolboxBaseNode;
-
-            // Re-attach the click handler
-            this._renderModeDisplay.onPointerObservable.add((evt) => {
-                if (evt.sourceEvent.type == 'pointerdown') {
-                    const modes = [
-                        RenderingMode.LIGHTMAP_WITH_LIGHTING,
-                        RenderingMode.UNLIT_WITH_EMISSIVE_TEXTURE,
-                        RenderingMode.FLAT_EMISSIVE,
-                        RenderingMode.DIFFUSE_WITH_LIGHTS
-                    ];
-
-                    const currentMode = LightmapGenerator.getRenderingMode();
-                    const currentIndex = modes.indexOf(currentMode);
-                    const nextIndex = (currentIndex + 1) % modes.length;
-                    const nextMode = modes[nextIndex];
-
-                    this._logger.info(`Cycling to rendering mode: ${nextMode}`);
-                    LightmapGenerator.updateAllMaterials(this._scene, nextMode);
-
-                    // Update button text
-                    this.updateRenderModeButton(nextMode);
-                }
-            });
-        }
-    }
 }
 
