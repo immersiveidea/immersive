@@ -1,13 +1,13 @@
 import {Group, Modal, SegmentedControl, Stack, Switch, Select} from "@mantine/core";
 import {useEffect, useState} from "react";
-import {appConfigInstance} from "../../util/appConfig";
+import {AppConfig, appConfigInstance} from "../../util/appConfig";
 import {LabelRenderingMode} from "../../util/appConfigType";
 
 const locationSnaps = [
-    {value: ".01", label: '1cm'},
-    {value: ".05", label: '5cm'},
-    {value: ".1", label: '10cm'},
-    {value: ".5", label: '50cm'},
+    {value: "0.01", label: '1cm'},
+    {value: "0.05", label: '5cm'},
+    {value: "0.1", label: '10cm'},
+    {value: "0.5", label: '50cm'},
     {value: "1", label: '1m'},
 ]
 const rotationSnaps = [
@@ -23,43 +23,39 @@ const labelRenderingModes = [
     {value: 'dynamic', label: 'Dynamic (Coming Soon)', disabled: true},
     {value: 'distance', label: 'Distance-based (Coming Soon)', disabled: true},
 ]
-let defaultConfig =
-    {
-        locationSnap: '.1',
-        locationSnapEnabled: true,
-        rotationSnap: '90',
-        rotationSnapEnabled: true,
-        flyModeEnabled: true,
-        snapTurnSnap: '45',
-        snapTurnSnapEnabled: false,
-        labelRenderingMode: 'billboard' as LabelRenderingMode
-    }
-try {
-    const newConfig = JSON.parse(localStorage.getItem('config'));
-    defaultConfig = {...defaultConfig, ...newConfig};
-    console.log(defaultConfig);
-} catch (e) {
-
-}
-
 export default function ConfigModal({configOpened, closeConfig}) {
-    const [locationSnap, setLocationSnap] = useState(defaultConfig.locationSnap);
-    const [locationSnapEnabled, setLocationSnapEnabled] = useState(defaultConfig.locationSnapEnabled);
-    const [snapTurnSnap, setSnapTurnSnap] = useState(defaultConfig.snapTurnSnap);
-    const [snapTurnSnapEnabled, setSnapTurnSnapEnabled] = useState(defaultConfig.snapTurnSnapEnabled);
-    const [rotationSnap, setRotationSnap] = useState(defaultConfig.rotationSnap);
-    const [rotationSnapEnabled, setRotationSnapEnabled] = useState(defaultConfig.rotationSnapEnabled);
-    const [flyModeEnabled, setFlyModeEnabled] = useState(defaultConfig.flyModeEnabled);
-    const [labelRenderingMode, setLabelRenderingMode] = useState<LabelRenderingMode>(defaultConfig.labelRenderingMode);
+    // Get current config values when component mounts/renders
+    const currentConfig = appConfigInstance.current;
+
+    const [locationSnap, setLocationSnap] = useState(currentConfig.locationSnap);
+    const [locationSnapEnabled, setLocationSnapEnabled] = useState(currentConfig.locationSnap > 0);
+    const [snapTurnSnap, setSnapTurnSnap] = useState(currentConfig.turnSnap);
+    const [snapTurnSnapEnabled, setSnapTurnSnapEnabled] = useState(currentConfig.turnSnap > 0);
+    const [rotationSnap, setRotationSnap] = useState(currentConfig.rotateSnap);
+    const [rotationSnapEnabled, setRotationSnapEnabled] = useState(currentConfig.rotateSnap > 0);
+    const [flyModeEnabled, setFlyModeEnabled] = useState(currentConfig.flyMode);
+    const [labelRenderingMode, setLabelRenderingMode] = useState<LabelRenderingMode>(currentConfig.labelRenderingMode);
+
+    // Update individual config properties when they change
     useEffect(() => {
-        // Update AppConfig singleton instance directly
-        // This triggers Observable notifications to all DiagramObjects
-        appConfigInstance.setLabelRenderingMode(labelRenderingMode);
+        appConfigInstance.setGridSnap(locationSnapEnabled ? locationSnap : 0);
+    }, [locationSnap, locationSnapEnabled]);
+
+    useEffect(() => {
+        appConfigInstance.setRotateSnap(rotationSnapEnabled ? rotationSnap : 0);
+    }, [rotationSnap, rotationSnapEnabled]);
+
+    useEffect(() => {
+        appConfigInstance.setTurnSnap(snapTurnSnapEnabled ? snapTurnSnap : 0);
+    }, [snapTurnSnap, snapTurnSnapEnabled]);
+
+    useEffect(() => {
         appConfigInstance.setFlyMode(flyModeEnabled);
-        appConfigInstance.setGridSnap(parseFloat(locationSnap));
-        appConfigInstance.setRotateSnap(parseFloat(rotationSnap));
-        appConfigInstance.setTurnSnap(parseFloat(snapTurnSnap));
-    }, [locationSnap, locationSnapEnabled, rotationSnap, rotationSnapEnabled, snapTurnSnap, snapTurnSnapEnabled, flyModeEnabled, labelRenderingMode]);
+    }, [flyModeEnabled]);
+
+    useEffect(() => {
+        appConfigInstance.setLabelRenderingMode(labelRenderingMode);
+    }, [labelRenderingMode]);
     return (
         <Modal onClose={closeConfig} opened={configOpened}>
             <h1>Configuration</h1>
@@ -73,9 +69,9 @@ export default function ConfigModal({configOpened, closeConfig}) {
                         setLocationSnapEnabled(e.currentTarget.checked)
                     }}/>
                     <SegmentedControl disabled={!locationSnapEnabled} key='stepper' data={locationSnaps}
-                                      value={locationSnap}
+                                      value={String(locationSnap)}
                                       color={locationSnapEnabled ? "myColor" : "gray.9"}
-                                      onChange={setLocationSnap}/>
+                                      onChange={(value) => setLocationSnap(parseFloat(value))}/>
 
                 </Group>
 
@@ -89,8 +85,8 @@ export default function ConfigModal({configOpened, closeConfig}) {
                     <SegmentedControl key='stepper'
                                       data={rotationSnaps}
                                       color={rotationSnapEnabled ? "myColor" : "gray.9"}
-                                      value={rotationSnap}
-                                      onChange={setRotationSnap}/>
+                                      value={String(rotationSnap)}
+                                      onChange={(value) => setRotationSnap(parseFloat(value))}/>
                 </Group>
                 <Switch w={256} label={flyModeEnabled ? 'Fly Mode Enabled' : 'Fly Mode Disabled'} key="switch"
                         checked={flyModeEnabled} onChange={(e) => {
@@ -106,8 +102,8 @@ export default function ConfigModal({configOpened, closeConfig}) {
                     <SegmentedControl key='stepper'
                                       data={rotationSnaps}
                                       color={snapTurnSnapEnabled ? "myColor" : "gray.9"}
-                                      value={snapTurnSnap}
-                                      onChange={setSnapTurnSnap}/>
+                                      value={String(snapTurnSnap)}
+                                      onChange={(value) => setSnapTurnSnap(parseFloat(value))}/>
                 </Group>
                 <Group key="labelmode">
                     <label key="label">Label Rendering Mode</label>

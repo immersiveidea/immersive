@@ -10,6 +10,7 @@ import {
 } from "@babylonjs/core";
 import log, {Logger} from "loglevel";
 import {split} from "canvas-hypertxt";
+import {appConfigInstance} from "../util/appConfig";
 
 /**
  * Options for creating a Handle instance
@@ -134,42 +135,39 @@ export class Handle {
     }
 
     /**
-     * Restores position and rotation from localStorage, or applies defaults
+     * Restores position and rotation from AppConfig handles array, or applies defaults
      * @private
      */
     private restorePosition(handle: TransformNode): void {
-        const storageKey = handle.id;
-        const stored = localStorage.getItem(storageKey);
+        const handleId = handle.id;
+        const savedConfig = appConfigInstance.getHandleConfig(handleId);
 
-        if (stored) {
-            this._logger.debug(`Stored location found for ${storageKey}`);
+        if (savedConfig) {
+            this._logger.debug(`Stored handle config found for ${handleId}:`, savedConfig);
+
             try {
-                const locationData = JSON.parse(stored);
-                this._logger.debug('Stored location data:', locationData);
+                const pos = savedConfig.position;
+                const rot = savedConfig.rotation;
 
-                if (locationData.position && locationData.rotation) {
-                    handle.position = new Vector3(
-                        locationData.position.x,
-                        locationData.position.y,
-                        locationData.position.z
-                    );
-                    handle.rotation = new Vector3(
-                        locationData.rotation.x,
-                        locationData.rotation.y,
-                        locationData.rotation.z
-                    );
+                if (pos && rot &&
+                    typeof pos.x === 'number' && typeof pos.y === 'number' && typeof pos.z === 'number' &&
+                    typeof rot.x === 'number' && typeof rot.y === 'number' && typeof rot.z === 'number') {
+
+                    // Convert Vec3 to Vector3
+                    handle.position = new Vector3(pos.x, pos.y, pos.z);
+                    handle.rotation = new Vector3(rot.x, rot.y, rot.z);
                     this._hasStoredPosition = true;
-                    this._logger.debug(`Position restored from storage for ${storageKey}`);
+                    this._logger.debug(`Position restored from AppConfig for ${handleId}`);
                 } else {
-                    this._logger.warn(`Invalid stored data format for ${storageKey}, using defaults`);
+                    this._logger.warn(`Invalid saved config format for ${handleId}, using defaults`);
                     this.applyDefaultPosition(handle);
                 }
             } catch (e) {
-                this._logger.error(`Error parsing stored location for ${storageKey}:`, e);
+                this._logger.error(`Error restoring handle position for ${handleId}:`, e);
                 this.applyDefaultPosition(handle);
             }
         } else {
-            this._logger.debug(`No stored location found for ${storageKey}, using defaults`);
+            this._logger.debug(`No saved config found for ${handleId}, using defaults`);
             this.applyDefaultPosition(handle);
         }
     }

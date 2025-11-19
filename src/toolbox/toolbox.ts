@@ -39,11 +39,11 @@ export class Toolbox {
         this._handle = new Handle({
             contentMesh: this._toolboxBaseNode,
             label: 'Toolbox',
-            defaultPosition: new Vector3(-.5, 1.5, .5),
-            defaultRotation: new Vector3(0, 0, 0)
+            defaultPosition: new Vector3(0, .4, .75),
+            defaultRotation: new Vector3(.62, 0, 0)
         });
         // Position is now controlled by Handle class
-        this._toolboxBaseNode.scaling = new Vector3(0.6, 0.6, 0.6);
+        this._toolboxBaseNode.scaling = new Vector3(0.5, 0.5, 0.5);
         this._toolboxBaseNode.position.y = .2;
         // Preload lightmaps for all toolbox colors for better first-render performance
         LightmapGenerator.preloadLightmaps(colors, this._scene);
@@ -148,7 +148,7 @@ export class Toolbox {
                 const exitButton = Button.CreateButton("exitXr", "exitXr", this._scene, {});
 
                 // Position button at bottom-right of toolbox, matching handle size and orientation
-                exitButton.transform.position.x = 0.5;   // Right side
+                exitButton.transform.position.x = -0.5;   // Right side
                 exitButton.transform.position.y = -0.35; // Below color grid
                 exitButton.transform.position.z = 0;     // Coplanar with toolbox
                 exitButton.transform.rotation.y = Math.PI; // Flip 180° on local x-axis to face correctly
@@ -167,7 +167,7 @@ export class Toolbox {
                     const configButton = Button.CreateButton("config", "config", this._scene, {});
 
                     // Position button at bottom-left of toolbox, opposite the exit button
-                    configButton.transform.position.x = -0.5;  // Left side
+                    configButton.transform.position.x = 0.5;  // Left side
                     configButton.transform.position.y = -0.35; // Below color grid (same as exit)
                     configButton.transform.position.z = 0;     // Coplanar with toolbox
                     configButton.transform.rotation.y = Math.PI; // Flip 180° to face correctly

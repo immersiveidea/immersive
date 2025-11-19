@@ -86,9 +86,11 @@ export class VRConfigPanel {
         this._handle = new Handle({
             contentMesh: this._baseTransform,
             label: 'Configuration',
-            defaultPosition: new Vector3(.5, 1.5, .5),  // Default position relative to platform
-            defaultRotation: new Vector3(0, 0, 0)     // Default rotation
+            defaultPosition: new Vector3(.95, .6, .3),  // Default position relative to platform
+            defaultRotation: new Vector3(.47, .87, 0)     // Default rotation
         });
+        this._baseTransform.position.y = .3
+        this._baseTransform.scaling = new Vector3(.3, .3, .3);
 
         // Build the panel mesh and UI
         this.buildPanel();
@@ -399,6 +401,7 @@ export class VRConfigPanel {
             // Click handler
             btn.onPointerClickObservable.add(() => {
                 if (this._locationSnapEnabled) {
+                    this._logger.debug(snap.value);
                     appConfigInstance.setGridSnap(snap.value);
                     this.updateLocationSnapButtonStates(snap.value);
                 }
