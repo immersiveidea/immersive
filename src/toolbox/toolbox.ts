@@ -36,10 +36,15 @@ export class Toolbox {
     constructor(readyObservable: Observable<boolean>) {
         this._scene = DefaultScene.Scene;
         this._toolboxBaseNode = new TransformNode("toolbox", this._scene);
-        this._handle = new Handle(this._toolboxBaseNode, 'Toolbox');
-        this._toolboxBaseNode.position.y = .2;
+        this._handle = new Handle({
+            contentMesh: this._toolboxBaseNode,
+            label: 'Toolbox',
+            defaultPosition: new Vector3(-.5, 1.5, .5),
+            defaultRotation: new Vector3(0, 0, 0)
+        });
+        // Position is now controlled by Handle class
         this._toolboxBaseNode.scaling = new Vector3(0.6, 0.6, 0.6);
-
+        this._toolboxBaseNode.position.y = .2;
         // Preload lightmaps for all toolbox colors for better first-render performance
         LightmapGenerator.preloadLightmaps(colors, this._scene);
 
@@ -79,19 +84,6 @@ export class Toolbox {
     private async buildToolbox() {
         this.setupPointerObservable();
         await this.buildColorPicker();
-        if (this._toolboxBaseNode.parent) {
-            const platform = this._scene.getMeshById("platform");
-            if (platform) {
-                this.assignHandleParentAndStore(platform);
-            } else {
-                const observer = this._scene.onNewMeshAddedObservable.add((mesh: AbstractMesh) => {
-                    if (mesh && mesh.id == "platform") {
-                        this.assignHandleParentAndStore(mesh);
-                        this._scene.onNewMeshAddedObservable.remove(observer);
-                    }
-                }, -1, false, this, false);
-            }
-        }
     }
 
     private setupPointerObservable() {
@@ -143,18 +135,6 @@ export class Toolbox {
         }
     }
 
-    private assignHandleParentAndStore(mesh: TransformNode) {
-        const offset = new Vector3(-.50, 1.6, .38);
-        const rotation = new Vector3(.5, -.6, .18);
-
-        const handle = this._handle;
-        handle.transformNode.parent = mesh;
-        if (!handle.idStored) {
-            handle.transformNode.position = offset;
-            handle.transformNode.rotation = rotation;
-        }
-
-    }
 
     private setupXRButton() {
         if (!this._xr) {

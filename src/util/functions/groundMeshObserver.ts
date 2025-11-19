@@ -157,16 +157,18 @@ function positionComponentsRelativeToCamera(scene: Scene, diagramManager: Diagra
     logger.info('Horizontal left:', horizontalLeft);
     logger.info('Platform world position:', platform.getAbsolutePosition());
 
-    // Position toolbox: On left side following VR best practices
-    // Meta guidelines: 45-60 degrees to the side, comfortable arm's reach (~0.4-0.5m)
+    // Position toolbox: Camera-relative positioning disabled to respect default/saved positions
+    // Handles now use their configured defaults or saved localStorage positions
     const toolbox = diagramManager.diagramMenuManager.toolbox;
     if (toolbox && toolbox.handleMesh) {
-        logger.info('Toolbox handleMesh BEFORE positioning:', {
+        logger.info('Toolbox handleMesh using default/saved position:', {
             position: toolbox.handleMesh.position.clone(),
             absolutePosition: toolbox.handleMesh.getAbsolutePosition().clone(),
             rotation: toolbox.handleMesh.rotation.clone()
         });
 
+        // Camera-relative positioning commented out - handles use their own defaults
+        /*
         // Position at 45 degrees to the left, 0.45m away, slightly below eye level
         // NOTE: User faces -Z direction by design, so negate forward offset
         const forwardOffset = horizontalForward.scale(-0.3);
@@ -193,16 +195,20 @@ function positionComponentsRelativeToCamera(scene: Scene, diagramManager: Diagra
             absolutePosition: toolbox.handleMesh.getAbsolutePosition().clone(),
             rotation: toolbox.handleMesh.rotation.clone()
         });
+        */
     }
 
-    // Position input text view: Centered in front, slightly below eye level
+    // Position input text view: Camera-relative positioning disabled to respect default/saved positions
+    // Handles now use their configured defaults or saved localStorage positions
     const inputTextView = diagramManager.diagramMenuManager['_inputTextView'];
     if (inputTextView && inputTextView.handleMesh) {
-        logger.info('InputTextView handleMesh BEFORE positioning:', {
+        logger.info('InputTextView handleMesh using default/saved position:', {
             position: inputTextView.handleMesh.position.clone(),
             absolutePosition: inputTextView.handleMesh.getAbsolutePosition().clone()
         });
 
+        // Camera-relative positioning commented out - handles use their own defaults
+        /*
         // NOTE: User faces -Z direction by design, so negate forward offset
         const inputWorldPos = cameraWorldPos.add(horizontalForward.scale(-0.5));
         inputWorldPos.y = cameraWorldPos.y - 0.4;  // Below eye level
@@ -218,5 +224,6 @@ function positionComponentsRelativeToCamera(scene: Scene, diagramManager: Diagra
             position: inputTextView.handleMesh.position.clone(),
             absolutePosition: inputTextView.handleMesh.getAbsolutePosition().clone()
         });
+        */
     }
 }

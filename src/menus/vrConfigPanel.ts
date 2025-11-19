@@ -83,12 +83,12 @@ export class VRConfigPanel {
         this._baseTransform.scaling = new Vector3(0.6, 0.6, 0.6);
 
         // Create handle for grabbing (Handle will become parent of baseTransform)
-        this._handle = new Handle(
-            this._baseTransform,
-            'Configuration',
-            new Vector3(0.5, 1.6, 0.4),  // Default position relative to platform
-            new Vector3(0.5, 0.6, 0)     // Default rotation
-        );
+        this._handle = new Handle({
+            contentMesh: this._baseTransform,
+            label: 'Configuration',
+            defaultPosition: new Vector3(.5, 1.5, .5),  // Default position relative to platform
+            defaultRotation: new Vector3(0, 0, 0)     // Default rotation
+        });
 
         // Build the panel mesh and UI
         this.buildPanel();
@@ -185,14 +185,8 @@ export class VRConfigPanel {
         // Parent to base transform
         this._panelMesh.parent = this._baseTransform;
 
-        // Calculate position to place panel bottom just above handle
-        // Panel is 1.5m tall, so center needs to be at half-height + small gap above handle
-        const panelHeight = 1.5;
-        const gapAboveHandle = 0.05;  // 5cm gap above handle for spacing
-        const panelCenterY = (panelHeight / 2) + gapAboveHandle;  // 0.75 + 0.05 = 0.8m
-
-        // Position panel so bottom edge sits just above handle, matching toolbox appearance
-        this._panelMesh.position = new Vector3(0, panelCenterY, 0);
+        // Position is now controlled by Handle class
+        // Panel is positioned at origin relative to baseTransform
 
         // Create material for panel backing
         const material = new StandardMaterial("vrConfigPanelMaterial", this._scene);
@@ -232,9 +226,6 @@ export class VRConfigPanel {
 
         // Build configuration sections
         this.buildConfigSections();
-
-        // Parent handle to platform when available
-        this.setupPlatformParenting();
 
         this._logger.debug('VR config panel built successfully');
     }
@@ -797,25 +788,6 @@ export class VRConfigPanel {
         });
     }
 
-    /**
-     * Set up parenting to platform for world movement tracking
-     */
-    private setupPlatformParenting(): void {
-        const platform = this._scene.getMeshById('platform');
-        if (platform) {
-            this._handle.transformNode.parent = platform;
-            this._logger.debug('VRConfigPanel parented to existing platform');
-        } else {
-            // Wait for platform to be added
-            const handler = this._scene.onNewMeshAddedObservable.add((mesh) => {
-                if (mesh && mesh.id === 'platform') {
-                    this._handle.transformNode.parent = mesh;
-                    this._logger.debug('VRConfigPanel parented to newly added platform');
-                    this._scene.onNewMeshAddedObservable.remove(handler);
-                }
-            });
-        }
-    }
 
     /**
      * Update all UI elements to reflect current config

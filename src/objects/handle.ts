@@ -11,38 +11,106 @@ import {
 import log, {Logger} from "loglevel";
 import {split} from "canvas-hypertxt";
 
+/**
+ * Options for creating a Handle instance
+ */
+export interface HandleOptions {
+    /** The TransformNode that will be parented to this handle */
+    contentMesh: TransformNode;
+    /** Display label for the handle (default: 'Handle') */
+    label?: string;
+    /** Default position offset if no stored position exists (default: Vector3.Zero()) */
+    defaultPosition?: Vector3;
+    /** Default rotation if no stored rotation exists (default: Vector3.Zero()) */
+    defaultRotation?: Vector3;
+    /** Whether to automatically parent the handle to the platform (default: true) */
+    autoParentToPlatform?: boolean;
+}
+
+/**
+ * A grabbable, labeled plane mesh for VR interfaces with automatic position persistence.
+ *
+ * Features:
+ * - Automatically saves and restores position/rotation to localStorage
+ * - Can automatically parent itself to the platform mesh
+ * - Creates a labeled visual handle for VR interaction
+ *
+ * @example
+ * ```typescript
+ * const handle = new Handle({
+ *   contentMesh: myMenu,
+ *   label: 'Configuration',
+ *   defaultPosition: new Vector3(0.5, 1.6, 0.4),
+ *   defaultRotation: new Vector3(0.5, 0.6, 0)
+ * });
+ * ```
+ */
 export class Handle {
+    /** The TransformNode representing the handle mesh */
     public transformNode: TransformNode;
-    private readonly _menuItem: TransformNode;
-    private _isStored: boolean = false;
-    private _offset: Vector3;
-    private _rotation: Vector3;
+
+    private readonly _contentMesh: TransformNode;
+    private _hasStoredPosition: boolean = false;
+    private readonly _defaultPosition: Vector3;
+    private readonly _defaultRotation: Vector3;
     private readonly _label: string;
+    private readonly _autoParentToPlatform: boolean;
     private readonly _logger: Logger = log.getLogger('Handle');
 
-    constructor(mesh: TransformNode, label: string = 'Handle', offset: Vector3 = Vector3.Zero(), rotation: Vector3 = Vector3.Zero()) {
-        this._menuItem = mesh;
-        this._offset = offset;
-        this._rotation = rotation;
-        this._label = label;
-        this._logger.debug('Handle created with label  ' + label);
+    /**
+     * Creates a new Handle instance
+     * @param options Configuration options for the handle
+     */
+    constructor(options: HandleOptions) {
+        this._contentMesh = options.contentMesh;
+        this._label = options.label ?? 'Handle';
+        this._defaultPosition = options.defaultPosition ?? Vector3.Zero();
+        this._defaultRotation = options.defaultRotation ?? Vector3.Zero();
+        this._autoParentToPlatform = options.autoParentToPlatform ?? true;
+
+        this._logger.debug(`Handle created with label: ${this._label}`);
         this.buildHandle();
+
+        if (this._autoParentToPlatform) {
+            this.setupPlatformParenting();
+        }
     }
 
-    public get idStored() {
-        return this._isStored;
+    /**
+     * Returns true if a stored position was found and restored from localStorage
+     */
+    public get hasStoredPosition(): boolean {
+        return this._hasStoredPosition;
     }
 
-    public staort() {
+    /**
+     * Automatically parents the handle to the platform mesh when it becomes available
+     * @private
+     */
+    private setupPlatformParenting(): void {
+        const scene: Scene = this._contentMesh.getScene();
+        const platform = scene.getMeshByID('platform');
 
+        if (platform) {
+            this._logger.debug(`Platform found, parenting handle to platform`);
+            this.transformNode.parent = platform;
+        } else {
+            this._logger.debug(`Platform not found, waiting for platform creation`);
+            // Wait for platform to be created
+            const observer = scene.onNewMeshAddedObservable.add((mesh) => {
+                if (mesh.id === 'platform') {
+                    this._logger.debug(`Platform created, parenting handle to platform`);
+                    this.transformNode.parent = mesh;
+                    scene.onNewMeshAddedObservable.remove(observer);
+                }
+            });
+        }
     }
 
-    private buildHandle() {
-        const scene: Scene = this._menuItem.getScene();
+    private buildHandle(): void {
+        const scene: Scene = this._contentMesh.getScene();
 
-
-        const handle = MeshBuilder.CreatePlane('handle-' + this._menuItem.id, {width: .4, height: .4 / 8}, scene);
-        //button.transform.scaling.set(.1,.1,.1);
+        const handle = MeshBuilder.CreatePlane('handle-' + this._contentMesh.id, {width: .4, height: .4 / 8}, scene);
         const texture = this.drawText(this._label, Color3.White(), Color3.Black());
         const material = new StandardMaterial('handleMaterial', scene);
         material.metadata = { isUI: true };  // Mark as UI to prevent rendering mode modifications
@@ -50,38 +118,77 @@ export class Handle {
         material.opacityTexture = texture;
         material.disableLighting = true;
         handle.material = material;
-        //handle.rotate(Vector3.Up(), Math.PI);
-        handle.id = 'handle-' + this._menuItem.id;
-        if (this._menuItem) {
-            this._menuItem.setParent(handle);
-        }
 
-        const stored = localStorage.getItem(handle.id);
-        if (stored) {
-            this._logger.debug('Stored location found for ' + handle.id);
-            try {
-                const locationdata = JSON.parse(stored);
-                this._logger.debug('Stored location data found ', locationdata);
-
-                handle.position = new Vector3(locationdata.position.x, locationdata.position.y, locationdata.position.z);
-                handle.rotation = new Vector3(locationdata.rotation.x, locationdata.rotation.y, locationdata.rotation.z);
-                this._isStored = true;
-            } catch (e) {
-                this._logger.error(e);
-                handle.position = Vector3.Zero();
-            }
-        } else {
-            this._logger.debug('No stored location found for ' + handle.id + ', using defaults');
-            handle.position = this._offset;
-            handle.rotation = this._rotation;
-        }
+        handle.id = 'handle-' + this._contentMesh.id;
         handle.metadata = {handle: true};
-        this.transformNode = handle;
 
+        // Parent content mesh to handle
+        if (this._contentMesh) {
+            this._contentMesh.setParent(handle);
+        }
+
+        // Attempt to restore position/rotation from localStorage
+        this.restorePosition(handle);
+
+        this.transformNode = handle;
     }
 
+    /**
+     * Restores position and rotation from localStorage, or applies defaults
+     * @private
+     */
+    private restorePosition(handle: TransformNode): void {
+        const storageKey = handle.id;
+        const stored = localStorage.getItem(storageKey);
+
+        if (stored) {
+            this._logger.debug(`Stored location found for ${storageKey}`);
+            try {
+                const locationData = JSON.parse(stored);
+                this._logger.debug('Stored location data:', locationData);
+
+                if (locationData.position && locationData.rotation) {
+                    handle.position = new Vector3(
+                        locationData.position.x,
+                        locationData.position.y,
+                        locationData.position.z
+                    );
+                    handle.rotation = new Vector3(
+                        locationData.rotation.x,
+                        locationData.rotation.y,
+                        locationData.rotation.z
+                    );
+                    this._hasStoredPosition = true;
+                    this._logger.debug(`Position restored from storage for ${storageKey}`);
+                } else {
+                    this._logger.warn(`Invalid stored data format for ${storageKey}, using defaults`);
+                    this.applyDefaultPosition(handle);
+                }
+            } catch (e) {
+                this._logger.error(`Error parsing stored location for ${storageKey}:`, e);
+                this.applyDefaultPosition(handle);
+            }
+        } else {
+            this._logger.debug(`No stored location found for ${storageKey}, using defaults`);
+            this.applyDefaultPosition(handle);
+        }
+    }
+
+    /**
+     * Applies the default position and rotation to the handle
+     * @private
+     */
+    private applyDefaultPosition(handle: TransformNode): void {
+        handle.position = this._defaultPosition;
+        handle.rotation = this._defaultRotation;
+    }
+
+    /**
+     * Draws text label onto a dynamic texture for the handle
+     * @private
+     */
     private drawText(name: string, foreground: Color3, background: Color3): DynamicTexture {
-        const texture = new DynamicTexture('handleTexture', {width: 512, height: 64}, this._menuItem.getScene());
+        const texture = new DynamicTexture(`${name}-handle-texture}`, {width: 512, height: 64}, this._contentMesh.getScene());
         const ctx: ICanvasRenderingContext = texture.getContext();
         const ctx2d: CanvasRenderingContext2D = (ctx.canvas.getContext('2d') as CanvasRenderingContext2D);
         const font = `900 24px Arial`;
@@ -102,6 +209,4 @@ export class Handle {
         texture.update();
         return texture;
     }
-
-
 }

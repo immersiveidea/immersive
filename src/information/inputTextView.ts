@@ -28,9 +28,13 @@ export class InputTextView {
         this.controllerObservable = controllerObservable;
         this.scene = DefaultScene.Scene;
         this.inputMesh = MeshBuilder.CreatePlane("input", {width: 1, height: .5}, this.scene);
-        this.handle = new Handle(this.inputMesh, 'Input');
-        this.inputMesh.position.y = .06;
-        this.inputMesh.position.z = .02;
+        this.handle = new Handle({
+            contentMesh: this.inputMesh,
+            label: 'Input',
+            defaultPosition: new Vector3(0, 1.5, .5),
+            defaultRotation: new Vector3(0, 0, 0)
+        });
+        // Position is now controlled by Handle class
         this.createKeyboard();
     }
 
@@ -52,36 +56,6 @@ export class InputTextView {
     }
 
     public createKeyboard() {
-        const platform = this.scene.getMeshById('platform');
-        const position = new Vector3(0, 1.66, .53);
-        const rotation = new Vector3(.9, 0, 0);
-        const handle = this.handle;
-        /*if (handle.mesh.position.x != 0 && handle.mesh.position.y != 0 && handle.mesh.position.z != 0) {
-            position = handle.mesh.position;
-        }
-        if (handle.mesh.rotation.x != 0 && handle.mesh.rotation.y != 0 && handle.mesh.rotation.z != 0) {
-            rotation = handle.mesh.rotation;
-        }*/
-        if (!platform) {
-            this.scene.onNewMeshAddedObservable.add((mesh) => {
-                if (mesh.id == 'platform') {
-                    this.logger.debug("platform added");
-                    handle.transformNode.parent = mesh;
-                    if (!handle.idStored) {
-                        handle.transformNode.position = position;
-                        handle.transformNode.rotation = rotation;
-                    }
-                }
-            }, -1, false, this, false);
-        } else {
-            handle.transformNode.setParent(platform);
-            if (!handle.idStored) {
-                handle.transformNode.position = position;
-                handle.transformNode.rotation = rotation;
-            }
-        }
-
-        //setMenuPosition(handle.mesh, this.scene, new Vector3(0, .4, 0));
         const advancedTexture = AdvancedDynamicTexture.CreateForMesh(this.inputMesh, 2048, 1024, false);
 
         const input = new InputText();
