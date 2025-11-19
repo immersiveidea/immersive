@@ -31,9 +31,11 @@ export class InputTextView {
         this.handle = new Handle({
             contentMesh: this.inputMesh,
             label: 'Input',
-            defaultPosition: new Vector3(0, .4, .5),
-            defaultRotation: new Vector3(0, 0, 0)
+            defaultPosition: new Vector3(0, .8, .7),
+            defaultRotation: new Vector3(.36, 0, 0)
         });
+        this.inputMesh.position.y = .02;
+        this.inputMesh.position.z = .01;
         // Position is now controlled by Handle class
         this.createKeyboard();
     }

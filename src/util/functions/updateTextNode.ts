@@ -1,4 +1,4 @@
-import {AbstractMesh, Color3, DynamicTexture, Material, MeshBuilder, StandardMaterial} from "@babylonjs/core";
+import {AbstractMesh, Color3, DynamicTexture, Material, MeshBuilder, StandardMaterial, TransformNode} from "@babylonjs/core";
 import log from "loglevel";
 
 
@@ -63,7 +63,6 @@ export function updateTextNode(mesh: AbstractMesh, text: string) {
 
 function createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth: number, height: number): AbstractMesh {
     const plane = MeshBuilder.CreatePlane("text" + text, {width: planeWidth, height: height}, mesh.getScene());
-    const yOffset = mesh.getBoundingInfo().boundingSphere.maximum.y;
 
     plane.parent = mesh;
     plane.scaling.y = (1 / mesh.scaling.y);
@@ -75,9 +74,26 @@ function createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth
     if (mesh.metadata?.template == "#connection-template") {
         plane.billboardMode = AbstractMesh.BILLBOARDMODE_Y;
         plane.position.y = mesh.position.y + .1;
-
     } else {
-        plane.position.y = yOffset + (height * plane.scaling.y);
+        // Calculate label position using world space bounding box
+        // This ensures labels are positioned correctly regardless of mesh transforms
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+
+        // Get the top of the bounding box in world space
+        const top = mesh.getBoundingInfo().boundingBox.maximumWorld;
+
+        // Convert world space position to mesh's local space
+        // Use temporary TransformNode to handle the transformation
+        const temp = new TransformNode("temp", mesh.getScene());
+        temp.position = top;
+        temp.setParent(mesh);
+        const y = temp.position.y;
+        temp.dispose();
+
+        // Position label above the mesh with offset
+        // Add additional offset for the scaled height of the label
+        plane.position.y = y + 0.06 + (height * plane.scaling.y / 2);
     }
     plane.addLODLevel(3, null);
     return plane;

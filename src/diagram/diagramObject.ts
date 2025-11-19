@@ -205,7 +205,7 @@ export class DiagramObject {
     public updateLabelPosition() {
         if (this._label) {
             this._mesh.computeWorldMatrix(true);
-            this._mesh.refreshBoundingInfo();
+            this._mesh.refreshBoundingInfo({});
 
             if (this._from && this._to) {
                 // Connection labels (arrows/lines)
