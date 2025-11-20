@@ -4,6 +4,7 @@ import {DiagramManager} from "../../diagram/diagramManager";
 import {DiagramEventObserverMask} from "../../diagram/types/diagramEventObserverMask";
 import log, {Logger} from "loglevel";
 import PouchDB from 'pouchdb';
+import {importDiagramFromJSON, DiagramExport} from "../../util/functions/exportDiagramAsJSON";
 
 export class PouchData {
     public readonly onDBEntityUpdateObservable: Observable<DiagramEntity> = new Observable<DiagramEntity>();
@@ -11,9 +12,11 @@ export class PouchData {
     private _db: PouchDB;
     private _diagramManager: DiagramManager;
     private _logger: Logger = log.getLogger('PouchData');
+    private _dbName: string;
 
     constructor(dbname: string) {
         this._db = new PouchDB(dbname);
+        this._dbName = dbname;
     }
     public setDiagramManager(diagramManager: DiagramManager) {
         this._diagramManager = diagramManager;
@@ -57,16 +60,50 @@ export class PouchData {
             diagramManager.onDiagramEventObservable.notifyObservers(
                 {type: DiagramEventType.REMOVE, entity: entity}, DiagramEventObserverMask.FROM_DB);
         });
-        this._db.allDocs({include_docs: true}).then((docs) => {
-            docs.rows.forEach((row) => {
-                if (row.doc.id != 'metadata') {
-                    diagramManager.onDiagramEventObservable.notifyObservers({
-                        type: DiagramEventType.ADD,
-                        entity: row.doc
-                    }, DiagramEventObserverMask.FROM_DB);
-                }
-            });
+        this._db.allDocs({include_docs: true}).then(async (docs) => {
+            // Check if this is the demo database and it's empty
+            if (this._dbName === 'demo' && docs.rows.length === 0) {
+                this._logger.info('Demo database is empty, loading template...');
+                await this.loadDemoTemplate();
+                // Re-fetch docs after loading template
+                const updatedDocs = await this._db.allDocs({include_docs: true});
+                updatedDocs.rows.forEach((row) => {
+                    if (row.doc.id != 'metadata') {
+                        diagramManager.onDiagramEventObservable.notifyObservers({
+                            type: DiagramEventType.ADD,
+                            entity: row.doc
+                        }, DiagramEventObserverMask.FROM_DB);
+                    }
+                });
+            } else {
+                docs.rows.forEach((row) => {
+                    if (row.doc.id != 'metadata') {
+                        diagramManager.onDiagramEventObservable.notifyObservers({
+                            type: DiagramEventType.ADD,
+                            entity: row.doc
+                        }, DiagramEventObserverMask.FROM_DB);
+                    }
+                });
+            }
         });
+    }
+
+    private async loadDemoTemplate(): Promise<void> {
+        try {
+            // Fetch the demo template from public/templates/demo.json
+            const response = await fetch('/templates/demo.json');
+            if (!response.ok) {
+                this._logger.error('Failed to fetch demo template:', response.statusText);
+                return;
+            }
+            const templateData: DiagramExport = await response.json();
+
+            // Import the template into the current database
+            await importDiagramFromJSON(templateData, this._dbName);
+            this._logger.info('Demo template loaded successfully');
+        } catch (error) {
+            this._logger.error('Error loading demo template:', error);
+        }
     }
 
     public async remove(id: string) {

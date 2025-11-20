@@ -1,17 +1,22 @@
 import VrApp from '../../vrApp';
 import React, {useEffect, useState} from "react";
-import {Affix, Burger, Group, Menu} from "@mantine/core";
+import {Affix, Burger, Group, Menu, Alert, Button, Text} from "@mantine/core";
 import VrTemplate from "../vrTemplate";
-import {IconStar} from "@tabler/icons-react";
+import {IconStar, IconInfoCircle} from "@tabler/icons-react";
 import VrMenuItem from "../components/vrMenuItem";
 import CreateDiagramModal from "./createDiagramModal";
 import ManageDiagramsModal from "./manageDiagramsModal";
 import {useNavigate, useParams} from "react-router-dom";
 import {useDisclosure} from "@mantine/hooks";
 import ConfigModal from "./configModal";
-import FirstVisitVr from "../instructions/firstVisitVr";
 import log from "loglevel";
 import {useIsFeatureEnabled, useUserTier} from "../hooks/useFeatures";
+import {useAuth0} from "@auth0/auth0-react";
+import {GUEST_MODE_BANNER} from "../../content/upgradeCopy";
+import {exportDiagramAsJSON} from "../../util/functions/exportDiagramAsJSON";
+import {isMobileVRDevice} from "../../util/deviceDetection";
+import {DefaultScene} from "../../defaultScene";
+import VREntryPrompt from "../components/VREntryPrompt";
 
 let vrApp: VrApp = null;
 
@@ -21,6 +26,8 @@ const defaultManage = window.localStorage.getItem('manageOpened') === 'true';
 export default function VrExperience() {
     const logger = log.getLogger('vrExperience');
     const params = useParams();
+    const { isAuthenticated, loginWithRedirect } = useAuth0();
+    const [guestBannerDismissed, setGuestBannerDismissed] = useState(false);
 
     // Feature flags
     const createDiagramEnabled = useIsFeatureEnabled('createDiagram');
@@ -32,6 +39,21 @@ export default function VrExperience() {
     const enterImmersiveEnabled = useIsFeatureEnabled('enterImmersive');
     const launchMetaQuestEnabled = useIsFeatureEnabled('launchMetaQuest');
     const userTier = useUserTier();
+
+    const handleSignUp = () => {
+        loginWithRedirect({
+            appState: { returnTo: window.location.pathname }
+        });
+    };
+
+    const handleExportJSON = async () => {
+        try {
+            await exportDiagramAsJSON(dbName);
+            logger.info('Diagram exported successfully');
+        } catch (error) {
+            logger.error('Failed to export diagram:', error);
+        }
+    };
 
     const saveState = (key, value) => {
         logger.debug('saving', key, value)
@@ -68,6 +90,8 @@ export default function VrExperience() {
 
     const [rerender, setRerender] = useState(0);
     const [dbName, setDbName] = useState(params.db);
+    const [showVRPrompt, setShowVRPrompt] = useState(false);
+
     useEffect(() => {
         const canvas = document.getElementById('vrCanvas');
         if (!canvas) {
@@ -80,6 +104,37 @@ export default function VrExperience() {
         }
         vrApp = new VrApp(canvas as HTMLCanvasElement, dbName);
         closeManage();
+
+        // Show VR entry prompt for all Quest users navigating to any /db/** path
+        const isQuest = isMobileVRDevice();
+        logger.info(`Device check: isMobileVRDevice=${isQuest}, userAgent=${navigator.userAgent}`);
+
+        if (isQuest) {
+            logger.info('Quest device detected, will show VR prompt when ready');
+
+            // Wait for XR to be ready, then show the prompt
+            let attempts = 0;
+            const maxAttempts = 50;
+
+            const waitForXRReady = setInterval(() => {
+                attempts++;
+                const scene = DefaultScene.Scene;
+                const groundMesh = scene?.getMeshByName('ground');
+
+                logger.debug(`XR readiness check attempt ${attempts}: scene=${!!scene}, groundMesh=${!!groundMesh}`);
+
+                if (groundMesh || attempts >= maxAttempts) {
+                    clearInterval(waitForXRReady);
+                    if (groundMesh) {
+                        logger.info('XR ready, showing VR entry prompt');
+                        setShowVRPrompt(true);
+                        logger.info(`showVRPrompt state set to true`);
+                    } else {
+                        logger.warn('XR setup timeout, cannot show VR prompt');
+                    }
+                }
+            }, 500);
+        }
     }, [dbName]);
 
     const [immersiveDisabled, setImmersiveDisabled] = useState(true);
@@ -130,7 +185,31 @@ export default function VrExperience() {
     return (
         <React.StrictMode>
         <VrTemplate>
-            <FirstVisitVr/>
+            {/* Guest Mode Banner - Non-aggressive, dismissible (hidden for demo) */}
+            {!isAuthenticated && !guestBannerDismissed && dbName !== 'demo' && (
+                <Affix position={{top: 20, right: 20}} style={{maxWidth: 400}}>
+                    <Alert
+                        variant="light"
+                        color="blue"
+                        title={GUEST_MODE_BANNER.title}
+                        icon={<IconInfoCircle size={20} />}
+                        withCloseButton
+                        onClose={() => setGuestBannerDismissed(true)}
+                    >
+                        <Text size="sm" mb="xs">
+                            {GUEST_MODE_BANNER.message}
+                        </Text>
+                        <Button
+                            size="xs"
+                            onClick={handleSignUp}
+                            variant="light"
+                        >
+                            {GUEST_MODE_BANNER.ctaText}
+                        </Button>
+                    </Alert>
+                </Affix>
+            )}
+
             <ConfigModal closeConfig={closeConfig} configOpened={configOpened}/>
             {createModal()}
             {manageModal()}
@@ -204,6 +283,13 @@ export default function VrExperience() {
                                 availableIcon={getTierIndicator('free')}/>
                         )}
 
+                        {/* Export JSON - Always available for creating templates */}
+                        <VrMenuItem
+                            tip="Export current diagram as JSON file (useful for creating templates)"
+                            label="Export JSON"
+                            onClick={handleExportJSON}
+                            availableIcon={null}/>
+
                         {(shareCollaborateEnabled || configEnabled) && <Menu.Divider/>}
 
                         {shareCollaborateEnabled && (
@@ -225,6 +311,17 @@ export default function VrExperience() {
                 </Menu>
             </Affix>
             <canvas id="vrCanvas" style={{zIndex: 1000, width: '100%', height: '100vh'}}/>
+
+            {/* VR Entry Prompt - Rendered AFTER canvas to ensure it's on top in DOM order */}
+            <VREntryPrompt
+                isVisible={showVRPrompt}
+                onEnterVR={() => {
+                    setShowVRPrompt(false);
+                    const event = new CustomEvent('enterXr', {bubbles: true});
+                    window.dispatchEvent(event);
+                }}
+                onSkip={() => setShowVRPrompt(false)}
+            />
         </VrTemplate>
         </React.StrictMode>
     )

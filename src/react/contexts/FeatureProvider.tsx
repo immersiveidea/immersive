@@ -1,7 +1,7 @@
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { FeatureContext } from './FeatureContext';
-import { FeatureConfig, DEFAULT_FEATURE_CONFIG } from '../../util/featureConfig';
+import { FeatureConfig, DEFAULT_FEATURE_CONFIG, GUEST_FEATURE_CONFIG } from '../../util/featureConfig';
 import log from 'loglevel';
 
 const logger = log.getLogger('FeatureProvider');
@@ -48,7 +48,7 @@ async function fetchFeatureConfig(accessToken: string | undefined): Promise<Feat
 
 export function FeatureProvider({ children }: FeatureProviderProps) {
     const { isAuthenticated, isLoading: authLoading, getAccessTokenSilently } = useAuth0();
-    const [config, setConfig] = useState<FeatureConfig>(DEFAULT_FEATURE_CONFIG);
+    const [config, setConfig] = useState<FeatureConfig>(GUEST_FEATURE_CONFIG); // Start with guest config
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
@@ -67,13 +67,22 @@ export function FeatureProvider({ children }: FeatureProviderProps) {
                 }
             }
 
+            // If not authenticated, use guest config
+            if (!isAuthenticated) {
+                logger.info('User not authenticated, using guest config');
+                setConfig(GUEST_FEATURE_CONFIG);
+                setIsLoading(false);
+                return;
+            }
+
             const fetchedConfig = await fetchFeatureConfig(accessToken);
             setConfig(fetchedConfig);
         } catch (err) {
             const error = err instanceof Error ? err : new Error('Unknown error fetching features');
             setError(error);
-            // On error, use default config (everything disabled)
-            setConfig(DEFAULT_FEATURE_CONFIG);
+            // On error, fallback to guest config for better UX
+            logger.warn('Error loading features, falling back to guest config');
+            setConfig(GUEST_FEATURE_CONFIG);
         } finally {
             setIsLoading(false);
         }

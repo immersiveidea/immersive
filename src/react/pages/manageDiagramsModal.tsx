@@ -1,10 +1,11 @@
 import {Button, Card, Container, Group, Modal, Paper, SimpleGrid, Stack} from "@mantine/core";
 import React from "react";
 import {useDoc, usePouch} from "use-pouchdb";
-import {IconTrash} from "@tabler/icons-react";
+import {IconTrash, IconDownload} from "@tabler/icons-react";
 import {Link} from "react-router-dom";
 import log from "loglevel";
 import {useFeatureLimit} from "../hooks/useFeatures";
+import {exportDiagramAsJSON} from "../../util/functions/exportDiagramAsJSON";
 
 export default function ManageDiagramsModal({openCreate, manageOpened, closeManage}) {
     const logger = log.getLogger('manageDiagramsModal');
@@ -23,6 +24,15 @@ export default function ManageDiagramsModal({openCreate, manageOpened, closeMana
     }
     const diagrams = diagram.diagrams || [];
 
+    const handleExportDiagram = async (diagramId: string) => {
+        try {
+            await exportDiagramAsJSON(diagramId);
+            logger.info(`Diagram ${diagramId} exported successfully`);
+        } catch (error) {
+            logger.error('Failed to export diagram:', error);
+        }
+    };
+
     const cards = diagrams.map((diagram) => {
         return (
             <Card key={diagram._id}>
@@ -38,6 +48,14 @@ export default function ManageDiagramsModal({openCreate, manageOpened, closeMana
                     <Group justify="space-evenly">
                         <Button component={Link} key="examples" to={"/db/public/" + diagram._id} p={5} c="myColor"
                                 bg="none">Select</Button>
+
+                        <Button
+                            onClick={() => handleExportDiagram(diagram._id)}
+                            variant="light"
+                            size="xs"
+                            title="Export as JSON">
+                            <IconDownload size={16}/>
+                        </Button>
 
                         <Button bg="red" size="xs"><IconTrash size={16}/></Button>
                     </Group>

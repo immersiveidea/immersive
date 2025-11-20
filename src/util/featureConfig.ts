@@ -70,6 +70,37 @@ export const DEFAULT_FEATURE_CONFIG: FeatureConfig = {
 };
 
 /**
+ * Guest mode configuration for unauthenticated users.
+ * Allows limited access with local storage only (no sync/collaboration).
+ */
+export const GUEST_FEATURE_CONFIG: FeatureConfig = {
+    tier: 'none',
+    pages: {
+        examples: false,
+        documentation: false,
+        pricing: false,
+        vrExperience: true, // Allow VR experience for guests
+    },
+    features: {
+        createDiagram: true,        // Guests can create diagrams
+        createFromTemplate: false,  // No templates for guests
+        manageDiagrams: true,        // Guests can manage their local diagrams
+        shareCollaborate: false,     // No sharing/collaboration for guests
+        privateDesigns: false,       // No private designs (local only anyway)
+        encryptedDesigns: false,     // No encryption for guests
+        editData: true,              // Guests can edit data
+        config: true,                // Guests can access settings
+        enterImmersive: true,        // Guests can enter immersive mode
+        launchMetaQuest: true,       // Guests can launch on Meta Quest
+    },
+    limits: {
+        maxDiagrams: 3,              // Guests limited to 3 diagrams
+        maxCollaborators: 0,         // No collaboration for guests
+        storageQuotaMB: 50,          // 50MB local storage for guests
+    },
+};
+
+/**
  * Type guard to check if a page name is valid
  */
 export function isValidPage(page: string): page is keyof PageFlags {

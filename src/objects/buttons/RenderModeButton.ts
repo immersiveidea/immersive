@@ -92,7 +92,7 @@ export class RenderModeButton {
         LightmapGenerator.updateAllMaterials(this._scene, nextMode);
 
         // Recreate button with new label
-        this.updateButton(nextMode);
+        this.updateButton();
     }
 
     /**
@@ -100,7 +100,7 @@ export class RenderModeButton {
      * @param mode New rendering mode
      * @private
      */
-    private updateButton(mode: RenderingMode): void {
+    private updateButton(): void {
         // Dispose old button
         if (this._button) {
             this._button.dispose();

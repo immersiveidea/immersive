@@ -74,10 +74,7 @@ export default class VrApp {
         } else {
             this.logger.error('Download button not found');
         }*/
-        if (!localStorage.getItem('tutorialCompleted')) {
-            this.logger.info('Starting tutorial');
-            const intro = new Introduction();
-        }
+
         this.logger.info('Render loop started');
     }
 
