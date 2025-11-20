@@ -1,16 +1,21 @@
 import {ToolType} from "../types/toolType";
-import {Mesh, MeshBuilder, Scene, SceneLoader} from "@babylonjs/core";
+import {AssetContainer, LoadAssetContainerAsync, Mesh, MeshBuilder, SceneLoader} from "@babylonjs/core";
 import {DefaultScene} from "../../defaultScene";
+import log from "loglevel";
 
 const detail = {
     tesselation: 16,
     subdivisions: 5
 }
 
-export async function buildMesh(type: ToolType, toolname: string, scene: Scene): Promise<Mesh> {
+// Cache the loading promise to prevent multiple fetches and handle concurrent requests
+let personAssetContainerPromise: Promise<AssetContainer> | null = null;
+export async function buildMesh(type: ToolType, toolname: string): Promise<Mesh> {
+    const logger = log.getLogger('buldMesh');
+    const scene = DefaultScene.Scene;
     switch (type) {
         case ToolType.BOX:
-            return MeshBuilder.CreateBox(toolname, {width: 1, height: 1, depth: 1}, scene);
+            return MeshBuilder.CreateBox(toolname, {width: 1, height: 1, depth: 1});
 
         case ToolType.SPHERE:
             return MeshBuilder.CreateIcoSphere(toolname, {
@@ -37,10 +42,26 @@ export async function buildMesh(type: ToolType, toolname: string, scene: Scene):
                 tessellation: detail.tesselation
             }, scene);
         case ToolType.PERSON:
-            const result = await SceneLoader.ImportMeshAsync(null, '/assets/models/', 'person.stl', DefaultScene.Scene);
-            result.meshes[0].id = toolname;
-            result.meshes[0].name = toolname;
-            return result.meshes[0] as Mesh;
+            // If not already loading, start loading and cache the promise
+            if (!personAssetContainerPromise) {
+                logger.debug('Loading person.stl for first time');
+                personAssetContainerPromise = LoadAssetContainerAsync(
+                    '/assets/models/person.stl',
+                    scene
+                );
+            }
+
+            // All concurrent calls await the same promise
+            const container = await personAssetContainerPromise;
+
+            // Create new instance using BabylonJS's built-in instantiation
+            const entries = container.instantiateModelsToScene();
+            const mesh = entries.rootNodes[0] as Mesh;
+            mesh.setParent(null);
+            mesh.id = toolname;
+            mesh.name = toolname;
+
+            return mesh;
         case ToolType.PLANE:
             return MeshBuilder.CreatePlane(toolname, {width: 1, height: 1}, scene);
 

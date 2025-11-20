@@ -4,6 +4,7 @@ import {DiagramObject} from "../../diagram/diagramObject";
 import log from "loglevel";
 import {vectoxys} from "../../diagram/functions/vectorConversion";
 import {DiagramEntityType} from "../../diagram/types/diagramEntity";
+import {DefaultScene} from "../../defaultScene";
 
 export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh, parent: AbstractMesh):
     DiagramObject {
@@ -28,7 +29,7 @@ export function grabAndClone(diagramManager: DiagramManager, mesh: AbstractMesh,
             type: DiagramEntityType.ENTITY
 
         }
-        const obj = new DiagramObject(parent.getScene(),
+        const obj = new DiagramObject(DefaultScene.Scene,
             diagramManager.onDiagramEventObservable,
             {
                 diagramEntity: entity,

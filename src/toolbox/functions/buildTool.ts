@@ -24,7 +24,7 @@ export async function buildTool(tool: ToolType, colorParent: AbstractMesh, mater
     }
 
 
-    const newItem = await buildMesh(tool, `tool-${id}`, colorParent.getScene());
+    const newItem = await buildMesh(tool, `tool-${id}`);
     if (!newItem) {
         return null;
     }
