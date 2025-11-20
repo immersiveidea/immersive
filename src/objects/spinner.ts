@@ -87,13 +87,9 @@ export class Spinner {
         const emitter = new SphereParticleEmitter(.2);
         emitter.radiusRange = .1;
         particleSystem.particleEmitterType = emitter;
-
         particleSystem.particleTexture = new Texture("/assets/textures/flare.png", this._scene);
-
-
         particleSystem.minEmitPower = .1;
         particleSystem.maxEmitPower = .25;
-
         particleSystem.minLifeTime = .1;
         particleSystem.maxLifeTime = .8;
         particleSystem.minSize = 0.01;

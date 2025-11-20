@@ -78,7 +78,7 @@ function createPlane(mat: Material, mesh: AbstractMesh, text: string, planeWidth
         // Calculate label position using world space bounding box
         // This ensures labels are positioned correctly regardless of mesh transforms
         mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
+        mesh.refreshBoundingInfo({});
 
         // Get the top of the bounding box in world space
         const top = mesh.getBoundingInfo().boundingBox.maximumWorld;

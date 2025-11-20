@@ -30,8 +30,7 @@ export async function checkVRCapability(): Promise<boolean> {
  */
 export function isMobileVRDevice(): boolean {
     const ua = navigator.userAgent;
-    return true;
-    //return /Quest|Oculus|Pico|VR/i.test(ua);
+    return /Quest|Oculus|Pico|VR/i.test(ua);
 }
 
 /**

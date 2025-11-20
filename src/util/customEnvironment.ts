@@ -1,7 +1,6 @@
 import {
     Color3,
     GroundMesh,
-    HemisphericLight,
     Material,
     MeshBuilder,
     Observable,
@@ -31,13 +30,7 @@ export class CustomEnvironment {
         this._logger.debug('CustomEnvironment constructor', config);
         this.scene = DefaultScene.Scene;
         this.name = name;
-
         this.scene.ambientColor = new Color3(.1, .1, .1);
-        // Light disabled for unlit rendering
-        // const light = new HemisphericLight("light1", new Vector3(.5, 1, 1).normalize(), this.scene);
-        // light.groundColor = new Color3(0, 0, 0);
-        // light.diffuse = new Color3(1, 1, 1);
-        // light.intensity = .8;
         const physics = new CustomPhysics(this.scene);
         physics
             .initializeAsync()
@@ -86,6 +79,7 @@ export class CustomEnvironment {
         this.createWall(new Vector3(10, 10, 0), new Vector3(0, Math.PI / 2, 0), color1, color2);
         this.createWall(new Vector3(-10, 10, 0), new Vector3(0, -Math.PI / 2, 0), color1, color2);
     }
+
     private createWall(position: Vector3, rotation: Vector3, color1: Color3, color2: Color3) {
         const scene = this.scene;
         const wall = MeshBuilder.CreatePlane("wall", {width: 20, height: 20}, scene);
@@ -143,20 +137,4 @@ function createGridMaterial(lineColor: Color3, mainColor: Color3): Material {
     material.mainColor = mainColor;
     material.lineColor = lineColor;
     return material;
-}
-
-function createGrassGround(scene: Scene): Material {
-    const groundMaterial = new PBRMaterial("groundMaterial", scene);
-    const gText = new Texture("/assets/textures/grass1.jpeg", scene);
-    gText.uScale = 10;
-    gText.vScale = 10;
-    groundMaterial.albedoTexture = gText;
-    groundMaterial.metallic = 0;
-    groundMaterial.roughness = 1;
-    const grassBump = new Texture("/assets/textures/grassnormal.png", scene);
-    grassBump.uScale = 20;
-    grassBump.vScale = 20;
-    groundMaterial.bumpTexture =
-        grassBump;
-    return groundMaterial;
 }

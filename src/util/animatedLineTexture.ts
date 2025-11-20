@@ -22,7 +22,7 @@ export class AnimatedLineTexture {
 
     public static Texture() {
         if (!AnimatedLineTexture._texture) {
-            this._texture = new Texture(createArrowSvg('#00ff00'), DefaultScene.Scene);
+            this._texture = new Texture(createArrowSvg('#ffffff'), DefaultScene.Scene);
             this._texture.name = 'connection-texture';
             this._texture.uScale = 30;
             this._animatedTextures.add(this._texture);
@@ -124,7 +124,7 @@ export class AnimatedLineTexture {
      * Use with caution - only call when no connections are using these textures
      */
     public static ClearCache(): void {
-        this._coloredTextureCache.forEach((texture, color) => {
+        this._coloredTextureCache.forEach((texture) => {
             this._animatedTextures.delete(texture);
             texture.dispose();
         });
