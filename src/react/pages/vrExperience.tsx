@@ -10,35 +10,56 @@ import {useNavigate, useParams} from "react-router-dom";
 import {useDisclosure} from "@mantine/hooks";
 import ConfigModal from "./configModal";
 import log from "loglevel";
-import {useIsFeatureEnabled, useUserTier} from "../hooks/useFeatures";
+import {useFeatureState, useUserTier} from "../hooks/useFeatures";
 import {useAuth0} from "@auth0/auth0-react";
 import {GUEST_MODE_BANNER} from "../../content/upgradeCopy";
 import {exportDiagramAsJSON} from "../../util/functions/exportDiagramAsJSON";
 import {isMobileVRDevice} from "../../util/deviceDetection";
 import {DefaultScene} from "../../defaultScene";
 import VREntryPrompt from "../components/VREntryPrompt";
+import ComingSoonBadge from "../components/ComingSoonBadge";
+import UpgradeBadge from "../components/UpgradeBadge";
 
 let vrApp: VrApp = null;
 
 const defaultCreate = window.localStorage.getItem('createOpened') === 'true';
 const defaultConfig = window.localStorage.getItem('configOpened') === 'true';
 const defaultManage = window.localStorage.getItem('manageOpened') === 'true';
+const defaultMenuOpened = window.localStorage.getItem('menuOpened') !== 'false'; // Default to true (open)
+
 export default function VrExperience() {
     const logger = log.getLogger('vrExperience');
     const params = useParams();
     const { isAuthenticated, loginWithRedirect } = useAuth0();
     const [guestBannerDismissed, setGuestBannerDismissed] = useState(false);
+    const [menuOpened, setMenuOpened] = useState(defaultMenuOpened);
 
-    // Feature flags
-    const createDiagramEnabled = useIsFeatureEnabled('createDiagram');
-    const createFromTemplateEnabled = useIsFeatureEnabled('createFromTemplate');
-    const manageDiagramsEnabled = useIsFeatureEnabled('manageDiagrams');
-    const shareCollaborateEnabled = useIsFeatureEnabled('shareCollaborate');
-    const editDataEnabled = useIsFeatureEnabled('editData');
-    const configEnabled = useIsFeatureEnabled('config');
-    const enterImmersiveEnabled = useIsFeatureEnabled('enterImmersive');
-    const launchMetaQuestEnabled = useIsFeatureEnabled('launchMetaQuest');
+    // Feature flags - get states instead of just enabled boolean
+    const createDiagramState = useFeatureState('createDiagram');
+    const createFromTemplateState = useFeatureState('createFromTemplate');
+    const manageDiagramsState = useFeatureState('manageDiagrams');
+    const shareCollaborateState = useFeatureState('shareCollaborate');
+    const editDataState = useFeatureState('editData');
+    const configState = useFeatureState('config');
+    const enterImmersiveState = useFeatureState('enterImmersive');
+    const launchMetaQuestState = useFeatureState('launchMetaQuest');
     const userTier = useUserTier();
+
+    // Helper to check if feature should be shown (not 'off')
+    const shouldShow = (state) => state !== 'off';
+    const isEnabled = (state) => state === 'on';
+
+    // Get the appropriate click handler based on feature state
+    const getClickHandler = (state, enabledHandler) => {
+        if (state === 'on') {
+            return enabledHandler; // Feature is enabled, use the normal handler
+        }
+        if (state === 'basic') {
+            return handleSignUp; // Feature requires sign up, trigger auth
+        }
+        // For 'coming-soon', 'pro', or other states, no click handler
+        return null;
+    };
 
     const handleSignUp = () => {
         loginWithRedirect({
@@ -59,6 +80,12 @@ export default function VrExperience() {
         logger.debug('saving', key, value)
         window.localStorage.setItem(key, value ? 'true' : 'false');
     }
+
+    const toggleMenu = () => {
+        const newState = !menuOpened;
+        setMenuOpened(newState);
+        window.localStorage.setItem('menuOpened', newState ? 'true' : 'false');
+    };
     const [createOpened, {open: openCreate, close: closeCreate}] =
         useDisclosure(defaultCreate,
             {
@@ -140,21 +167,27 @@ export default function VrExperience() {
     const [immersiveDisabled, setImmersiveDisabled] = useState(true);
     const navigate = useNavigate();
 
-    // Tier indicator functions - now using the actual user tier
-    const getTierIndicator = (requiredTier: 'free' | 'basic' | 'pro') => {
-        if (requiredTier === 'free' || userTier === requiredTier ||
-            (userTier === 'pro' && (requiredTier === 'basic' || requiredTier === 'free')) ||
-            (userTier === 'basic' && requiredTier === 'free')) {
-            return null; // User has access, no indicator needed
+    // Get the appropriate indicator for a feature based on its state
+    const getFeatureIndicator = (featureState) => {
+        // 'off' - don't show at all (handled by shouldShow)
+        // 'on' - no badge needed, feature is fully accessible
+        // 'coming-soon' - show Coming Soon badge (visible to all)
+        // 'basic' - show Sign Up badge (requires basic tier) - clickable to sign up
+        // 'pro' - show Upgrade to Pro badge (requires pro tier)
+
+        if (featureState === 'coming-soon') {
+            return <ComingSoonBadge size="xs" />;
         }
 
-        // Show tier requirement
-        if (requiredTier === 'basic') {
-            return <Group w={50}>Basic</Group>;
+        if (featureState === 'basic') {
+            return <UpgradeBadge size="xs" tier="basic" onClick={handleSignUp} />;
         }
-        if (requiredTier === 'pro') {
-            return <Group w={50}>Pro!<IconStar size={11}/></Group>;
+
+        if (featureState === 'pro') {
+            return <UpgradeBadge size="xs" tier="pro" />;
         }
+
+        // 'on' state - no indicator needed
         return null;
     }
 
@@ -214,9 +247,9 @@ export default function VrExperience() {
             {createModal()}
             {manageModal()}
             <Affix position={{top: 30, left: 60}}>
-                <Menu trigger="hover" openDelay={50} closeDelay={400}>
+                <Menu opened={menuOpened} onChange={setMenuOpened}>
                     <Menu.Target>
-                        <Burger size="xl"/>
+                        <Burger opened={menuOpened} onClick={toggleMenu} size="xl"/>
                     </Menu.Target>
                     <Menu.Dropdown>
                         {/* Home is always visible */}
@@ -228,59 +261,59 @@ export default function VrExperience() {
                             label="Home"
                             availableIcon={null}/>
 
-                        {enterImmersiveEnabled && (
+                        {shouldShow(enterImmersiveState) && (
                             <VrMenuItem
                                 tip={immersiveDisabled ? "Browser does not support WebXR. Immersive experience best viewed with Meta Quest headset" : "Enter Immersive Mode"}
-                                onClick={enterImmersive}
+                                onClick={getClickHandler(enterImmersiveState, enterImmersive)}
                                 label="Enter Immersive Mode"
-                                availableIcon={getTierIndicator('free')}/>
+                                availableIcon={getFeatureIndicator(enterImmersiveState)}/>
                         )}
 
-                        {launchMetaQuestEnabled && (
+                        {shouldShow(launchMetaQuestState) && (
                             <VrMenuItem
                                 tip="Open a new window and automatically send experience to your Meta Quest headset"
-                                onClick={() => {
+                                onClick={getClickHandler(launchMetaQuestState, () => {
                                     window.open('https://www.oculus.com/open_url/?url=' + window.location.href, 'launchQuest', 'popup')
-                                }}
+                                })}
                                 label="Launch On Meta Quest"
-                                availableIcon={getTierIndicator('free')}/>
+                                availableIcon={getFeatureIndicator(launchMetaQuestState)}/>
                         )}
 
-                        {editDataEnabled && (
+                        {shouldShow(editDataState) && (
                             <>
                                 <Menu.Divider/>
                                 <VrMenuItem
                                     tip="Edit data on desktop (Best for large amounts of text or images).  After adding data, you can enter immersive mode to further refine the model."
                                     label="Edit Data"
-                                    onClick={null}
-                                    availableIcon={getTierIndicator('free')}/>
+                                    onClick={getClickHandler(editDataState, null)}
+                                    availableIcon={getFeatureIndicator(editDataState)}/>
                             </>
                         )}
 
-                        {(createDiagramEnabled || createFromTemplateEnabled || manageDiagramsEnabled) && <Menu.Divider/>}
+                        {(shouldShow(createDiagramState) || shouldShow(createFromTemplateState) || shouldShow(manageDiagramsState)) && <Menu.Divider/>}
 
-                        {createDiagramEnabled && (
+                        {shouldShow(createDiagramState) && (
                             <VrMenuItem
                                 tip="Create a new diagram from scratch"
                                 label="Create"
-                                onClick={openCreate}
-                                availableIcon={getTierIndicator('free')}/>
+                                onClick={getClickHandler(createDiagramState, openCreate)}
+                                availableIcon={getFeatureIndicator(createDiagramState)}/>
                         )}
 
-                        {createFromTemplateEnabled && (
+                        {shouldShow(createFromTemplateState) && (
                             <VrMenuItem
                                 tip="Create a new diagram from predefined template"
                                 label="Create From Template"
-                                onClick={null}
-                                availableIcon={getTierIndicator('basic')}/>
+                                onClick={getClickHandler(createFromTemplateState, null)}
+                                availableIcon={getFeatureIndicator(createFromTemplateState)}/>
                         )}
 
-                        {manageDiagramsEnabled && (
+                        {shouldShow(manageDiagramsState) && (
                             <VrMenuItem
                                 tip="Manage Diagrams"
                                 label="Manage"
-                                onClick={openManage}
-                                availableIcon={getTierIndicator('free')}/>
+                                onClick={getClickHandler(manageDiagramsState, openManage)}
+                                availableIcon={getFeatureIndicator(manageDiagramsState)}/>
                         )}
 
                         {/* Export JSON - Always available for creating templates */}
@@ -290,22 +323,22 @@ export default function VrExperience() {
                             onClick={handleExportJSON}
                             availableIcon={null}/>
 
-                        {(shareCollaborateEnabled || configEnabled) && <Menu.Divider/>}
+                        {(shouldShow(shareCollaborateState) || shouldShow(configState)) && <Menu.Divider/>}
 
-                        {shareCollaborateEnabled && (
+                        {shouldShow(shareCollaborateState) && (
                             <VrMenuItem
                                 tip="Share your model with others and collaborate in real time with others.  This is a paid feature."
                                 label="Share"
-                                onClick={null}
-                                availableIcon={getTierIndicator('pro')}/>
+                                onClick={getClickHandler(shareCollaborateState, null)}
+                                availableIcon={getFeatureIndicator(shareCollaborateState)}/>
                         )}
 
-                        {configEnabled && (
+                        {shouldShow(configState) && (
                             <VrMenuItem
                                 tip="Configure settings for your VR experience"
                                 label="Config"
-                                onClick={openConfig}
-                                availableIcon={getTierIndicator('free')}/>
+                                onClick={getClickHandler(configState, openConfig)}
+                                availableIcon={getFeatureIndicator(configState)}/>
                         )}
                     </Menu.Dropdown>
                 </Menu>

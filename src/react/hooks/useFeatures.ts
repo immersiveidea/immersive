@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { FeatureContext } from '../contexts/FeatureContext';
-import { FeatureFlags, PageFlags, LimitFlags } from '../../util/featureConfig';
+import { FeatureFlags, FeatureState, LimitFlags, PageFlags } from '../../util/featureConfig';
 
 /**
  * Hook to access the full feature configuration context
@@ -16,19 +16,27 @@ export function useFeatures() {
 }
 
 /**
- * Hook to check if a specific page is enabled
+ * Hook to get the state of a specific page
  */
-export function useIsPageEnabled(page: keyof PageFlags): boolean {
+export function usePageState(page: keyof PageFlags): FeatureState {
     const { config } = useFeatures();
     return config.pages[page];
 }
 
 /**
- * Hook to check if a specific feature is enabled
+ * Hook to get the state of a specific feature
  */
-export function useIsFeatureEnabled(feature: keyof FeatureFlags): boolean {
+export function useFeatureState(feature: keyof FeatureFlags): FeatureState {
     const { config } = useFeatures();
     return config.features[feature];
+}
+
+/**
+ * Hook to check if a specific page is enabled (on)
+ */
+export function useIsPageEnabled(page: keyof PageFlags): boolean {
+    const { config } = useFeatures();
+    return config.pages[page] === 'on';
 }
 
 /**

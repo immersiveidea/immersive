@@ -1,7 +1,7 @@
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { FeatureContext } from './FeatureContext';
-import { FeatureConfig, DEFAULT_FEATURE_CONFIG, GUEST_FEATURE_CONFIG } from '../../util/featureConfig';
+import { FeatureConfig, DEFAULT_FEATURE_CONFIG } from '../../util/featureConfig';
 import log from 'loglevel';
 
 const logger = log.getLogger('FeatureProvider');
@@ -31,7 +31,7 @@ async function fetchFeatureConfig(accessToken: string | undefined): Promise<Feat
 
         if (!response.ok) {
             if (response.status === 401 || response.status === 403) {
-                logger.info('User not authenticated or not authorized, using default config');
+                logger.info('User not authenticated or not authorized, using default (guest) config');
                 return DEFAULT_FEATURE_CONFIG;
             }
             throw new Error(`Failed to fetch feature config: ${response.status} ${response.statusText}`);
@@ -48,7 +48,7 @@ async function fetchFeatureConfig(accessToken: string | undefined): Promise<Feat
 
 export function FeatureProvider({ children }: FeatureProviderProps) {
     const { isAuthenticated, isLoading: authLoading, getAccessTokenSilently } = useAuth0();
-    const [config, setConfig] = useState<FeatureConfig>(GUEST_FEATURE_CONFIG); // Start with guest config
+    const [config, setConfig] = useState<FeatureConfig>(DEFAULT_FEATURE_CONFIG); // Start with default (guest) config
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
@@ -67,10 +67,10 @@ export function FeatureProvider({ children }: FeatureProviderProps) {
                 }
             }
 
-            // If not authenticated, use guest config
+            // If not authenticated, use default (guest) config
             if (!isAuthenticated) {
-                logger.info('User not authenticated, using guest config');
-                setConfig(GUEST_FEATURE_CONFIG);
+                logger.info('User not authenticated, using default (guest) config');
+                setConfig(DEFAULT_FEATURE_CONFIG);
                 setIsLoading(false);
                 return;
             }
@@ -80,9 +80,9 @@ export function FeatureProvider({ children }: FeatureProviderProps) {
         } catch (err) {
             const error = err instanceof Error ? err : new Error('Unknown error fetching features');
             setError(error);
-            // On error, fallback to guest config for better UX
-            logger.warn('Error loading features, falling back to guest config');
-            setConfig(GUEST_FEATURE_CONFIG);
+            // On error, fallback to default (guest) config for better UX
+            logger.warn('Error loading features, falling back to default (guest) config');
+            setConfig(DEFAULT_FEATURE_CONFIG);
         } finally {
             setIsLoading(false);
         }

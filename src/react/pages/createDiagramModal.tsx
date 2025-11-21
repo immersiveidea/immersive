@@ -3,16 +3,30 @@ import {usePouch} from "use-pouchdb";
 import {useState} from "react";
 import {v4} from "uuid";
 import log from "loglevel";
-import {useIsFeatureEnabled} from "../hooks/useFeatures";
+import {useFeatureState} from "../hooks/useFeatures";
+import ComingSoonBadge from "../components/ComingSoonBadge";
+import UpgradeBadge from "../components/UpgradeBadge";
+import {useAuth0} from "@auth0/auth0-react";
 
 export default function CreateDiagramModal({createOpened, closeCreate}) {
     const logger = log.getLogger('createDiagramModal');
     const db = usePouch();
+    const { loginWithRedirect } = useAuth0();
 
     // Feature flags
-    const privateDesignsEnabled = useIsFeatureEnabled('privateDesigns');
-    const encryptedDesignsEnabled = useIsFeatureEnabled('encryptedDesigns');
-    const shareCollaborateEnabled = useIsFeatureEnabled('shareCollaborate');
+    const privateDesignsState = useFeatureState('privateDesigns');
+    const encryptedDesignsState = useFeatureState('encryptedDesigns');
+    const shareCollaborateState = useFeatureState('shareCollaborate');
+
+    const privateDesignsEnabled = privateDesignsState === 'on';
+    const encryptedDesignsEnabled = encryptedDesignsState === 'on';
+    const shareCollaborateEnabled = shareCollaborateState === 'on';
+
+    const handleSignUp = () => {
+        loginWithRedirect({
+            appState: { returnTo: window.location.pathname }
+        });
+    };
 
     const [diagram, setDiagram] = useState({
         name: '',
@@ -68,10 +82,16 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
                               label="Private"
                               checked={diagram.private}
                               onChange={(e) => {
-                                  setDiagram({...diagram, private: e.currentTarget.checked})
+                                  if (privateDesignsState === 'basic') {
+                                      handleSignUp();
+                                  } else {
+                                      setDiagram({...diagram, private: e.currentTarget.checked})
+                                  }
                               }}
-                              disabled={!privateDesignsEnabled}/>
-                    {!privateDesignsEnabled && <Pill>Basic</Pill>}
+                              disabled={!privateDesignsEnabled && privateDesignsState !== 'basic'}/>
+                    {privateDesignsState === 'coming-soon' && <ComingSoonBadge />}
+                    {privateDesignsState === 'basic' && <UpgradeBadge tier="basic" onClick={handleSignUp} />}
+                    {privateDesignsState === 'pro' && <UpgradeBadge tier="pro" />}
                 </Group>
                 <Group>
                     <Checkbox w={250}
@@ -79,10 +99,16 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
                               label="Encrypted"
                               checked={diagram.encrypted}
                               onChange={(e) => {
-                                  setDiagram({...diagram, encrypted: e.currentTarget.checked})
+                                  if (encryptedDesignsState === 'basic') {
+                                      handleSignUp();
+                                  } else {
+                                      setDiagram({...diagram, encrypted: e.currentTarget.checked})
+                                  }
                               }}
-                              disabled={!encryptedDesignsEnabled}/>
-                    {!encryptedDesignsEnabled && <Pill>Pro</Pill>}
+                              disabled={!encryptedDesignsEnabled && encryptedDesignsState !== 'basic'}/>
+                    {encryptedDesignsState === 'coming-soon' && <ComingSoonBadge />}
+                    {encryptedDesignsState === 'basic' && <UpgradeBadge tier="basic" onClick={handleSignUp} />}
+                    {encryptedDesignsState === 'pro' && <UpgradeBadge tier="pro" />}
                 </Group>
                 <Group>
                     <Checkbox w={250}
@@ -90,10 +116,16 @@ export default function CreateDiagramModal({createOpened, closeCreate}) {
                               label="Invite Collaborators"
                               checked={diagram.invite}
                               onChange={(e) => {
-                                  setDiagram({...diagram, invite: e.currentTarget.checked})
+                                  if (shareCollaborateState === 'basic') {
+                                      handleSignUp();
+                                  } else {
+                                      setDiagram({...diagram, invite: e.currentTarget.checked})
+                                  }
                               }}
-                              disabled={!shareCollaborateEnabled}/>
-                    {!shareCollaborateEnabled && <Pill>Pro</Pill>}
+                              disabled={!shareCollaborateEnabled && shareCollaborateState !== 'basic'}/>
+                    {shareCollaborateState === 'coming-soon' && <ComingSoonBadge />}
+                    {shareCollaborateState === 'basic' && <UpgradeBadge tier="basic" onClick={handleSignUp} />}
+                    {shareCollaborateState === 'pro' && <UpgradeBadge tier="pro" />}
                 </Group>
                 <Group>
                     <Button key="create" onClick={createDiagram}>Create</Button>

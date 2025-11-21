@@ -108,7 +108,7 @@ export default class VrApp {
     private setMainCamera(scene: Scene) {
         const CAMERA_NAME = 'Main Camera';
         const camera: FreeCamera = new FreeCamera(CAMERA_NAME,
-            new Vector3(0, 1.6, 0), scene);
+            new Vector3(0, 1.6, -5), scene);  // Match VR rig Z position to prevent flip
         scene.setActiveCameraByName(CAMERA_NAME);
 
         /* if (!this._mobileCamera) {

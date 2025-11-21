@@ -2,14 +2,15 @@ import {Anchor, AppShell, Box, Burger, Button, Group, Image, Menu, Stack} from "
 import React from "react";
 import {Link} from "react-router-dom";
 import {useAuth0} from "@auth0/auth0-react";
-import {useIsPageEnabled} from "./hooks/useFeatures";
+import {usePageState} from "./hooks/useFeatures";
+import ComingSoonBadge from "./components/ComingSoonBadge";
 
 export default function PageHeader() {
     const {user, isAuthenticated, loginWithRedirect, logout} = useAuth0();
-    const examplesEnabled = useIsPageEnabled('examples');
-    const documentationEnabled = useIsPageEnabled('documentation');
-    const pricingEnabled = useIsPageEnabled('pricing');
-    const vrExperienceEnabled = useIsPageEnabled('vrExperience');
+    const examplesState = usePageState('examples');
+    const documentationState = usePageState('documentation');
+    const pricingState = usePageState('pricing');
+    const vrExperienceState = usePageState('vrExperience');
 
     const picture = () => {
         if (user.picture) {
@@ -29,32 +30,69 @@ export default function PageHeader() {
         }
     }
 
-    // Define all possible menu items
+    // Define all possible menu items with their states
     const allItems = [
-        {name: 'Examples', href: '/examples', key: 'examples', enabled: examplesEnabled},
-        {name: 'About', href: '/', key: 'about', enabled: true}, // About (home) is always visible
-        {name: 'Documentation', href: '/documentation', key: 'documentation', enabled: documentationEnabled},
-        {name: 'Pricing', href: '/pricing', key: 'pricing', enabled: pricingEnabled},
-        {name: 'VR Experience', href: '/db/public/local', key: 'vrexperience', enabled: vrExperienceEnabled}
+        {name: 'Examples', href: '/examples', key: 'examples', state: examplesState},
+        {name: 'About', href: '/', key: 'about', state: 'on' as const}, // About (home) is always visible
+        {name: 'Documentation', href: '/documentation', key: 'documentation', state: documentationState},
+        {name: 'Pricing', href: '/pricing', key: 'pricing', state: pricingState},
+        {name: 'VR Experience', href: '/db/public/local', key: 'vrexperience', state: vrExperienceState}
     ];
 
-    // Filter to only enabled items
-    const items = allItems.filter(item => item.enabled)
+    // Filter to only 'on' and 'coming-soon' items (hide 'off' items)
+    const items = allItems.filter(item => item.state !== 'off')
     const mainMenu = function () {
         return items.map((item) => {
+            const isComingSoon = item.state === 'coming-soon';
             return (
-                <Anchor component={Link} key={item.key} to={item.href} p={5} c="myColor" bg="none"
-                        underline="hover">{item.name}</Anchor>
+                <Group key={item.key} gap="xs">
+                    <Anchor
+                        component={isComingSoon ? 'span' : Link}
+                        to={isComingSoon ? undefined : item.href}
+                        p={5}
+                        c={isComingSoon ? 'dimmed' : 'myColor'}
+                        bg="none"
+                        underline="hover"
+                        style={{
+                            cursor: isComingSoon ? 'not-allowed' : 'pointer',
+                            pointerEvents: isComingSoon ? 'none' : 'auto'
+                        }}
+                    >
+                        {item.name}
+                    </Anchor>
+                    {isComingSoon && <ComingSoonBadge size="xs" />}
+
+                </Group>
             )
         })
     }
     const miniMenu = function () {
         return items.map((item) => {
+            const isComingSoon = item.state === 'coming-soon';
             return (
-                <Menu.Item><Anchor size="xl" component={Link} key={item.key}
-                                   to={item.href} p={5}
-                                   c="myColor" bg="none"
-                                   underline="hover">{item.name}</Anchor></Menu.Item>
+                <Menu.Item
+                    key={item.key}
+                    disabled={isComingSoon}
+                >
+                    <Group gap="xs">
+                        <Anchor
+                            size="xl"
+                            component={isComingSoon ? 'span' : Link}
+                            to={isComingSoon ? undefined : item.href}
+                            p={5}
+                            c={isComingSoon ? 'dimmed' : 'myColor'}
+                            bg="none"
+                            underline="hover"
+                            style={{
+                                cursor: isComingSoon ? 'not-allowed' : 'pointer',
+                                pointerEvents: isComingSoon ? 'none' : 'auto'
+                            }}
+                        >
+                            {item.name}
+                        </Anchor>
+                        {isComingSoon && <ComingSoonBadge size="xs" />}
+                    </Group>
+                </Menu.Item>
             )
         })
     }
