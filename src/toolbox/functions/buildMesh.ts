@@ -1,5 +1,5 @@
 import {ToolType} from "../types/toolType";
-import {AssetContainer, LoadAssetContainerAsync, Mesh, MeshBuilder, SceneLoader} from "@babylonjs/core";
+import {AssetContainer, LoadAssetContainerAsync, Mesh, MeshBuilder} from "@babylonjs/core";
 import {DefaultScene} from "../../defaultScene";
 import log from "loglevel";
 
@@ -11,7 +11,7 @@ const detail = {
 // Cache the loading promise to prevent multiple fetches and handle concurrent requests
 let personAssetContainerPromise: Promise<AssetContainer> | null = null;
 export async function buildMesh(type: ToolType, toolname: string): Promise<Mesh> {
-    const logger = log.getLogger('buldMesh');
+    const logger = log.getLogger('buildMesh');
     const scene = DefaultScene.Scene;
     switch (type) {
         case ToolType.BOX:
@@ -57,6 +57,10 @@ export async function buildMesh(type: ToolType, toolname: string): Promise<Mesh>
             // Create new instance using BabylonJS's built-in instantiation
             const entries = container.instantiateModelsToScene();
             const mesh = entries.rootNodes[0] as Mesh;
+            if (!mesh) {
+                logger.error('error loading mesh');
+                return MeshBuilder.CreateBox(toolname, {width: 1, height: 1, depth: 1});
+            }
             mesh.setParent(null);
             mesh.id = toolname;
             mesh.name = toolname;

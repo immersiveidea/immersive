@@ -15,6 +15,7 @@ import {DefaultScene} from "../../defaultScene";
 export function buildRig(xr: WebXRDefaultExperience): Mesh {
     const scene = DefaultScene.Scene;
     const rigMesh = MeshBuilder.CreateCylinder("platform", {diameter: .5, height: .01}, scene);
+    rigMesh.setAbsolutePosition(new Vector3(0, .01, 5));
     const cameratransform = new TransformNode("cameraTransform", scene);
     cameratransform.parent = rigMesh;
     xr.baseExperience.onInitialXRPoseSetObservable.add(() => {
@@ -31,7 +32,7 @@ export function buildRig(xr: WebXRDefaultExperience): Mesh {
         }
     });
 
-    rigMesh.setAbsolutePosition(new Vector3(0, .01, 5));
+
     rigMesh.isPickable = false;
     const axis = new AxesViewer(scene, .25);
     axis.zAxis.rotation.y = Math.PI;
