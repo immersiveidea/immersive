@@ -1,8 +1,10 @@
 /// <reference types="vitest" />
-import {defineConfig} from "vite";
+import {defineConfig, loadEnv} from "vite";
 
 /** @type {import('vite').UserConfig} */
-export default defineConfig({
+export default defineConfig(({mode}) => {
+    const env = loadEnv(mode, process.cwd(), '');
+    return {
     test: {},
     define: {},
     build: {
@@ -23,6 +25,7 @@ export default defineConfig({
         }
     },
     server: {
+        allowedHosts: true,
         port: 3001,
         proxy: {
             '^/sync/.*': {
@@ -36,6 +39,22 @@ export default defineConfig({
             '^/api/images': {
                 target: 'https://www.deepdiagram.com/',
                 changeOrigin: true,
+            },
+            '^/api/claude': {
+                target: 'https://api.anthropic.com',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api\/claude/, ''),
+                configure: (proxy) => {
+                    proxy.on('proxyReq', (proxyReq) => {
+
+                        const apiKey = env.ANTHROPIC_API_KEY;
+                        console.log(` API KEY: ${apiKey}`);
+                        if (apiKey) {
+                            proxyReq.setHeader('x-api-key', apiKey);
+                            proxyReq.setHeader('anthropic-version', '2023-06-01');
+                        }
+                    });
+                }
             }
         }
 
@@ -54,9 +73,24 @@ export default defineConfig({
             '^/api/images': {
                 target: 'https://www.deepdiagram.com/',
                 changeOrigin: true,
+            },
+            '^/api/claude': {
+                target: 'https://api.anthropic.com',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api\/claude/, ''),
+                configure: (proxy) => {
+                    proxy.on('proxyReq', (proxyReq) => {
+                        const apiKey = env.ANTHROPIC_API_KEY;
+                        console.log(` API KEY: ${apiKey}`);
+                        if (apiKey) {
+                            proxyReq.setHeader('x-api-key', apiKey);
+                            proxyReq.setHeader('anthropic-version', '2023-06-01');
+                        }
+                    });
+                }
             }
         }
     },
     base: "/"
-
-})
+    };
+});

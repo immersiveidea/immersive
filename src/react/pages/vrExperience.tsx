@@ -2,7 +2,7 @@ import VrApp from '../../vrApp';
 import React, {useEffect, useState} from "react";
 import {Affix, Burger, Group, Menu, Alert, Button, Text} from "@mantine/core";
 import VrTemplate from "../vrTemplate";
-import {IconStar, IconInfoCircle} from "@tabler/icons-react";
+import {IconStar, IconInfoCircle, IconMessageCircle} from "@tabler/icons-react";
 import VrMenuItem from "../components/vrMenuItem";
 import CreateDiagramModal from "./createDiagramModal";
 import ManageDiagramsModal from "./manageDiagramsModal";
@@ -19,6 +19,7 @@ import {DefaultScene} from "../../defaultScene";
 import VREntryPrompt from "../components/VREntryPrompt";
 import ComingSoonBadge from "../components/ComingSoonBadge";
 import UpgradeBadge from "../components/UpgradeBadge";
+import ChatPanel from "../components/ChatPanel";
 
 let vrApp: VrApp = null;
 
@@ -118,6 +119,7 @@ export default function VrExperience() {
     const [rerender, setRerender] = useState(0);
     const [dbName, setDbName] = useState(params.db);
     const [showVRPrompt, setShowVRPrompt] = useState(false);
+    const [chatOpen, setChatOpen] = useState(!isMobileVRDevice()); // Show chat by default on desktop
 
     useEffect(() => {
         const canvas = document.getElementById('vrCanvas');
@@ -340,10 +342,30 @@ export default function VrExperience() {
                                 onClick={getClickHandler(configState, openConfig)}
                                 availableIcon={getFeatureIndicator(configState)}/>
                         )}
+
+                        <Menu.Divider/>
+                        <VrMenuItem
+                            tip="Toggle AI chat assistant for creating entities"
+                            label={chatOpen ? "Hide Chat" : "Show Chat"}
+                            onClick={() => setChatOpen(!chatOpen)}
+                            availableIcon={<IconMessageCircle size={16}/>}/>
                     </Menu.Dropdown>
                 </Menu>
             </Affix>
-            <canvas id="vrCanvas" style={{zIndex: 1000, width: '100%', height: '100vh'}}/>
+
+            <div style={{display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden'}}>
+                <div style={{flex: 1, position: 'relative', minWidth: 0}}>
+                    <canvas id="vrCanvas" style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        zIndex: 1000
+                    }}/>
+                </div>
+                {chatOpen && <ChatPanel onClose={() => setChatOpen(false)}/>}
+            </div>
 
             {/* VR Entry Prompt - Rendered AFTER canvas to ensure it's on top in DOM order */}
             <VREntryPrompt

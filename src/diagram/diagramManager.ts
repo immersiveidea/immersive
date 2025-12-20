@@ -102,6 +102,74 @@ export class DiagramManager {
             }
 
         });
+
+        // Chat event listeners for AI-powered diagram creation
+        document.addEventListener('chatCreateEntity', (event: CustomEvent) => {
+            const {entity} = event.detail;
+            this._logger.debug('chatCreateEntity', entity);
+            const object = new DiagramObject(this._scene, this.onDiagramEventObservable, {
+                diagramEntity: entity,
+                actionManager: this._diagramEntityActionManager
+            });
+            this._diagramObjects.set(entity.id, object);
+            this.onDiagramEventObservable.notifyObservers({
+                type: DiagramEventType.ADD,
+                entity: entity
+            }, DiagramEventObserverMask.TO_DB);
+        });
+
+        document.addEventListener('chatRemoveEntity', (event: CustomEvent) => {
+            const {target} = event.detail;
+            this._logger.debug('chatRemoveEntity', target);
+            const entity = this.findEntityByIdOrLabel(target);
+            if (entity) {
+                const diagramObject = this._diagramObjects.get(entity.id);
+                if (diagramObject) {
+                    diagramObject.dispose();
+                    this._diagramObjects.delete(entity.id);
+                    this.onDiagramEventObservable.notifyObservers({
+                        type: DiagramEventType.REMOVE,
+                        entity: entity
+                    }, DiagramEventObserverMask.TO_DB);
+                }
+            }
+        });
+
+        document.addEventListener('chatModifyEntity', (event: CustomEvent) => {
+            const {target, updates} = event.detail;
+            this._logger.debug('chatModifyEntity', target, updates);
+            const entity = this.findEntityByIdOrLabel(target);
+            if (entity) {
+                const diagramObject = this._diagramObjects.get(entity.id);
+                if (diagramObject) {
+                    if (updates.text !== undefined) {
+                        diagramObject.text = updates.text;
+                    }
+                    // Note: color and position updates would require additional DiagramObject methods
+                    const updatedEntity = {...entity, ...updates};
+                    this.onDiagramEventObservable.notifyObservers({
+                        type: DiagramEventType.MODIFY,
+                        entity: updatedEntity
+                    }, DiagramEventObserverMask.TO_DB);
+                }
+            }
+        });
+
+        document.addEventListener('chatListEntities', () => {
+            this._logger.debug('chatListEntities');
+            const entities = Array.from(this._diagramObjects.values()).map(obj => ({
+                id: obj.diagramEntity.id,
+                template: obj.diagramEntity.template,
+                text: obj.diagramEntity.text || '',
+                position: obj.diagramEntity.position
+            }));
+            const responseEvent = new CustomEvent('chatListEntitiesResponse', {
+                detail: {entities},
+                bubbles: true
+            });
+            document.dispatchEvent(responseEvent);
+        });
+
         this._logger.debug("DiagramManager constructed");
     }
 
@@ -135,6 +203,21 @@ export class DiagramManager {
         return appConfigInstance;
     }
 
+    private findEntityByIdOrLabel(target: string): DiagramEntity | null {
+        // First try direct ID match
+        const byId = this._diagramObjects.get(target);
+        if (byId) {
+            return byId.diagramEntity;
+        }
+        // Then try label match (case-insensitive)
+        const targetLower = target.toLowerCase();
+        for (const [, obj] of this._diagramObjects) {
+            if (obj.diagramEntity.text?.toLowerCase() === targetLower) {
+                return obj.diagramEntity;
+            }
+        }
+        return null;
+    }
 
     private onDiagramEvent(event: DiagramEvent) {
         let diagramObject = this._diagramObjects.get(event?.entity?.id);
